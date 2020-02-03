@@ -3,6 +3,10 @@ use std::ops::Div;
 use std::ops::Mul;
 use std::ops::Neg;
 use std::ops::Sub;
+#[macro_use]
+extern crate approx;
+
+// TODO: reimplement everything using geometric algebra for funsies?
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 struct Tuple {
@@ -12,6 +16,7 @@ struct Tuple {
     w: i8,
 }
 
+// TODO: implement approximate comparison via approx crate
 impl Tuple {
     fn is_vector(&self) -> bool {
         self.w == 0
@@ -25,6 +30,28 @@ impl Tuple {
         // }
         // TODO: book says w is included.
         return (self.x.powi(2) + self.y.powi(2) + self.z.powi(2) + (self.w as f32).powi(2)).sqrt();
+    }
+    fn norm(&self) -> Tuple {
+        //TODO: should only take vectors, not tuples
+        let magnitude = self.magnitude();
+        Tuple {
+            x: self.x / magnitude,
+            y: self.y / magnitude,
+            z: self.z / magnitude,
+            w: self.w,
+        }
+    }
+    fn dot(&self, other: Tuple) -> f32 {
+        self.x * other.x + self.y * other.y + self.z * other.z + (self.w * other.w) as f32
+    }
+    fn cross(&self, other: Tuple) -> Tuple {
+        Tuple {
+            x: self.y * other.z - self.z * other.y,
+            y: self.z * other.x - self.x * other.z,
+            z: self.x * other.y - self.y * other.x,
+            // result is also a vector
+            w: 0,
+        }
     }
 }
 
@@ -42,12 +69,12 @@ fn build_tuple(x: f32, y: f32, z: f32, w: i8) -> Result<Tuple, Box<dyn (::std::e
     }
 }
 
-fn point(x: f32, y: f32, z: f32) -> Result<Tuple, Box<dyn (::std::error::Error)>> {
-    build_tuple(x, y, z, 1)
+fn point(x: f32, y: f32, z: f32) -> Tuple {
+    build_tuple(x, y, z, 1).unwrap() // should never fail
 }
 
-fn vector(x: f32, y: f32, z: f32) -> Result<Tuple, Box<dyn (::std::error::Error)>> {
-    build_tuple(x, y, z, 0)
+fn vector(x: f32, y: f32, z: f32) -> Tuple {
+    build_tuple(x, y, z, 0).unwrap() // should never fail
 }
 
 impl Add for Tuple {
@@ -128,7 +155,9 @@ impl Neg for Tuple {
 
 #[cfg(test)]
 mod tests {
+    // #[macro_use]
     use super::*;
+    // use approx::*;
     #[test]
     fn test_build_checks_arguments() -> () {
         let bad_tup_1 = build_tuple(0.0, 0.0, 0.0, -1);
@@ -192,13 +221,13 @@ mod tests {
     fn test_point_creates_tuple_with_w_equal_1() -> () {
         let p = point(1.1, 2.2, 3.3);
         assert_eq!(
-            p.ok(),
-            Some(Tuple {
+            p,
+            Tuple {
                 x: 1.1,
                 y: 2.2,
                 z: 3.3,
                 w: 1
-            })
+            }
         );
     }
 
@@ -206,13 +235,13 @@ mod tests {
     fn test_vector_creates_tuple_with_w_equal_0() -> () {
         let v = vector(1.1, 2.2, 3.3);
         assert_eq!(
-            v.ok(),
-            Some(Tuple {
+            v,
+            Tuple {
                 x: 1.1,
                 y: 2.2,
                 z: 3.3,
                 w: 0
-            })
+            }
         );
     }
 
@@ -244,29 +273,29 @@ mod tests {
 
     #[test]
     fn test_subtract_points() {
-        let p1 = point(1.0, 2.0, 3.0).unwrap();
-        let p2 = point(4.0, 5.0, 6.0).unwrap();
+        let p1 = point(1.0, 2.0, 3.0);
+        let p2 = point(4.0, 5.0, 6.0);
 
         let subtrahend = (p1 - p2).unwrap();
-        assert_eq!(subtrahend, vector(-3.0, -3.0, -3.0).unwrap());
+        assert_eq!(subtrahend, vector(-3.0, -3.0, -3.0));
     }
 
     #[test]
     fn test_subtract_vector_from_point() {
-        let p = point(3.0, 2.0, 1.0).unwrap();
-        let v = vector(5.0, 6.0, 7.0).unwrap();
+        let p = point(3.0, 2.0, 1.0);
+        let v = vector(5.0, 6.0, 7.0);
 
         let subtrahend = (p - v).unwrap();
-        assert_eq!(subtrahend, point(-2.0, -4.0, -6.0).unwrap());
+        assert_eq!(subtrahend, point(-2.0, -4.0, -6.0));
     }
 
     #[test]
     fn test_subtract_vectors() {
-        let v1 = vector(3.0, 2.0, 1.0).unwrap();
-        let v2 = vector(5.0, 6.0, 7.0).unwrap();
+        let v1 = vector(3.0, 2.0, 1.0);
+        let v2 = vector(5.0, 6.0, 7.0);
 
         let subtrahend = (v1 - v2).unwrap();
-        assert_eq!(subtrahend, vector(-2.0, -4.0, -6.0).unwrap());
+        assert_eq!(subtrahend, vector(-2.0, -4.0, -6.0));
     }
 
     #[test]
@@ -333,20 +362,48 @@ mod tests {
 
     #[test]
     fn test_vector_magnitude() {
-        let x = vector(1.0, 0.0, 0.0).unwrap();
+        let x = vector(1.0, 0.0, 0.0);
         assert_eq!(x.magnitude(), 1.0);
 
-        let y = vector(0.0, 1.0, 0.0).unwrap();
+        let y = vector(0.0, 1.0, 0.0);
         assert_eq!(y.magnitude(), 1.0);
 
-        let z = vector(0.0, 0.0, 1.0).unwrap();
+        let z = vector(0.0, 0.0, 1.0);
         assert_eq!(z.magnitude(), 1.0);
 
         // Note: should technically use some kind of epsilon comparison
-        let v1 = vector(1.0, 2.0, 3.0).unwrap();
+        let v1 = vector(1.0, 2.0, 3.0);
         assert_eq!(v1.magnitude(), (14.0 as f32).sqrt());
 
-        let v2 = vector(-1.0, -2.0, -3.0).unwrap();
+        let v2 = vector(-1.0, -2.0, -3.0);
         assert_eq!(v2.magnitude(), (14.0 as f32).sqrt());
+    }
+
+    #[test]
+    fn test_vector_norm() {
+        let x = vector(4.0, 0.0, 0.0);
+        assert_eq!(x.norm(), vector(1.0, 0.0, 0.0));
+
+        let y = vector(1.0, 2.0, 3.0);
+        let mag = (14.0 as f32).sqrt();
+        assert_eq!(y.norm(), vector(1.0 / mag, 2.0 / mag, 3.0 / mag));
+
+        let normed = vector(1.0, 2.0, 3.0).norm();
+        assert_abs_diff_eq!(normed.magnitude(), 1.0);
+    }
+
+    #[test]
+    fn test_vector_dot_product() {
+        let x = vector(1.1, 2.2, 3.3);
+        let y = vector(2.2, 3.3, 4.4);
+        assert_abs_diff_eq!(x.dot(y), 24.2);
+    }
+
+    #[test]
+    fn test_vector_cross_product() {
+        let x = vector(1.0, 2.0, 3.0);
+        let y = vector(2.0, 3.0, 4.0);
+        assert_eq!(x.cross(y), vector(-1.0, 2.0, -1.0));
+        assert_eq!(y.cross(x), vector(1.0, -2.0, 1.0));
     }
 }
