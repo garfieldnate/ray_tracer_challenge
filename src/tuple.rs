@@ -117,13 +117,7 @@ impl Mul<f32> for Tuple {
 impl Mul<Tuple> for f32 {
     type Output = Tuple;
     fn mul(self, tuple: Tuple) -> Tuple {
-        Tuple {
-            x: tuple.x * self,
-            y: tuple.y * self,
-            z: tuple.z * self,
-            // TODO: book says w should only be 0 or 1, but scalar multiplication applies
-            w: (tuple.w as f32 * self) as i8,
-        }
+        tuple * self
     }
 }
 
