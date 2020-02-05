@@ -2,6 +2,7 @@
 #[macro_use]
 extern crate approx;
 
-// mod canvas;
+mod canvas;
 mod color;
-mod matrix;mod tuple;
+mod matrix;
+mod tuple;
