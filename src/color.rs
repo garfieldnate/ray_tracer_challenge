@@ -6,13 +6,13 @@ use std::ops::Sub;
 
 // TODO: allow changing datatypes to f64?
 #[derive(Copy, Clone, Debug, PartialEq)]
-struct Color {
+pub struct Color {
 	r: f32,
 	g: f32,
 	b: f32,
 }
 
-fn build_color(r: f32, g: f32, b: f32) -> Color {
+pub fn build_color(r: f32, g: f32, b: f32) -> Color {
 	Color { r: r, g: g, b: b }
 }
 
