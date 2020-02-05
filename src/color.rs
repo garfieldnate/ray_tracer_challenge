@@ -51,11 +51,7 @@ impl Mul<f32> for Color {
 impl Mul<Color> for f32 {
     type Output = Color;
     fn mul(self, color: Color) -> Color {
-        Color {
-            r: color.r * self,
-            g: color.g * self,
-            b: color.b * self,
-        }
+        color * self
     }
 }
 
@@ -85,11 +81,32 @@ impl Div<f32> for Color {
 #[cfg(test)]
 mod tests {
     use super::*;
+    // TODO: lots of fails because of lack of approximate equality
+
+    #[test]
+    fn test_adding_colors() {
+        let c1 = build_color(0.9, 0.6, 0.75);
+        let c2 = build_color(0.7, 0.1, 0.25);
+        assert_eq!(c1 + c2, build_color(1.6, 0.7, 1.0));
+    }
+
+    #[test]
+    fn test_subtracting_colors() {
+        let c1 = build_color(0.9, 0.6, 0.75);
+        let c2 = build_color(0.7, 0.1, 0.25);
+        assert_eq!(c1 - c2, build_color(0.2, 0.5, 0.5));
+    }
+
+    #[test]
+    fn test_multiply_color_by_scalar() {
+        let c = build_color(0.2, 0.3, 0.4);
+        assert_eq!(c * 2.0, 2.0 * c);
+        assert_eq!(c * 2.0, build_color(0.4, 0.6, 0.8));
+    }
     #[test]
     fn test_mix_colors_by_multiplication() {
         let c1 = build_color(1.0, 0.2, 0.4);
         let c2 = build_color(0.9, 1.0, 0.1);
-        // TODO: fails because of lack of approximate equality
         assert_eq!(c1 * c2, build_color(0.9, 0.2, 0.04));
     }
 }
