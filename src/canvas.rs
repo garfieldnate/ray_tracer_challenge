@@ -16,11 +16,11 @@ fn build_canvas(width: usize, height: usize) -> Canvas {
 
 impl Canvas {
 	fn write_pixel(&mut self, x: usize, y: usize, color: Color) -> () {
-		self.data[x][y] = color;
+		self.data[y][x] = color;
 	}
 
 	fn pixel_at(&self, x: usize, y: usize) -> Color {
-		self.data[x][y]
+		self.data[y][x]
 	}
 
 	fn to_ppm(&self) -> String {
@@ -49,10 +49,10 @@ mod tests {
 
 	#[test]
 	fn test_write_and_read_pixels() {
-		let mut canvas = build_canvas(10, 10);
+		let mut canvas = build_canvas(10, 5);
 		let color = build_color(0.1, 0.2, 0.3);
-		canvas.write_pixel(3, 4, color);
-		assert_eq!(canvas.pixel_at(3, 4), color);
+		canvas.write_pixel(7, 4, color);
+		assert_eq!(canvas.pixel_at(7, 4), color);
 	}
 
 	#[test]
