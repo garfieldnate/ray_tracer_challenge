@@ -5,8 +5,6 @@ use std::ops::Mul;
 use std::ops::Neg;
 use std::ops::Sub;
 
-// TODO: reimplement everything using geometric algebra for funsies?
-
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Tuple {
     pub x: f32,
@@ -18,20 +16,20 @@ pub struct Tuple {
 // TODO: implement approximate comparison via approx crate
 // TODO: allow changing datatypes to f64?
 impl Tuple {
-    fn is_vector(&self) -> bool {
+    pub fn is_vector(&self) -> bool {
         self.w == 0.0
     }
-    fn is_point(&self) -> bool {
+    pub fn is_point(&self) -> bool {
         self.w == 1.0
     }
-    fn magnitude(&self) -> f32 {
+    pub fn magnitude(&self) -> f32 {
         // if !self.is_vector() {
         //     // complain loudly
         // }
         // TODO: book says w is included.
         return (self.x.powi(2) + self.y.powi(2) + self.z.powi(2) + (self.w as f32).powi(2)).sqrt();
     }
-    fn norm(&self) -> Tuple {
+    pub fn norm(&self) -> Tuple {
         //TODO: should only take vectors, not tuples
         let magnitude = self.magnitude();
         Tuple {
@@ -41,10 +39,10 @@ impl Tuple {
             w: self.w,
         }
     }
-    fn dot(&self, other: Tuple) -> f32 {
+    pub fn dot(&self, other: Tuple) -> f32 {
         self.x * other.x + self.y * other.y + self.z * other.z + (self.w * other.w) as f32
     }
-    fn cross(&self, other: Tuple) -> Tuple {
+    pub fn cross(&self, other: Tuple) -> Tuple {
         Tuple {
             x: self.y * other.z - self.z * other.y,
             y: self.z * other.x - self.x * other.z,
@@ -72,11 +70,11 @@ pub fn build_tuple(x: f32, y: f32, z: f32, w: f32) -> Tuple {
     // }
 }
 
-fn point(x: f32, y: f32, z: f32) -> Tuple {
+pub fn point(x: f32, y: f32, z: f32) -> Tuple {
     build_tuple(x, y, z, 1.0)
 }
 
-fn vector(x: f32, y: f32, z: f32) -> Tuple {
+pub fn vector(x: f32, y: f32, z: f32) -> Tuple {
     build_tuple(x, y, z, 0.0)
 }
 

@@ -4,7 +4,7 @@
 #[cfg_attr(test, macro_use)]
 extern crate approx;
 
-mod canvas;
-mod color;
-mod matrix;
-mod tuple;
+pub mod canvas;
+pub mod color;
+pub mod matrix;
+pub mod tuple;

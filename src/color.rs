@@ -4,7 +4,6 @@ use std::ops::Div;
 use std::ops::Mul;
 use std::ops::Sub;
 
-// TODO: allow changing datatypes to f64?
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Color {
     pub r: f32,
