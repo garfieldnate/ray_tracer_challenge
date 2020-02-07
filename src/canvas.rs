@@ -1,12 +1,12 @@
 use crate::color::*;
 
-struct Canvas {
-	width: usize,
-	height: usize,
+pub struct Canvas {
+	pub width: usize,
+	pub height: usize,
 	data: Vec<Vec<Color>>,
 }
 
-fn build_canvas(width: usize, height: usize) -> Canvas {
+pub fn build_canvas(width: usize, height: usize) -> Canvas {
 	Canvas {
 		width: width,
 		height: height,
@@ -15,16 +15,20 @@ fn build_canvas(width: usize, height: usize) -> Canvas {
 }
 
 impl Canvas {
-	fn write_pixel(&mut self, x: usize, y: usize, color: Color) -> () {
-		self.data[y][x] = color;
+	pub fn write_pixel(&mut self, x: usize, y: usize, color: Color) -> () {
+		if x <= self.width && y <= self.height {
+			self.data[y][x] = color;
+		} else {
+			// return fail result
+		}
 	}
 
-	fn pixel_at(&self, x: usize, y: usize) -> Color {
+	pub fn pixel_at(&self, x: usize, y: usize) -> Color {
 		self.data[y][x]
 	}
 
 	// TODO: eeew, just, really... clean this up
-	fn to_ppm(&self) -> String {
+	pub fn to_ppm(&self) -> String {
 		let mut ppm = String::new();
 		// header is "P3", width/height, and color max value
 		ppm.push_str("P3\n");

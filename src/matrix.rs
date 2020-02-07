@@ -15,8 +15,8 @@ fn build_matrix(rows: usize, columns: usize) -> Matrix {
         data: vec![vec![0.0; columns]; rows],
     }
 }
-
-// TODO: the self args should be &self to prevent moving; not sure how to do that
+// TODO: matrix declaration is suuuuper verbose
+// TODO: the self args should be &self to prevent copying; not sure how to do that
 impl Mul for Matrix {
     type Output = Matrix;
     fn mul(self, other: Matrix) -> Matrix {
