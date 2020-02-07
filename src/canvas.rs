@@ -35,7 +35,7 @@ impl Canvas {
 
 		// write pixel data
 		for row in 0..self.height {
-			for column in 0..self.width {
+			for (i, column) in (0..self.width).enumerate() {
 				let color = self.pixel_at(column, row);
 				// scale and clamp color valuesat 255
 				let r = (color.r * 255.0).min(255.0).max(0.0) as u8;
@@ -47,7 +47,9 @@ impl Canvas {
 				ppm.push_str(&g.to_string());
 				ppm.push(' ');
 				ppm.push_str(&b.to_string());
-				ppm.push(' ');
+				if i != self.width - 1 {
+					ppm.push(' ');
+				}
 			}
 			ppm.push('\n');
 		}
@@ -96,7 +98,7 @@ mod tests {
 		lines.next();
 		lines.next();
 		lines.next();
-		NEXT: get rid of trailing spaces, then break lines at 70 characters
+		// NEXT: then break lines at 70 characters
 		assert_eq!(lines.next().unwrap(), "255 0 0 0 0 0 0 0 0 0 0 0 0 0 0");
 		// book says 128, but I'll trust Rust's rounding for now
 		assert_eq!(lines.next().unwrap(), "0 0 0 0 0 0 0 127 0 0 0 0 0 0 0");
