@@ -248,7 +248,7 @@ mod tests {
             z: 3.3,
             w: 1.0,
         };
-        let sum = (tuple_1 + tuple_2);
+        let sum = tuple_1 + tuple_2;
         assert_abs_diff_eq!(
             sum,
             Tuple {
@@ -265,7 +265,7 @@ mod tests {
         let p1 = point(1.0, 2.0, 3.0);
         let p2 = point(4.0, 5.0, 6.0);
 
-        let subtrahend = (p1 - p2);
+        let subtrahend = p1 - p2;
         assert_abs_diff_eq!(subtrahend, vector(-3.0, -3.0, -3.0));
     }
 
@@ -274,7 +274,7 @@ mod tests {
         let p = point(3.0, 2.0, 1.0);
         let v = vector(5.0, 6.0, 7.0);
 
-        let subtrahend = (p - v);
+        let subtrahend = p - v;
         assert_abs_diff_eq!(subtrahend, point(-2.0, -4.0, -6.0));
     }
 
@@ -283,7 +283,7 @@ mod tests {
         let v1 = vector(3.0, 2.0, 1.0);
         let v2 = vector(5.0, 6.0, 7.0);
 
-        let subtrahend = (v1 - v2);
+        let subtrahend = v1 - v2;
         assert_abs_diff_eq!(subtrahend, vector(-2.0, -4.0, -6.0));
     }
 

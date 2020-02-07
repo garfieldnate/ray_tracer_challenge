@@ -74,31 +74,31 @@ mod tests {
     // ​ 	    ​And​ b ← tuple(1, 2, 3, 1)
     #[test]
     fn test_matrix_multiplied_by_tuple() {
-        let mut A = build_matrix(4, 4);
-        A.data[0][0] = 1.0;
-        A.data[0][1] = 2.0;
-        A.data[0][2] = 3.0;
-        A.data[0][3] = 4.0;
+        let mut matrix_a = build_matrix(4, 4);
+        matrix_a.data[0][0] = 1.0;
+        matrix_a.data[0][1] = 2.0;
+        matrix_a.data[0][2] = 3.0;
+        matrix_a.data[0][3] = 4.0;
 
-        A.data[1][0] = 2.0;
-        A.data[1][1] = 4.0;
-        A.data[1][2] = 4.0;
-        A.data[1][3] = 2.0;
+        matrix_a.data[1][0] = 2.0;
+        matrix_a.data[1][1] = 4.0;
+        matrix_a.data[1][2] = 4.0;
+        matrix_a.data[1][3] = 2.0;
 
-        A.data[2][0] = 8.0;
-        A.data[2][1] = 6.0;
-        A.data[2][2] = 4.0;
-        A.data[2][3] = 1.0;
+        matrix_a.data[2][0] = 8.0;
+        matrix_a.data[2][1] = 6.0;
+        matrix_a.data[2][2] = 4.0;
+        matrix_a.data[2][3] = 1.0;
 
-        A.data[3][0] = 0.0;
-        A.data[3][1] = 0.0;
-        A.data[3][2] = 0.0;
-        A.data[3][3] = 1.0;
+        matrix_a.data[3][0] = 0.0;
+        matrix_a.data[3][1] = 0.0;
+        matrix_a.data[3][2] = 0.0;
+        matrix_a.data[3][3] = 1.0;
 
         let b = build_tuple(1.0, 2.0, 3.0, 1.0);
 
         // ​ 	  ​Then​ A * b = tuple(18, 24, 33, 1)
-        assert_eq!(A * b, build_tuple(18.0, 24.0, 33.0, 1.0));
+        assert_eq!(matrix_a * b, build_tuple(18.0, 24.0, 33.0, 1.0));
     }
 
     //     ​ 	​Scenario​: Multiplying two matrices
@@ -114,47 +114,47 @@ mod tests {
     // ​ 	      |  1 | 2 | 7 |  8 |
     #[test]
     fn test_multiplying_two_matrices() {
-        let mut A = build_matrix(4, 4);
-        A.data[0][0] = 1.0;
-        A.data[0][1] = 2.0;
-        A.data[0][2] = 3.0;
-        A.data[0][3] = 4.0;
+        let mut matrix_a = build_matrix(4, 4);
+        matrix_a.data[0][0] = 1.0;
+        matrix_a.data[0][1] = 2.0;
+        matrix_a.data[0][2] = 3.0;
+        matrix_a.data[0][3] = 4.0;
 
-        A.data[1][0] = 5.0;
-        A.data[1][1] = 6.0;
-        A.data[1][2] = 7.0;
-        A.data[1][3] = 8.0;
+        matrix_a.data[1][0] = 5.0;
+        matrix_a.data[1][1] = 6.0;
+        matrix_a.data[1][2] = 7.0;
+        matrix_a.data[1][3] = 8.0;
 
-        A.data[2][0] = 9.0;
-        A.data[2][1] = 8.0;
-        A.data[2][2] = 7.0;
-        A.data[2][3] = 6.0;
+        matrix_a.data[2][0] = 9.0;
+        matrix_a.data[2][1] = 8.0;
+        matrix_a.data[2][2] = 7.0;
+        matrix_a.data[2][3] = 6.0;
 
-        A.data[3][0] = 5.0;
-        A.data[3][1] = 4.0;
-        A.data[3][2] = 3.0;
-        A.data[3][3] = 2.0;
+        matrix_a.data[3][0] = 5.0;
+        matrix_a.data[3][1] = 4.0;
+        matrix_a.data[3][2] = 3.0;
+        matrix_a.data[3][3] = 2.0;
 
-        let mut B = build_matrix(4, 4);
-        B.data[0][0] = -2.0;
-        B.data[0][1] = 1.0;
-        B.data[0][2] = 2.0;
-        B.data[0][3] = 3.0;
+        let mut matrix_b = build_matrix(4, 4);
+        matrix_b.data[0][0] = -2.0;
+        matrix_b.data[0][1] = 1.0;
+        matrix_b.data[0][2] = 2.0;
+        matrix_b.data[0][3] = 3.0;
 
-        B.data[1][0] = 3.0;
-        B.data[1][1] = 2.0;
-        B.data[1][2] = 1.0;
-        B.data[1][3] = -1.0;
+        matrix_b.data[1][0] = 3.0;
+        matrix_b.data[1][1] = 2.0;
+        matrix_b.data[1][2] = 1.0;
+        matrix_b.data[1][3] = -1.0;
 
-        B.data[2][0] = 4.0;
-        B.data[2][1] = 3.0;
-        B.data[2][2] = 6.0;
-        B.data[2][3] = 5.0;
+        matrix_b.data[2][0] = 4.0;
+        matrix_b.data[2][1] = 3.0;
+        matrix_b.data[2][2] = 6.0;
+        matrix_b.data[2][3] = 5.0;
 
-        B.data[3][0] = 1.0;
-        B.data[3][1] = 2.0;
-        B.data[3][2] = 7.0;
-        B.data[3][3] = 8.0;
+        matrix_b.data[3][0] = 1.0;
+        matrix_b.data[3][1] = 2.0;
+        matrix_b.data[3][2] = 7.0;
+        matrix_b.data[3][3] = 8.0;
 
         // ​ 	  ​Then​ A * B is the following 4x4 matrix:
         // ​ 	      | 20|  22 |  50 |  48 |
@@ -182,6 +182,6 @@ mod tests {
         expected.data[3][1] = 26.0;
         expected.data[3][2] = 46.0;
         expected.data[3][3] = 42.0;
-        assert_eq!(A * B, expected);
+        assert_eq!(matrix_a * matrix_b, expected);
     }
 }

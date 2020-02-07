@@ -1,5 +1,7 @@
-// Required by tuple.rs. TODO: does rust really require me to put imports here instead of wherever they are used?
-#[macro_use]
+// Following the book, we'll make lots of functions for use later. Everything is going to be dead code for a while.
+#![allow(dead_code)]
+
+#[cfg_attr(test, macro_use)]
 extern crate approx;
 
 mod canvas;
