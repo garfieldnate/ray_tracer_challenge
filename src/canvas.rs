@@ -23,6 +23,7 @@ impl Canvas {
 		self.data[y][x]
 	}
 
+	// TODO: eeew, just, really... clean this up
 	fn to_ppm(&self) -> String {
 		let mut ppm = String::new();
 		// header is "P3", width/height, and color max value
@@ -35,23 +36,50 @@ impl Canvas {
 
 		// write pixel data
 		for row in 0..self.height {
+			let mut line = String::new();
 			for (i, column) in (0..self.width).enumerate() {
 				let color = self.pixel_at(column, row);
-				// scale and clamp color valuesat 255
+				// scale and clamp color values at 255
 				let r = (color.r * 255.0).min(255.0).max(0.0) as u8;
 				let g = (color.g * 255.0).min(255.0).max(0.0) as u8;
 				let b = (color.b * 255.0).min(255.0).max(0.0) as u8;
 
-				ppm.push_str(&r.to_string());
-				ppm.push(' ');
-				ppm.push_str(&g.to_string());
-				ppm.push(' ');
-				ppm.push_str(&b.to_string());
+				line.push_str(&r.to_string());
+				if line.len() < 67 {
+					line.push(' ');
+				} else {
+					ppm.push_str(&line);
+					ppm.push('\n');
+					line = String::new();
+				}
+
+				line.push_str(&g.to_string());
+				if line.len() < 67 {
+					line.push(' ');
+				} else {
+					ppm.push_str(&line);
+					ppm.push('\n');
+					line = String::new();
+				}
+
+				line.push_str(&b.to_string());
+
+				// if not at end of row yet, write a space or newline if the next point will be on this line
 				if i != self.width - 1 {
-					ppm.push(' ');
+					// max line length is 70; each number could be 3 chars long plus a space
+					if line.len() < 67 {
+						line.push(' ');
+					} else {
+						ppm.push_str(&line);
+						ppm.push('\n');
+						line = String::new();
+					}
 				}
 			}
-			ppm.push('\n');
+			if line.len() != 0 {
+				ppm.push_str(&line);
+				ppm.push('\n');
+			}
 		}
 		ppm
 	}
@@ -98,10 +126,43 @@ mod tests {
 		lines.next();
 		lines.next();
 		lines.next();
-		// NEXT: then break lines at 70 characters
 		assert_eq!(lines.next().unwrap(), "255 0 0 0 0 0 0 0 0 0 0 0 0 0 0");
 		// book says 128, but I'll trust Rust's rounding for now
 		assert_eq!(lines.next().unwrap(), "0 0 0 0 0 0 0 127 0 0 0 0 0 0 0");
 		assert_eq!(lines.next().unwrap(), "0 0 0 0 0 0 0 0 0 0 0 0 0 0 255");
+	}
+
+	#[test]
+	fn test_splitting_long_ppm_lines() {
+		let mut canvas = build_canvas(10, 2);
+		let color = build_color(1.0, 0.8, 0.6);
+		// TODO: maybe turn this into a function on canvas?
+		for row in 0..canvas.height {
+			for column in 0..canvas.width {
+				canvas.write_pixel(column, row, color);
+			}
+		}
+		let ppm = canvas.to_ppm();
+		let mut lines = ppm.lines();
+		// skip header
+		lines.next();
+		lines.next();
+		lines.next();
+		assert_eq!(
+			lines.next().unwrap(),
+			"255 204 153 255 204 153 255 204 153 255 204 153 255 204 153 255 204"
+		);
+		assert_eq!(
+			lines.next().unwrap(),
+			"153 255 204 153 255 204 153 255 204 153 255 204 153"
+		);
+		assert_eq!(
+			lines.next().unwrap(),
+			"255 204 153 255 204 153 255 204 153 255 204 153 255 204 153 255 204"
+		);
+		assert_eq!(
+			lines.next().unwrap(),
+			"153 255 204 153 255 204 153 255 204 153 255 204 153"
+		);
 	}
 }
