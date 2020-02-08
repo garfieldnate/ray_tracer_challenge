@@ -287,4 +287,11 @@ mod tests {
 
         assert_eq!(m.transpose(), m_transpose);
     }
+
+    #[test]
+    fn test_transposing_identity_is_identity() {
+        let matrix_i = identity_4x4();
+        let transposed = matrix_i.transpose();
+        assert_eq!(transposed, matrix_i);
+    }
 }
