@@ -54,20 +54,11 @@ impl Tuple {
 }
 
 pub fn build_tuple(x: f32, y: f32, z: f32, w: f32) -> Tuple {
+    debug_assert!(w == 1.0 || w == 0.0, "w must be 0 or 1; was {}", w);
+    debug_assert!(!x.is_nan(), "x cannot be NaN");
+    debug_assert!(!y.is_nan(), "x cannot be NaN");
+    debug_assert!(!z.is_nan(), "z cannot be NaN");
     Tuple { x, y, z, w }
-    // TODO: check correctness elsewhere and just panic if there are errors.
-    // This will not be used in production website or anything, and it needs to be as fast as possible.
-    // if w != 0.0 && w != 1.0 {
-    //     Err(format!("w must be 0 or 1; was {}", w))?
-    // } else if x.is_nan() {
-    //     Err("x cannot be NaN")?
-    // } else if y.is_nan() {
-    //     Err("y cannot be NaN")?
-    // } else if z.is_nan() {
-    //     Err("` cannot be NaN")?
-    // } else {
-    //     Ok(Tuple { x, y, z, w })
-    // }
 }
 
 pub fn point(x: f32, y: f32, z: f32) -> Tuple {
