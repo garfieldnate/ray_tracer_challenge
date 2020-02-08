@@ -84,6 +84,20 @@ impl Mul<Tuple> for Matrix {
     }
 }
 
+impl Matrix {
+    // TODO: would it be better to mutate instead of copying?
+    pub fn transpose(&self) -> Matrix {
+        // debug_assert!(self.rows == 4 && self.columns == 4, "Only 4x4 matrices can be tr");
+        let mut m = build_matrix(self.columns, self.rows);
+        for row in 0..self.rows {
+            for col in 0..self.columns {
+                m.data[col][row] = self.data[row][col];
+            }
+        }
+        m
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -233,5 +247,44 @@ mod tests {
 
         let matrix_i = identity_4x4();
         assert_eq!(&matrix_a * &matrix_i, matrix_a);
+    }
+
+    #[test]
+    fn test_matrix_transpose() {
+        let mut m = build_matrix(4, 3);
+        m.data[0][0] = 0.0;
+        m.data[0][1] = 9.0;
+        m.data[0][2] = 3.0;
+
+        m.data[1][0] = 9.0;
+        m.data[1][1] = 8.0;
+        m.data[1][2] = 0.0;
+
+        m.data[2][0] = 1.0;
+        m.data[2][1] = 8.0;
+        m.data[2][2] = 5.0;
+
+        m.data[3][0] = 0.0;
+        m.data[3][1] = 0.0;
+        m.data[3][2] = 5.0;
+
+        let mut m_transpose = build_matrix(3, 4);
+        m_transpose.data[0][0] = 0.0;
+        m_transpose.data[1][0] = 9.0;
+        m_transpose.data[2][0] = 3.0;
+
+        m_transpose.data[0][1] = 9.0;
+        m_transpose.data[1][1] = 8.0;
+        m_transpose.data[2][1] = 0.0;
+
+        m_transpose.data[0][2] = 1.0;
+        m_transpose.data[1][2] = 8.0;
+        m_transpose.data[2][2] = 5.0;
+
+        m_transpose.data[0][3] = 0.0;
+        m_transpose.data[1][3] = 0.0;
+        m_transpose.data[2][3] = 5.0;
+
+        assert_eq!(m.transpose(), m_transpose);
     }
 }
