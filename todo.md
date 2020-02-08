@@ -2,6 +2,7 @@
 
 * Canvas write_pixel: fail properly for out of bounds
 * Clean up canvas and color and post them on code review.se
+* Projectile seems surprisingly slow. Are we copying data when we shouldn't?
 
 
 ### Maybes/Ideas
