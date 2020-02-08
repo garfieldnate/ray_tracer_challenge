@@ -142,6 +142,21 @@ impl Matrix {
         );
         self.submatrix(row, column).determinant()
     }
+
+    pub fn cofactor(&self, row: usize, column: usize) -> f32 {
+        debug_assert!(
+            self.rows == 3 && self.columns == 3,
+            "Can only take cofactor of 3x3 matrix (this one is {}x{})",
+            self.rows,
+            self.columns
+        );
+        let minor = self.minor(row, column);
+        if (row + column) % 2 == 0 {
+            minor
+        } else {
+            -minor
+        }
+    }
 }
 
 // A is top left, d is bottom right of matrix
@@ -417,15 +432,6 @@ mod tests {
 
     #[test]
     fn test_minor_of_3x3_matrix() {
-        //         ​ 	​Scenario​: Calculating a minor of a 3x3 matrix
-        // ​ 	  ​Given​ the following 3x3 matrix A:
-        // ​ 	      |  3 |  5 |  0 |
-        // ​ 	      |  2 | -1 | -7 |
-        // ​ 	      |  6 | -1 |  5 |
-        // ​ 	    ​And​ B ← submatrix(A, 1, 0)
-        // ​ 	  ​Then​ determinant(B) = 25
-        // ​ 	    ​And​ minor(A, 1, 0) = 25
-
         let mut matrix_a = build_matrix(3, 3);
         matrix_a.data[0][0] = 3.0;
         matrix_a.data[0][1] = 5.0;
@@ -440,5 +446,24 @@ mod tests {
         matrix_a.data[2][2] = 5.0;
 
         assert_eq!(matrix_a.minor(1, 0), 25.0);
+    }
+
+    #[test]
+    fn test_cofactor_of_3x3_matrix() {
+        let mut matrix_a = build_matrix(3, 3);
+        matrix_a.data[0][0] = 3.0;
+        matrix_a.data[0][1] = 5.0;
+        matrix_a.data[0][2] = 0.0;
+
+        matrix_a.data[1][0] = 2.0;
+        matrix_a.data[1][1] = -1.0;
+        matrix_a.data[1][2] = -7.0;
+
+        matrix_a.data[2][0] = 6.0;
+        matrix_a.data[2][1] = -1.0;
+        matrix_a.data[2][2] = 5.0;
+
+        assert_eq!(matrix_a.cofactor(0, 0), -12.0);
+        assert_eq!(matrix_a.cofactor(1, 0), -25.0);
     }
 }
