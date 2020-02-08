@@ -2,7 +2,7 @@ use crate::tuple::*;
 use std::ops::Mul;
 
 #[derive(Clone, Debug, PartialEq)]
-struct Matrix {
+pub struct Matrix {
     rows: usize,
     columns: usize,
     data: Vec<Vec<f32>>,
@@ -15,11 +15,32 @@ fn build_matrix(rows: usize, columns: usize) -> Matrix {
         data: vec![vec![0.0; columns]; rows],
     }
 }
+
+pub fn identity_4x4() -> Matrix {
+    let mut m = build_matrix(4, 4);
+    m.data[0][0] = 1.0;
+    m.data[1][1] = 1.0;
+    m.data[2][2] = 1.0;
+    m.data[3][3] = 1.0;
+    m
+}
+
 // TODO: matrix declaration is suuuuper verbose
 // TODO: the self args should be &self to prevent copying; not sure how to do that
-impl Mul for Matrix {
+impl Mul for &Matrix {
     type Output = Matrix;
-    fn mul(self, other: Matrix) -> Matrix {
+    // multiply two 4x4 matrices; the book says that's the only dimension that we'll have to deal with
+    fn mul(self, other: &Matrix) -> Matrix {
+        debug_assert_eq!(
+            self.data.len(),
+            4,
+            "Only 4x4 matrices can be multiplied by tuples!"
+        );
+        debug_assert_eq!(
+            other.data.len(),
+            4,
+            "Only 4x4 matrices can be multiplied by tuples!"
+        );
         let rows = self.rows;
         let columns = other.columns;
         let mut new_matrix = build_matrix(rows, columns);
@@ -38,9 +59,11 @@ impl Mul for Matrix {
 impl Mul<Tuple> for Matrix {
     type Output = Tuple;
     fn mul(self, other: Tuple) -> Tuple {
-        if self.data.len() != 4 {
-            panic!("Only 4x4 matrices can be multiplied by tuples!")
-        }
+        debug_assert_eq!(
+            self.data.len(),
+            4,
+            "Only 4x4 matrices can be multiplied by tuples!"
+        );
         let x = self.data[0][0] * other.x
             + self.data[0][1] * other.y
             + self.data[0][2] * other.z
@@ -182,6 +205,33 @@ mod tests {
         expected.data[3][1] = 26.0;
         expected.data[3][2] = 46.0;
         expected.data[3][3] = 42.0;
-        assert_eq!(matrix_a * matrix_b, expected);
+        assert_eq!(&matrix_a * &matrix_b, expected);
+    }
+
+    #[test]
+    fn test_multiplying_by_identity_matrix() {
+        let mut matrix_a = build_matrix(4, 4);
+        matrix_a.data[0][0] = 0.0;
+        matrix_a.data[0][1] = 1.0;
+        matrix_a.data[0][2] = 2.0;
+        matrix_a.data[0][3] = 4.0;
+
+        matrix_a.data[1][0] = 1.0;
+        matrix_a.data[1][1] = 2.0;
+        matrix_a.data[1][2] = 4.0;
+        matrix_a.data[1][3] = 8.0;
+
+        matrix_a.data[2][0] = 2.0;
+        matrix_a.data[2][1] = 4.0;
+        matrix_a.data[2][2] = 8.0;
+        matrix_a.data[2][3] = 16.0;
+
+        matrix_a.data[3][0] = 4.0;
+        matrix_a.data[3][1] = 8.0;
+        matrix_a.data[3][2] = 16.0;
+        matrix_a.data[3][3] = 32.0;
+
+        let matrix_i = identity_4x4();
+        assert_eq!(&matrix_a * &matrix_i, matrix_a);
     }
 }
