@@ -96,6 +96,32 @@ impl Matrix {
         }
         m
     }
+
+    // for an nxn matrix, return an n-1 x n-1 matrix with remove_row row and remove_col col removed
+    pub fn submatrix(&self, remove_row: usize, remove_col: usize) -> Matrix {
+        let mut m = build_matrix(self.rows - 1, self.columns - 1);
+        let mut new_row = 0;
+        for old_row in 0..self.rows {
+            if old_row == remove_row {
+                continue;
+            }
+            let mut new_col = 0;
+            for old_col in 0..self.columns {
+                if old_col == remove_col {
+                    continue;
+                }
+                m.data[new_row][new_col] = self.data[old_row][old_col];
+                new_col += 1;
+            }
+            new_row += 1;
+        }
+        m
+    }
+}
+
+// A is top left, d is bottom right of matrix
+pub fn determinant(a: f32, b: f32, c: f32, d: f32) -> f32 {
+    a * d - b * c
 }
 
 #[cfg(test)]
@@ -293,5 +319,74 @@ mod tests {
         let matrix_i = identity_4x4();
         let transposed = matrix_i.transpose();
         assert_eq!(transposed, matrix_i);
+    }
+
+    #[test]
+    fn test_determinant() {
+        assert_eq!(determinant(1.0, 5.0, -3.0, 2.0), 17.0);
+    }
+
+    #[test]
+    fn test_submatrix_of_3x3() {
+        let mut matrix_a = build_matrix(3, 3);
+        matrix_a.data[0][0] = 1.0;
+        matrix_a.data[0][1] = 5.0;
+        matrix_a.data[0][2] = 0.0;
+
+        matrix_a.data[1][0] = -3.0;
+        matrix_a.data[1][1] = 2.0;
+        matrix_a.data[1][2] = 7.0;
+
+        matrix_a.data[2][0] = 0.0;
+        matrix_a.data[2][1] = 6.0;
+        matrix_a.data[2][2] = -3.0;
+
+        let mut expected_submatrix = build_matrix(2, 2);
+        expected_submatrix.data[0][0] = -3.0;
+        expected_submatrix.data[0][1] = 2.0;
+
+        expected_submatrix.data[1][0] = -0.0;
+        expected_submatrix.data[1][1] = 6.0;
+
+        assert_eq!(matrix_a.submatrix(0, 2), expected_submatrix);
+    }
+
+    #[test]
+    fn test_submatrix_of_4x4() {
+        let mut matrix_a = build_matrix(4, 4);
+        matrix_a.data[0][0] = -6.0;
+        matrix_a.data[0][1] = 1.0;
+        matrix_a.data[0][2] = 1.0;
+        matrix_a.data[0][3] = 6.0;
+
+        matrix_a.data[1][0] = -8.0;
+        matrix_a.data[1][1] = 5.0;
+        matrix_a.data[1][2] = 8.0;
+        matrix_a.data[1][3] = 6.0;
+
+        matrix_a.data[2][0] = -1.0;
+        matrix_a.data[2][1] = 0.0;
+        matrix_a.data[2][2] = 8.0;
+        matrix_a.data[2][3] = 2.0;
+
+        matrix_a.data[3][0] = -7.0;
+        matrix_a.data[3][1] = 1.0;
+        matrix_a.data[3][2] = -1.0;
+        matrix_a.data[3][3] = 1.0;
+
+        let mut expected_submatrix = build_matrix(3, 3);
+        expected_submatrix.data[0][0] = -6.0;
+        expected_submatrix.data[0][1] = 1.0;
+        expected_submatrix.data[0][2] = 6.0;
+
+        expected_submatrix.data[1][0] = -8.0;
+        expected_submatrix.data[1][1] = 8.0;
+        expected_submatrix.data[1][2] = 6.0;
+
+        expected_submatrix.data[2][0] = -7.0;
+        expected_submatrix.data[2][1] = -1.0;
+        expected_submatrix.data[2][2] = 1.0;
+
+        assert_eq!(matrix_a.submatrix(2, 1), expected_submatrix);
     }
 }
