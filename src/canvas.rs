@@ -1,4 +1,4 @@
-use crate::color::*;
+use crate::color::{build_color, Color};
 
 pub struct Canvas {
 	pub width: usize,
@@ -6,6 +6,7 @@ pub struct Canvas {
 	data: Vec<Vec<Color>>,
 }
 
+// Create a canvas initialized to all black
 pub fn build_canvas(width: usize, height: usize) -> Canvas {
 	Canvas {
 		width: width,
@@ -14,6 +15,11 @@ pub fn build_canvas(width: usize, height: usize) -> Canvas {
 	}
 }
 
+const MAX_COLOR_VAL: i16 = 255;
+const MAX_PPM_LINE_LENGTH: usize = 70;
+// length of "255" is 3
+// TODO: this should be evaluated programmatically, but "no matching in consts allowed" error prevented this
+const MAX_COLOR_VAL_STR_LEN: usize = 3;
 impl Canvas {
 	pub fn write_pixel(&mut self, x: usize, y: usize, color: Color) -> () {
 		if x <= self.width && y <= self.height {
@@ -27,61 +33,60 @@ impl Canvas {
 		self.data[y][x]
 	}
 
-	// TODO: eeew, just, really... clean this up
+	// scale/clamp color values from 0-1 to 0-255
+	fn scale_color(&self, rgb: f32) -> u8 {
+		(rgb * MAX_COLOR_VAL as f32)
+			.min(MAX_COLOR_VAL as f32)
+			.max(0.0) as u8
+	}
+
+	// If current line has no more room for more RGB values, add it to the PPM string and clear it;
+	// otherwise, add a space separator in preparation for the next RGB value
+	fn write_rgb_separator(&self, line: &mut String, ppm: &mut String) {
+		if line.len() < MAX_PPM_LINE_LENGTH - MAX_COLOR_VAL_STR_LEN {
+			(*line).push(' ');
+		} else {
+			ppm.push_str(&line);
+			ppm.push('\n');
+			line.clear();
+		}
+	}
+
+	// Return string containing PPM (portable pixel map) data representing current canvas
 	pub fn to_ppm(&self) -> String {
 		let mut ppm = String::new();
-		// header is "P3", width/height, and color max value
+		// write header
 		ppm.push_str("P3\n");
-		ppm.push_str(&(self.width as u32).to_string());
-		ppm.push(' ');
-		ppm.push_str(&(self.height as u32).to_string());
-		ppm.push('\n');
-		ppm.push_str("255\n");
+		ppm.push_str(&(format!("{} {}\n", self.width, self.height)));
+		ppm.push_str(&(format!("{}\n", MAX_COLOR_VAL)));
 
-		// write pixel data
+		// Write pixel data. Each pixel RGB value is written with a separating space or newline;
+		// new rows are written on new lines for human reading convenience, but lines longer than
+		// MAX_PPM_LINE_LENGTH must also be split.
+		let mut current_line = String::new();
 		for row in 0..self.height {
-			let mut line = String::new();
+			current_line.clear();
 			for (i, column) in (0..self.width).enumerate() {
 				let color = self.pixel_at(column, row);
-				// scale and clamp color values at 255
-				let r = (color.r * 255.0).min(255.0).max(0.0) as u8;
-				let g = (color.g * 255.0).min(255.0).max(0.0) as u8;
-				let b = (color.b * 255.0).min(255.0).max(0.0) as u8;
+				let r = self.scale_color(color.r);
+				let g = self.scale_color(color.g);
+				let b = self.scale_color(color.b);
 
-				line.push_str(&r.to_string());
-				if line.len() < 67 {
-					line.push(' ');
-				} else {
-					ppm.push_str(&line);
-					ppm.push('\n');
-					line = String::new();
-				}
+				current_line.push_str(&r.to_string());
+				self.write_rgb_separator(&mut current_line, &mut ppm);
 
-				line.push_str(&g.to_string());
-				if line.len() < 67 {
-					line.push(' ');
-				} else {
-					ppm.push_str(&line);
-					ppm.push('\n');
-					line = String::new();
-				}
+				current_line.push_str(&g.to_string());
+				self.write_rgb_separator(&mut current_line, &mut ppm);
 
-				line.push_str(&b.to_string());
+				current_line.push_str(&b.to_string());
 
 				// if not at end of row yet, write a space or newline if the next point will be on this line
 				if i != self.width - 1 {
-					// max line length is 70; each number could be 3 chars long plus a space
-					if line.len() < 67 {
-						line.push(' ');
-					} else {
-						ppm.push_str(&line);
-						ppm.push('\n');
-						line = String::new();
-					}
+					self.write_rgb_separator(&mut current_line, &mut ppm);
 				}
 			}
-			if line.len() != 0 {
-				ppm.push_str(&line);
+			if current_line.len() != 0 {
+				ppm.push_str(&current_line);
 				ppm.push('\n');
 			}
 		}

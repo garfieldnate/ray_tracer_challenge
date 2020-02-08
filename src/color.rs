@@ -37,6 +37,7 @@ impl Sub for Color {
     }
 }
 
+// scalar multiplication (commutative)
 impl Mul<f32> for Color {
     type Output = Color;
     fn mul(self, scalar: f32) -> Color {
@@ -48,6 +49,7 @@ impl Mul<f32> for Color {
     }
 }
 
+// scalar multiplication (commutative)
 impl Mul<Color> for f32 {
     type Output = Color;
     fn mul(self, color: Color) -> Color {
@@ -55,18 +57,7 @@ impl Mul<Color> for f32 {
     }
 }
 
-// Hadamard product for mixing two colors
-impl Mul<Color> for Color {
-    type Output = Color;
-    fn mul(self, other: Color) -> Color {
-        Color {
-            r: self.r * other.r,
-            g: self.g * other.g,
-            b: self.b * other.b,
-        }
-    }
-}
-
+// scalar division
 impl Div<f32> for Color {
     type Output = Color;
     fn div(self, scalar: f32) -> Color {
@@ -78,7 +69,19 @@ impl Div<f32> for Color {
     }
 }
 
-// required for approximate comparisons due to use of floating point numbers
+// Multiplying two Color objects produces a mix of the two colors using the Hadamard product
+impl Mul<Color> for Color {
+    type Output = Color;
+    fn mul(self, other: Color) -> Color {
+        Color {
+            r: self.r * other.r,
+            g: self.g * other.g,
+            b: self.b * other.b,
+        }
+    }
+}
+
+// required for equality tests because floating point numbers must be compared approximately
 impl AbsDiffEq for Color {
     type Epsilon = f32;
 
@@ -96,7 +99,6 @@ impl AbsDiffEq for Color {
 #[cfg(test)]
 mod tests {
     use super::*;
-    // TODO: lots of fails because of lack of approximate equality
 
     #[test]
     fn test_adding_colors() {
@@ -118,6 +120,7 @@ mod tests {
         abs_diff_eq!(c * 2.0, 2.0 * c);
         abs_diff_eq!(c * 2.0, build_color(0.4, 0.6, 0.8));
     }
+
     #[test]
     fn test_mix_colors_by_multiplication() {
         let c1 = build_color(1.0, 0.2, 0.4);

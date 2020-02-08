@@ -1,7 +1,8 @@
-// extern crate tuple;
-use ray_tracer_challenge::canvas::*;
-use ray_tracer_challenge::color::*;
-use ray_tracer_challenge::tuple::*;
+// TODO: take command line args to tweak environment and projectile parameters
+// TODO: display resulting PPM file instead of just printing the text
+use ray_tracer_challenge::canvas::build_canvas;
+use ray_tracer_challenge::color::build_color;
+use ray_tracer_challenge::tuple::{point, vector, Tuple};
 
 struct Projectile {
     position: Tuple,
@@ -33,10 +34,6 @@ fn main() {
     let trace_color = build_color(0.53, 0.39, 0.074);
 
     while proj.position.y >= 0.0 && proj.position.x >= 0.0 {
-        // println!(
-        //     "Height will be {} - {}",
-        //     canvas.height, proj.position.y as usize
-        // );
         canvas.write_pixel(
             proj.position.x as usize,
             canvas.height - (proj.position.y as usize),
