@@ -97,6 +97,21 @@ impl Matrix {
         m
     }
 
+    pub fn determinant(&self) -> f32 {
+        debug_assert!(
+            self.rows == 2 && self.columns == 2,
+            "Can only take determinant of 2x2 matrix (this one is {}x{})",
+            self.rows,
+            self.columns
+        );
+        determinant(
+            self.data[0][0],
+            self.data[0][1],
+            self.data[1][0],
+            self.data[1][1],
+        )
+    }
+
     // for an nxn matrix, return an n-1 x n-1 matrix with remove_row row and remove_col col removed
     pub fn submatrix(&self, remove_row: usize, remove_col: usize) -> Matrix {
         let mut m = build_matrix(self.rows - 1, self.columns - 1);
@@ -117,10 +132,20 @@ impl Matrix {
         }
         m
     }
+
+    pub fn minor(&self, row: usize, column: usize) -> f32 {
+        debug_assert!(
+            self.rows == 3 && self.columns == 3,
+            "Can only take minor of 3x3 matrix (this one is {}x{})",
+            self.rows,
+            self.columns
+        );
+        self.submatrix(row, column).determinant()
+    }
 }
 
 // A is top left, d is bottom right of matrix
-pub fn determinant(a: f32, b: f32, c: f32, d: f32) -> f32 {
+fn determinant(a: f32, b: f32, c: f32, d: f32) -> f32 {
     a * d - b * c
 }
 
@@ -388,5 +413,32 @@ mod tests {
         expected_submatrix.data[2][2] = 1.0;
 
         assert_eq!(matrix_a.submatrix(2, 1), expected_submatrix);
+    }
+
+    #[test]
+    fn test_minor_of_3x3_matrix() {
+        //         ​ 	​Scenario​: Calculating a minor of a 3x3 matrix
+        // ​ 	  ​Given​ the following 3x3 matrix A:
+        // ​ 	      |  3 |  5 |  0 |
+        // ​ 	      |  2 | -1 | -7 |
+        // ​ 	      |  6 | -1 |  5 |
+        // ​ 	    ​And​ B ← submatrix(A, 1, 0)
+        // ​ 	  ​Then​ determinant(B) = 25
+        // ​ 	    ​And​ minor(A, 1, 0) = 25
+
+        let mut matrix_a = build_matrix(3, 3);
+        matrix_a.data[0][0] = 3.0;
+        matrix_a.data[0][1] = 5.0;
+        matrix_a.data[0][2] = 0.0;
+
+        matrix_a.data[1][0] = 2.0;
+        matrix_a.data[1][1] = -1.0;
+        matrix_a.data[1][2] = -7.0;
+
+        matrix_a.data[2][0] = 6.0;
+        matrix_a.data[2][1] = -1.0;
+        matrix_a.data[2][2] = 5.0;
+
+        assert_eq!(matrix_a.minor(1, 0), 25.0);
     }
 }
