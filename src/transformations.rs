@@ -218,4 +218,17 @@ mod tests {
         let p = point(2.0, 3.0, 4.0);
         assert_eq!(&transform * &p, point(2.0, 3.0, 7.0));
     }
+
+    #[test]
+    fn transforms_applied_in_sequence() {
+        let p = point(1.0, 0.0, 1.0);
+        let rotate = rotation_x(FRAC_PI_2);
+        let scale = scaling(5.0, 5.0, 5.0);
+        let translate = translation(10.0, 5.0, 7.0);
+
+        assert_eq!(
+            &(&(&translate * &scale) * &rotate) * &p,
+            point(15.0, 0.0, 7.0)
+        );
+    }
 }
