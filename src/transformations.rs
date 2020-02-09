@@ -1,6 +1,4 @@
-use crate::approx::AbsDiffEq;
 use crate::matrix::*;
-use std::f32::consts::{FRAC_1_SQRT_2, FRAC_PI_2, FRAC_PI_4};
 
 pub fn translation(x: f32, y: f32, z: f32) -> Matrix {
     let mut transform = identity_4x4();
@@ -53,10 +51,28 @@ pub fn rotation_y(radians: f32) -> Matrix {
     transform
 }
 
+pub fn rotation_z(radians: f32) -> Matrix {
+    let mut transform = build_matrix(4, 4);
+
+    transform.data[2][2] = 1.0;
+    transform.data[3][3] = 1.0;
+
+    let cosine = radians.cos();
+    transform.data[0][0] = cosine;
+    transform.data[1][1] = cosine;
+
+    let sine = radians.sin();
+    transform.data[1][0] = sine;
+    transform.data[0][1] = -sine;
+
+    transform
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::tuple::*;
+    use std::f32::consts::{FRAC_1_SQRT_2, FRAC_PI_2, FRAC_PI_4};
 
     #[test]
     fn multiply_by_translation_matrix() {
@@ -134,9 +150,16 @@ mod tests {
         assert_abs_diff_eq!(&half_quarter * &p, point(FRAC_1_SQRT_2, 0.0, FRAC_1_SQRT_2));
         assert_abs_diff_eq!(&full_quarter * &p, &point(1.0, 0.0, 0.0));
     }
-    // ​ 	  ​Given​ p ← point(0, 0, 1)
-    // ​ 	    ​And​ half_quarter ← rotation_y(π / 4)
-    // ​ 	    ​And​ full_quarter ← rotation_y(π / 2)
-    // ​ 	  ​Then​ half_quarter * p = point(√2/2, 0, √2/2)
-    // ​ 	    ​And​ full_quarter * p = point(1, 0, 0)
+
+    #[test]
+    fn rotating_point_around_z_axis() {
+        let p = point(0.0, 1.0, 0.0);
+        let half_quarter = rotation_z(FRAC_PI_4);
+        let full_quarter = rotation_z(FRAC_PI_2);
+        assert_abs_diff_eq!(
+            &half_quarter * &p,
+            point(-FRAC_1_SQRT_2, FRAC_1_SQRT_2, 0.0)
+        );
+        assert_abs_diff_eq!(&full_quarter * &p, &point(-1.0, 0.0, 0.0));
+    }
 }
