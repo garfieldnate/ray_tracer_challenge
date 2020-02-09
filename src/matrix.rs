@@ -6,11 +6,12 @@ use std::ops::Mul;
 pub struct Matrix {
     rows: usize,
     columns: usize,
-    data: Vec<Vec<f32>>,
+    // TODO: maybe this should be private with accessor
+    pub data: Vec<Vec<f32>>,
 }
 
 // TODO: simplify by only supporting square matrices
-fn build_matrix(rows: usize, columns: usize) -> Matrix {
+pub fn build_matrix(rows: usize, columns: usize) -> Matrix {
     Matrix {
         rows,
         columns,
@@ -192,14 +193,14 @@ impl Matrix {
             for column in 0..self.columns {
                 let c = self.cofactor(row, column);
                 matrix_inverse.data[column][row] = c / determinant;
-                println!(
-                    "{},{} is {}/{}={}",
-                    column,
-                    row,
-                    c,
-                    determinant,
-                    c / determinant
-                );
+                // println!(
+                //     "{},{} is {}/{}={}",
+                //     column,
+                //     row,
+                //     c,
+                //     determinant,
+                //     c / determinant
+                // );
             }
         }
         matrix_inverse
