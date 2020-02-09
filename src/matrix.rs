@@ -1,4 +1,5 @@
 use crate::tuple::*;
+use approx::AbsDiffEq;
 use std::ops::Mul;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -82,6 +83,30 @@ impl Mul<Tuple> for Matrix {
             + self.data[3][2] * other.z
             + self.data[3][3] * other.w;
         Tuple { x, y, z, w }
+    }
+}
+
+// required for approximate comparisons due to use of floating point numbers
+impl AbsDiffEq for Matrix {
+    type Epsilon = f32;
+
+    fn default_epsilon() -> Self::Epsilon {
+        f32::default_epsilon()
+    }
+
+    fn abs_diff_eq(&self, other: &Self, epsilon: Self::Epsilon) -> bool {
+        for row in 0..self.rows {
+            for col in 0..self.columns {
+                if !f32::abs_diff_eq(&self.data[row][col], &other.data[row][col], epsilon) {
+                    println!(
+                        "{} not close enough to {}",
+                        self.data[row][col], other.data[row][col]
+                    );
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 }
 
@@ -748,8 +773,10 @@ mod tests {
         matrix_b.data[3][2] = 0.0;
         matrix_b.data[3][3] = 5.0;
 
-        // Next: at last, we must implement the approximate equals
         let matrix_c = &matrix_a * &matrix_b;
-        assert_eq!(&matrix_c * &matrix_b.inverse(), matrix_a);
+        let matrix_c_times_b_inverse = &matrix_c * &matrix_b.inverse();
+
+        // higher epsilon because of multiplications
+        assert!(matrix_c_times_b_inverse.abs_diff_eq(&matrix_a, 10.0 * f32::default_epsilon()));
     }
 }
