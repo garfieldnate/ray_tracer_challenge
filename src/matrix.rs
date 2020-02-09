@@ -154,6 +154,10 @@ impl Matrix {
     pub fn minor(&self, row: usize, column: usize) -> f32 {
         self.submatrix(row, column).determinant()
     }
+
+    pub fn invertible(&self) -> bool {
+        self.determinant() != 0.0
+    }
 }
 
 // A is top left, d is bottom right of matrix
@@ -513,5 +517,59 @@ mod tests {
         assert_eq!(matrix_a.cofactor(0, 2), 210.0);
         assert_eq!(matrix_a.cofactor(0, 3), 51.0);
         assert_eq!(matrix_a.determinant(), -4071.0);
+    }
+
+    #[test]
+    fn test_non_0_determinant_matrix_is_invertible() {
+        let mut matrix_a = build_matrix(4, 4);
+        matrix_a.data[0][0] = 6.0;
+        matrix_a.data[0][1] = 4.0;
+        matrix_a.data[0][2] = 4.0;
+        matrix_a.data[0][3] = 4.0;
+
+        matrix_a.data[1][0] = 5.0;
+        matrix_a.data[1][1] = 5.0;
+        matrix_a.data[1][2] = 7.0;
+        matrix_a.data[1][3] = 6.0;
+
+        matrix_a.data[2][0] = 4.0;
+        matrix_a.data[2][1] = -9.0;
+        matrix_a.data[2][2] = 3.0;
+        matrix_a.data[2][3] = -7.0;
+
+        matrix_a.data[3][0] = 9.0;
+        matrix_a.data[3][1] = 1.0;
+        matrix_a.data[3][2] = 7.0;
+        matrix_a.data[3][3] = -6.0;
+
+        assert_eq!(matrix_a.determinant(), -2120.0);
+        assert!(matrix_a.invertible());
+    }
+
+    #[test]
+    fn test_0_determinant_matrix_is_invertible() {
+        let mut matrix_a = build_matrix(4, 4);
+        matrix_a.data[0][0] = -4.0;
+        matrix_a.data[0][1] = 2.0;
+        matrix_a.data[0][2] = -2.0;
+        matrix_a.data[0][3] = -3.0;
+
+        matrix_a.data[1][0] = 9.0;
+        matrix_a.data[1][1] = 6.0;
+        matrix_a.data[1][2] = 2.0;
+        matrix_a.data[1][3] = 6.0;
+
+        matrix_a.data[2][0] = 0.0;
+        matrix_a.data[2][1] = -5.0;
+        matrix_a.data[2][2] = 1.0;
+        matrix_a.data[2][3] = -5.0;
+
+        matrix_a.data[3][0] = 0.0;
+        matrix_a.data[3][1] = 0.0;
+        matrix_a.data[3][2] = 0.0;
+        matrix_a.data[3][3] = 0.0;
+
+        assert_eq!(matrix_a.determinant(), 0.0);
+        assert!(!matrix_a.invertible());
     }
 }
