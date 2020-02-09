@@ -158,6 +158,27 @@ impl Matrix {
     pub fn invertible(&self) -> bool {
         self.determinant() != 0.0
     }
+
+    pub fn inverse(&self) -> Matrix {
+        debug_assert!(self.invertible());
+        let determinant = self.determinant();
+        let mut matrix_inverse = build_matrix(self.rows, self.columns);
+        for row in 0..self.rows {
+            for column in 0..self.columns {
+                let c = self.cofactor(row, column);
+                matrix_inverse.data[column][row] = c / determinant;
+                println!(
+                    "{},{} is {}/{}={}",
+                    column,
+                    row,
+                    c,
+                    determinant,
+                    c / determinant
+                );
+            }
+        }
+        matrix_inverse
+    }
 }
 
 // A is top left, d is bottom right of matrix
@@ -169,13 +190,6 @@ fn determinant(a: f32, b: f32, c: f32, d: f32) -> f32 {
 mod tests {
     use super::*;
 
-    //     ​ 	​Scenario​: A matrix multiplied by a tuple
-    // ​ 	  ​Given​ the following matrix A:
-    // ​ 	      | 1 | 2 | 3 | 4 |
-    // ​ 	      | 2 | 4 | 4 | 2 |
-    // ​ 	      | 8 | 6 | 4 | 1 |
-    // ​ 	      | 0 | 0 | 0 | 1 |
-    // ​ 	    ​And​ b ← tuple(1, 2, 3, 1)
     #[test]
     fn test_matrix_multiplied_by_tuple() {
         let mut matrix_a = build_matrix(4, 4);
@@ -201,21 +215,9 @@ mod tests {
 
         let b = build_tuple(1.0, 2.0, 3.0, 1.0);
 
-        // ​ 	  ​Then​ A * b = tuple(18, 24, 33, 1)
         assert_eq!(matrix_a * b, build_tuple(18.0, 24.0, 33.0, 1.0));
     }
 
-    //     ​ 	​Scenario​: Multiplying two matrices
-    // ​ 	  ​Given​ the following matrix A:
-    // ​ 	      | 1 | 2 | 3 | 4 |
-    // ​ 	      | 5 | 6 | 7 | 8 |
-    // ​ 	      | 9 | 8 | 7 | 6 |
-    // ​ 	      | 5 | 4 | 3 | 2 |
-    // ​ 	    ​And​ the following matrix B:
-    // ​ 	      | -2 | 1 | 2 |  3 |
-    // ​ 	      |  3 | 2 | 1 | -1 |
-    // ​ 	      |  4 | 3 | 6 |  5 |
-    // ​ 	      |  1 | 2 | 7 |  8 |
     #[test]
     fn test_multiplying_two_matrices() {
         let mut matrix_a = build_matrix(4, 4);
@@ -259,12 +261,6 @@ mod tests {
         matrix_b.data[3][1] = 2.0;
         matrix_b.data[3][2] = 7.0;
         matrix_b.data[3][3] = 8.0;
-
-        // ​ 	  ​Then​ A * B is the following 4x4 matrix:
-        // ​ 	      | 20|  22 |  50 |  48 |
-        // ​ 	      | 44|  54 | 114 | 108 |
-        // ​ 	      | 40|  58 | 110 | 102 |
-        // ​ 	      | 16|  26 |  46 |  42 |
 
         let mut expected = build_matrix(4, 4);
         expected.data[0][0] = 20.0;
@@ -571,5 +567,189 @@ mod tests {
 
         assert_eq!(matrix_a.determinant(), 0.0);
         assert!(!matrix_a.invertible());
+    }
+
+    #[test]
+    fn test_matrix_inversion_1() {
+        let mut matrix_a = build_matrix(4, 4);
+        matrix_a.data[0][0] = -5.0;
+        matrix_a.data[0][1] = 2.0;
+        matrix_a.data[0][2] = 6.0;
+        matrix_a.data[0][3] = -8.0;
+
+        matrix_a.data[1][0] = 1.0;
+        matrix_a.data[1][1] = -5.0;
+        matrix_a.data[1][2] = 1.0;
+        matrix_a.data[1][3] = 8.0;
+
+        matrix_a.data[2][0] = 7.0;
+        matrix_a.data[2][1] = 7.0;
+        matrix_a.data[2][2] = -6.0;
+        matrix_a.data[2][3] = -7.0;
+
+        matrix_a.data[3][0] = 1.0;
+        matrix_a.data[3][1] = -3.0;
+        matrix_a.data[3][2] = 7.0;
+        matrix_a.data[3][3] = 4.0;
+
+        let mut expected_inverse = build_matrix(4, 4);
+        let expected_determinant = 532.0;
+        expected_inverse.data[0][0] = 116.0 / expected_determinant;
+        expected_inverse.data[1][0] = -430.0 / expected_determinant;
+        expected_inverse.data[2][0] = -42.0 / expected_determinant;
+        expected_inverse.data[3][0] = -278.0 / expected_determinant;
+        expected_inverse.data[0][1] = 240.0 / expected_determinant;
+        expected_inverse.data[1][1] = -775.0 / expected_determinant;
+        expected_inverse.data[2][1] = -119.0 / expected_determinant;
+        expected_inverse.data[3][1] = -433.0 / expected_determinant;
+        expected_inverse.data[0][2] = 128.0 / expected_determinant;
+        expected_inverse.data[1][2] = -236.0 / expected_determinant;
+        expected_inverse.data[2][2] = -28.0 / expected_determinant;
+        expected_inverse.data[3][2] = -160.0 / expected_determinant;
+        expected_inverse.data[0][3] = -24.0 / expected_determinant;
+        expected_inverse.data[1][3] = 277.0 / expected_determinant;
+        expected_inverse.data[2][3] = 105.0 / expected_determinant;
+        expected_inverse.data[3][3] = 163.0 / expected_determinant;
+
+        assert_eq!(matrix_a.inverse(), expected_inverse);
+    }
+
+    #[test]
+    fn test_matrix_inversion_2() {
+        let mut matrix_a = build_matrix(4, 4);
+        matrix_a.data[0][0] = 8.0;
+        matrix_a.data[0][1] = -5.0;
+        matrix_a.data[0][2] = 9.0;
+        matrix_a.data[0][3] = 2.0;
+
+        matrix_a.data[1][0] = 7.0;
+        matrix_a.data[1][1] = 5.0;
+        matrix_a.data[1][2] = 6.0;
+        matrix_a.data[1][3] = 1.0;
+
+        matrix_a.data[2][0] = -6.0;
+        matrix_a.data[2][1] = 0.0;
+        matrix_a.data[2][2] = 9.0;
+        matrix_a.data[2][3] = 6.0;
+
+        matrix_a.data[3][0] = -3.0;
+        matrix_a.data[3][1] = 0.0;
+        matrix_a.data[3][2] = -9.0;
+        matrix_a.data[3][3] = -4.0;
+
+        let mut expected_inverse = build_matrix(4, 4);
+        let expected_determinant = -585.0;
+        expected_inverse.data[0][0] = 90.0 / expected_determinant;
+        expected_inverse.data[1][0] = 45.0 / expected_determinant;
+        expected_inverse.data[2][0] = -210.0 / expected_determinant;
+        expected_inverse.data[3][0] = 405.0 / expected_determinant;
+        expected_inverse.data[0][1] = 90.0 / expected_determinant;
+        expected_inverse.data[1][1] = -72.0 / expected_determinant;
+        expected_inverse.data[2][1] = -210.0 / expected_determinant;
+        expected_inverse.data[3][1] = 405.0 / expected_determinant;
+        expected_inverse.data[0][2] = 165.0 / expected_determinant;
+        expected_inverse.data[1][2] = -15.0 / expected_determinant;
+        expected_inverse.data[2][2] = -255.0 / expected_determinant;
+        expected_inverse.data[3][2] = 450.0 / expected_determinant;
+        expected_inverse.data[0][3] = 315.0 / expected_determinant;
+        expected_inverse.data[1][3] = -18.0 / expected_determinant;
+        expected_inverse.data[2][3] = -540.0 / expected_determinant;
+        expected_inverse.data[3][3] = 1125.0 / expected_determinant;
+
+        assert_eq!(matrix_a.inverse(), expected_inverse);
+    }
+
+    #[test]
+    fn test_matrix_inversion_3() {
+        let mut matrix_a = build_matrix(4, 4);
+        matrix_a.data[0][0] = 9.0;
+        matrix_a.data[0][1] = 3.0;
+        matrix_a.data[0][2] = 0.0;
+        matrix_a.data[0][3] = 9.0;
+
+        matrix_a.data[1][0] = -5.0;
+        matrix_a.data[1][1] = -2.0;
+        matrix_a.data[1][2] = -6.0;
+        matrix_a.data[1][3] = -3.0;
+
+        matrix_a.data[2][0] = -4.0;
+        matrix_a.data[2][1] = 9.0;
+        matrix_a.data[2][2] = 6.0;
+        matrix_a.data[2][3] = 4.0;
+
+        matrix_a.data[3][0] = -7.0;
+        matrix_a.data[3][1] = 6.0;
+        matrix_a.data[3][2] = 6.0;
+        matrix_a.data[3][3] = 2.0;
+
+        let mut expected_inverse = build_matrix(4, 4);
+        let expected_determinant = 1620.0;
+        expected_inverse.data[0][0] = -66.0 / expected_determinant;
+        expected_inverse.data[1][0] = -126.0 / expected_determinant;
+        expected_inverse.data[2][0] = -47.0 / expected_determinant;
+        expected_inverse.data[3][0] = 288.0 / expected_determinant;
+        expected_inverse.data[0][1] = -126.0 / expected_determinant;
+        expected_inverse.data[1][1] = 54.0 / expected_determinant;
+        expected_inverse.data[2][1] = -237.0 / expected_determinant;
+        expected_inverse.data[3][1] = 108.0 / expected_determinant;
+        expected_inverse.data[0][2] = 234.0 / expected_determinant;
+        expected_inverse.data[1][2] = 594.0 / expected_determinant;
+        expected_inverse.data[2][2] = -177.0 / expected_determinant;
+        expected_inverse.data[3][2] = -432.0 / expected_determinant;
+        expected_inverse.data[0][3] = -360.0 / expected_determinant;
+        expected_inverse.data[1][3] = -540.0 / expected_determinant;
+        expected_inverse.data[2][3] = 210.0 / expected_determinant;
+        expected_inverse.data[3][3] = 540.0 / expected_determinant;
+
+        assert_eq!(matrix_a.inverse(), expected_inverse);
+    }
+
+    #[test]
+    fn test_invert_inverts_multiplication() {
+        let mut matrix_a = build_matrix(4, 4);
+        matrix_a.data[0][0] = 3.0;
+        matrix_a.data[0][1] = -9.0;
+        matrix_a.data[0][2] = 7.0;
+        matrix_a.data[0][3] = 3.0;
+
+        matrix_a.data[1][0] = 3.0;
+        matrix_a.data[1][1] = -8.0;
+        matrix_a.data[1][2] = 2.0;
+        matrix_a.data[1][3] = -9.0;
+
+        matrix_a.data[2][0] = -4.0;
+        matrix_a.data[2][1] = 4.0;
+        matrix_a.data[2][2] = 4.0;
+        matrix_a.data[2][3] = 1.0;
+
+        matrix_a.data[3][0] = -6.0;
+        matrix_a.data[3][1] = 5.0;
+        matrix_a.data[3][2] = -1.0;
+        matrix_a.data[3][3] = 1.0;
+
+        let mut matrix_b = build_matrix(4, 4);
+        matrix_b.data[0][0] = 8.0;
+        matrix_b.data[0][1] = 2.0;
+        matrix_b.data[0][2] = 2.0;
+        matrix_b.data[0][3] = 2.0;
+
+        matrix_b.data[1][0] = 3.0;
+        matrix_b.data[1][1] = -1.0;
+        matrix_b.data[1][2] = 7.0;
+        matrix_b.data[1][3] = 0.0;
+
+        matrix_b.data[2][0] = 7.0;
+        matrix_b.data[2][1] = 0.0;
+        matrix_b.data[2][2] = 5.0;
+        matrix_b.data[2][3] = 4.0;
+
+        matrix_b.data[3][0] = 6.0;
+        matrix_b.data[3][1] = -2.0;
+        matrix_b.data[3][2] = 0.0;
+        matrix_b.data[3][3] = 5.0;
+
+        // Next: at last, we must implement the approximate equals
+        let matrix_c = &matrix_a * &matrix_b;
+        assert_eq!(&matrix_c * &matrix_b.inverse(), matrix_a);
     }
 }
