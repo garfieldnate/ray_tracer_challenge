@@ -59,9 +59,9 @@ impl Mul for &Matrix {
     }
 }
 
-impl Mul<Tuple> for Matrix {
+impl Mul<&Tuple> for &Matrix {
     type Output = Tuple;
-    fn mul(self, other: Tuple) -> Tuple {
+    fn mul(self, other: &Tuple) -> Tuple {
         debug_assert_eq!(
             self.data.len(),
             4,
@@ -241,7 +241,7 @@ mod tests {
 
         let b = build_tuple(1.0, 2.0, 3.0, 1.0);
 
-        assert_eq!(matrix_a * b, build_tuple(18.0, 24.0, 33.0, 1.0));
+        assert_eq!(&matrix_a * &b, build_tuple(18.0, 24.0, 33.0, 1.0));
     }
 
     #[test]
