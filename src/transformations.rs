@@ -68,6 +68,20 @@ pub fn rotation_z(radians: f32) -> Matrix {
     transform
 }
 
+// `x_y` meaning it shears x in proportion to y, etc.
+pub fn shearing(x_y: f32, x_z: f32, y_x: f32, y_z: f32, z_x: f32, z_y: f32) -> Matrix {
+    let mut transform = identity_4x4();
+    transform.data[0][1] = x_y;
+    transform.data[0][2] = x_z;
+
+    transform.data[1][0] = y_x;
+    transform.data[1][2] = y_z;
+
+    transform.data[2][0] = z_x;
+    transform.data[2][1] = z_y;
+    transform
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -161,5 +175,47 @@ mod tests {
             point(-FRAC_1_SQRT_2, FRAC_1_SQRT_2, 0.0)
         );
         assert_abs_diff_eq!(&full_quarter * &p, &point(-1.0, 0.0, 0.0));
+    }
+
+    #[test]
+    fn shearing_moves_x_in_proportion_to_y() {
+        let transform = shearing(1.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+        let p = point(2.0, 3.0, 4.0);
+        assert_eq!(&transform * &p, point(5.0, 3.0, 4.0));
+    }
+
+    #[test]
+    fn shearing_moves_x_in_proportion_to_z() {
+        let transform = shearing(0.0, 1.0, 0.0, 0.0, 0.0, 0.0);
+        let p = point(2.0, 3.0, 4.0);
+        assert_eq!(&transform * &p, point(6.0, 3.0, 4.0));
+    }
+
+    #[test]
+    fn shearing_moves_y_in_proportion_to_x() {
+        let transform = shearing(0.0, 0.0, 1.0, 0.0, 0.0, 0.0);
+        let p = point(2.0, 3.0, 4.0);
+        assert_eq!(&transform * &p, point(2.0, 5.0, 4.0));
+    }
+
+    #[test]
+    fn shearing_moves_y_in_proportion_to_z() {
+        let transform = shearing(0.0, 0.0, 0.0, 1.0, 0.0, 0.0);
+        let p = point(2.0, 3.0, 4.0);
+        assert_eq!(&transform * &p, point(2.0, 7.0, 4.0));
+    }
+
+    #[test]
+    fn shearing_moves_z_in_proportion_to_x() {
+        let transform = shearing(0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+        let p = point(2.0, 3.0, 4.0);
+        assert_eq!(&transform * &p, point(2.0, 3.0, 6.0));
+    }
+
+    #[test]
+    fn shearing_moves_z_in_proportion_to_y() {
+        let transform = shearing(0.0, 0.0, 0.0, 0.0, 0.0, 1.0);
+        let p = point(2.0, 3.0, 4.0);
+        assert_eq!(&transform * &p, point(2.0, 3.0, 7.0));
     }
 }
