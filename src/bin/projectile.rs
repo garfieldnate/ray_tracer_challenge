@@ -1,3 +1,4 @@
+// Create image of projectile's path given initial velocity, gravity and wind
 // TODO: take command line args to tweak environment and projectile parameters
 // TODO: display resulting PPM file instead of just printing the text
 use ray_tracer_challenge::canvas::build_canvas;
