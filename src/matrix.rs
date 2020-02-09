@@ -8,6 +8,7 @@ pub struct Matrix {
     data: Vec<Vec<f32>>,
 }
 
+// TODO: simplify by only supporting square matrices
 fn build_matrix(rows: usize, columns: usize) -> Matrix {
     Matrix {
         rows,
@@ -98,18 +99,25 @@ impl Matrix {
     }
 
     pub fn determinant(&self) -> f32 {
-        debug_assert!(
-            self.rows == 2 && self.columns == 2,
-            "Can only take determinant of 2x2 matrix (this one is {}x{})",
-            self.rows,
-            self.columns
-        );
-        determinant(
-            self.data[0][0],
-            self.data[0][1],
-            self.data[1][0],
-            self.data[1][1],
-        )
+        // base case: 2x2 matrix
+        if self.rows == 2 {
+            determinant(
+                self.data[0][0],
+                self.data[0][1],
+                self.data[1][0],
+                self.data[1][1],
+            )
+        } else {
+            // recurse: combine determinants of submatrices
+            let mut det = 0.0;
+            // pivot on row 0 because it's simple
+            // a human would probably choose the row with the most 0's
+            for col in 0..self.columns {
+                let cofactor = self.cofactor(0, col);
+                det += cofactor * self.data[0][col];
+            }
+            det
+        }
     }
 
     // for an nxn matrix, return an n-1 x n-1 matrix with remove_row row and remove_col col removed
@@ -133,29 +141,18 @@ impl Matrix {
         m
     }
 
-    pub fn minor(&self, row: usize, column: usize) -> f32 {
-        debug_assert!(
-            self.rows == 3 && self.columns == 3,
-            "Can only take minor of 3x3 matrix (this one is {}x{})",
-            self.rows,
-            self.columns
-        );
-        self.submatrix(row, column).determinant()
-    }
-
     pub fn cofactor(&self, row: usize, column: usize) -> f32 {
-        debug_assert!(
-            self.rows == 3 && self.columns == 3,
-            "Can only take cofactor of 3x3 matrix (this one is {}x{})",
-            self.rows,
-            self.columns
-        );
         let minor = self.minor(row, column);
+
         if (row + column) % 2 == 0 {
             minor
         } else {
             -minor
         }
+    }
+
+    pub fn minor(&self, row: usize, column: usize) -> f32 {
+        self.submatrix(row, column).determinant()
     }
 }
 
@@ -465,5 +462,56 @@ mod tests {
 
         assert_eq!(matrix_a.cofactor(0, 0), -12.0);
         assert_eq!(matrix_a.cofactor(1, 0), -25.0);
+    }
+
+    #[test]
+    fn test_determinant_of_3x3_matrix() {
+        let mut matrix_a = build_matrix(3, 3);
+        matrix_a.data[0][0] = 1.0;
+        matrix_a.data[0][1] = 2.0;
+        matrix_a.data[0][2] = 6.0;
+
+        matrix_a.data[1][0] = -5.0;
+        matrix_a.data[1][1] = 8.0;
+        matrix_a.data[1][2] = -4.0;
+
+        matrix_a.data[2][0] = 2.0;
+        matrix_a.data[2][1] = 6.0;
+        matrix_a.data[2][2] = 4.0;
+
+        assert_eq!(matrix_a.cofactor(0, 0), 56.0);
+        assert_eq!(matrix_a.cofactor(0, 1), 12.0);
+        assert_eq!(matrix_a.cofactor(0, 2), -46.0);
+        assert_eq!(matrix_a.determinant(), -196.0);
+    }
+
+    #[test]
+    fn test_determinant_of_4x4_matrix() {
+        let mut matrix_a = build_matrix(4, 4);
+        matrix_a.data[0][0] = -2.0;
+        matrix_a.data[0][1] = -8.0;
+        matrix_a.data[0][2] = 3.0;
+        matrix_a.data[0][3] = 5.0;
+
+        matrix_a.data[1][0] = -3.0;
+        matrix_a.data[1][1] = 1.0;
+        matrix_a.data[1][2] = 7.0;
+        matrix_a.data[1][3] = 3.0;
+
+        matrix_a.data[2][0] = 1.0;
+        matrix_a.data[2][1] = 2.0;
+        matrix_a.data[2][2] = -9.0;
+        matrix_a.data[2][3] = 6.0;
+
+        matrix_a.data[3][0] = -6.0;
+        matrix_a.data[3][1] = 7.0;
+        matrix_a.data[3][2] = 7.0;
+        matrix_a.data[3][3] = -9.0;
+
+        assert_eq!(matrix_a.cofactor(0, 0), 690.0);
+        assert_eq!(matrix_a.cofactor(0, 1), 447.0);
+        assert_eq!(matrix_a.cofactor(0, 2), 210.0);
+        assert_eq!(matrix_a.cofactor(0, 3), 51.0);
+        assert_eq!(matrix_a.determinant(), -4071.0);
     }
 }
