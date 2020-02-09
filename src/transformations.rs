@@ -36,6 +36,23 @@ pub fn rotation_x(radians: f32) -> Matrix {
     transform
 }
 
+pub fn rotation_y(radians: f32) -> Matrix {
+    let mut transform = build_matrix(4, 4);
+
+    transform.data[1][1] = 1.0;
+    transform.data[3][3] = 1.0;
+
+    let cosine = radians.cos();
+    transform.data[0][0] = cosine;
+    transform.data[2][2] = cosine;
+
+    let sine = radians.sin();
+    transform.data[0][2] = sine;
+    transform.data[2][0] = -sine;
+
+    transform
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -98,7 +115,6 @@ mod tests {
         let half_quarter = rotation_x(FRAC_PI_4);
         let full_quarter = rotation_x(FRAC_PI_2);
         assert_abs_diff_eq!(&half_quarter * &p, point(0.0, FRAC_1_SQRT_2, FRAC_1_SQRT_2));
-        println!("{:?}", &full_quarter * &p);
         assert_abs_diff_eq!(&full_quarter * &p, &point(0.0, 0.0, 1.0));
     }
 
@@ -109,4 +125,18 @@ mod tests {
         let inv = half_quarter.inverse();
         assert_abs_diff_eq!(&inv * &p, point(0.0, FRAC_1_SQRT_2, -FRAC_1_SQRT_2));
     }
+
+    #[test]
+    fn rotating_point_around_y_axis() {
+        let p = point(0.0, 0.0, 1.0);
+        let half_quarter = rotation_y(FRAC_PI_4);
+        let full_quarter = rotation_y(FRAC_PI_2);
+        assert_abs_diff_eq!(&half_quarter * &p, point(FRAC_1_SQRT_2, 0.0, FRAC_1_SQRT_2));
+        assert_abs_diff_eq!(&full_quarter * &p, &point(1.0, 0.0, 0.0));
+    }
+    // ​ 	  ​Given​ p ← point(0, 0, 1)
+    // ​ 	    ​And​ half_quarter ← rotation_y(π / 4)
+    // ​ 	    ​And​ full_quarter ← rotation_y(π / 2)
+    // ​ 	  ​Then​ half_quarter * p = point(√2/2, 0, √2/2)
+    // ​ 	    ​And​ full_quarter * p = point(1, 0, 0)
 }
