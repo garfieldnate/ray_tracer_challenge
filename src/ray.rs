@@ -1,0 +1,237 @@
+use crate::tuple::{build_tuple, Tuple};
+use std::cmp::Ordering::Equal;
+
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub struct Ray {
+    origin: Tuple,
+    direction: Tuple,
+}
+
+pub fn build_ray(origin: Tuple, direction: Tuple) -> Ray {
+    debug_assert!(origin.is_point());
+    debug_assert!(direction.is_vector());
+    Ray { origin, direction }
+}
+
+impl Ray {
+    fn position(&self, distance: f32) -> Tuple {
+        self.origin + self.direction * distance
+    }
+}
+
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub struct Sphere {
+    center: Tuple,
+}
+
+pub fn build_sphere() -> Sphere {
+    Sphere {
+        center: point!(0, 0, 0),
+    }
+}
+
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub struct Intersection<'a> {
+    distance: f32,
+    object: &'a Sphere,
+}
+
+fn build_intersection<'a>(distance: f32, object: &'a Sphere) -> Intersection<'a> {
+    Intersection { distance, object }
+}
+
+impl Intersection<'_> {
+    // returns the intersection with the lowest non-negative distance (or None if all are negative)
+    pub fn hit<'a>(intersections: &Vec<&'a Intersection>) -> Option<&'a Intersection<'a>> {
+        // TODO: kind of annoying that we have to dereference to get a reference here
+        intersections
+            .iter()
+            .filter(|i| i.distance >= 0.0)
+            .min_by(|i1, i2| i1.distance.partial_cmp(&i2.distance).unwrap_or(Equal))
+            .map(|i| *i)
+    }
+}
+
+impl Sphere {
+    pub fn intersect(&self, ray: Ray) -> Vec<Intersection> {
+        // ​# the vector from the sphere's center to the ray origin​
+        let sphere_to_ray = ray.origin - self.center;
+        // println!("sphere to ray: {:?}", sphere_to_ray);
+        let a = ray.direction.dot(ray.direction);
+        // println!("a: {}", a);
+        let b = 2.0 * ray.direction.dot(sphere_to_ray);
+        // println!("b: {}", b);
+        let c = sphere_to_ray.dot(sphere_to_ray) - 1.0;
+        // println!("c: {}", c);
+        let discriminant = b.powf(2.0) - 4.0 * a * c;
+        // println!("discriminant: {}", discriminant);
+        if discriminant < 0.0 {
+            return vec![];
+        }
+
+        // Jingle bells!
+        vec![
+            build_intersection((-b - discriminant.sqrt()) / (2.0 * a), self),
+            build_intersection((-b + discriminant.sqrt()) / (2.0 * a), self),
+        ]
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::tuple::build_tuple;
+    #[test]
+    fn basic_ray_creation() {
+        let origin = point!(1, 2, 3);
+        let direction = vector!(4, 5, 6);
+        let r = build_ray(origin, direction);
+        assert_eq!(r.origin, origin);
+        assert_eq!(r.direction, direction);
+    }
+
+    #[test]
+    fn compute_point_from_distance() {
+        let r = build_ray(point!(2, 3, 4), vector!(1, 0, 0));
+        assert_eq!(r.position(0.0), point!(2, 3, 4));
+        assert_eq!(r.position(1.0), point!(3, 3, 4));
+        assert_eq!(r.position(-1.0), point!(1, 3, 4));
+        assert_eq!(r.position(2.5), point!(4.5, 3, 4));
+    }
+
+    #[test]
+    fn ray_intersects_sphere_at_two_points() {
+        let r = build_ray(point!(0, 0, -5), vector!(0, 0, 1));
+        let s = build_sphere();
+        let intersections = s.intersect(r);
+        assert_eq!(intersections.len(), 2);
+        assert_eq!(intersections[0].distance, 4.0);
+        assert_eq!(intersections[1].distance, 6.0);
+    }
+
+    #[test]
+    fn ray_intersects_sphere_at_tangent() {
+        let r = build_ray(point!(0, 1, -5), vector!(0, 0, 1));
+        let s = build_sphere();
+        let intersections = s.intersect(r);
+        assert_eq!(intersections.len(), 2);
+        assert_eq!(intersections[0].distance, 5.0);
+        assert_eq!(intersections[1].distance, 5.0);
+    }
+
+    #[test]
+    fn ray_misses_sphere() {
+        let r = build_ray(point!(0, 2, -5), vector!(0, 0, 1));
+        let s = build_sphere();
+        let intersections = s.intersect(r);
+        assert!(intersections.is_empty());
+    }
+
+    #[test]
+    fn ray_originates_inside_sphere() {
+        let r = build_ray(point!(0, 0, 0), vector!(0, 0, 1));
+        let s = build_sphere();
+        let intersections = s.intersect(r);
+        assert_eq!(intersections.len(), 2);
+        assert_eq!(intersections[0].distance, -1.0);
+        assert_eq!(intersections[1].distance, 1.0);
+    }
+
+    #[test]
+    fn sphere_is_behind_ray() {
+        let r = build_ray(point!(0, 0, 5), vector!(0, 0, 1));
+        let s = build_sphere();
+        let intersections = s.intersect(r);
+        assert_eq!(intersections.len(), 2);
+        assert_eq!(intersections[0].distance, -6.0);
+        assert_eq!(intersections[1].distance, -4.0);
+    }
+
+    #[test]
+    fn basic_intersection_creation() {
+        let s = build_sphere();
+        let i = build_intersection(1.0, &s);
+        assert_eq!(i.distance, 1.0);
+        assert_eq!(&s as *const _, i.object as *const _);
+    }
+
+    #[test]
+    fn hit_all_intersections_have_positive_distance() {
+        let s = build_sphere();
+        let i1 = Intersection {
+            distance: 1.0,
+            object: &s,
+        };
+        let i2 = Intersection {
+            distance: 2.0,
+            object: &s,
+        };
+
+        let i = Intersection::hit(&vec![&i1, &i2]).unwrap();
+        assert_eq!(i, &i1);
+    }
+
+    #[test]
+    fn hit_some_interactions_have_negative_distance() {
+        let s = build_sphere();
+        let i1 = Intersection {
+            distance: -1.0,
+            object: &s,
+        };
+        let i2 = Intersection {
+            distance: 1.0,
+            object: &s,
+        };
+        let i3 = Intersection {
+            distance: -0.5,
+            object: &s,
+        };
+        let interactions = vec![&i1, &i2, &i3];
+        let i = Intersection::hit(&interactions).unwrap();
+        assert_eq!(&i2, i);
+    }
+
+    #[test]
+    fn no_hit_when_all_interactions_negative() {
+        let s = build_sphere();
+        let i1 = Intersection {
+            distance: -2.0,
+            object: &s,
+        };
+        let i2 = Intersection {
+            distance: -1.0,
+            object: &s,
+        };
+        let i3 = Intersection {
+            distance: -0.5,
+            object: &s,
+        };
+        let interactions = vec![&i1, &i2, &i3];
+        let i = Intersection::hit(&interactions);
+        assert!(i.is_none());
+    }
+
+    #[test]
+    fn hit_is_lowest_nonnegative_intersection() {
+        let s = build_sphere();
+        let i1 = Intersection {
+            distance: 5.0,
+            object: &s,
+        };
+        let i2 = Intersection {
+            distance: 7.0,
+            object: &s,
+        };
+        let i3 = Intersection {
+            distance: -3.0,
+            object: &s,
+        };
+        let i4 = Intersection {
+            distance: 2.0,
+            object: &s,
+        };
+        let interactions = vec![&i1, &i2, &i3, &i4];
+        let i = Intersection::hit(&interactions).unwrap();
+        assert_eq!(&i4, i);
+    }
+}
