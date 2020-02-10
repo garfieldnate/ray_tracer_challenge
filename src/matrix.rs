@@ -19,6 +19,12 @@ pub fn build_matrix(size: usize) -> Matrix {
 macro_rules! matrix {
     ($([$($x:expr),* $(,)*]),+ $(,)*) => {{
         let data = vec![$(vec![$($x as f32,)*],)*];
+        if cfg!(debug_assertions) {
+            let expected_size = data.len();
+            for row in &data {
+                assert_eq!(expected_size, row.len(), "Wrong row length; expected {}, found {}", expected_size, row.len());
+            }
+        }
         Matrix {
             data
         }
