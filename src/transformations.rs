@@ -9,7 +9,7 @@ pub fn translation(x: f32, y: f32, z: f32) -> Matrix {
 }
 
 pub fn scaling(x: f32, y: f32, z: f32) -> Matrix {
-    let mut transform = build_matrix(4, 4);
+    let mut transform = build_matrix(4);
     transform.data[0][0] = x;
     transform.data[1][1] = y;
     transform.data[2][2] = z;
@@ -18,7 +18,7 @@ pub fn scaling(x: f32, y: f32, z: f32) -> Matrix {
 }
 
 pub fn rotation_x(radians: f32) -> Matrix {
-    let mut transform = build_matrix(4, 4);
+    let mut transform = build_matrix(4);
 
     transform.data[0][0] = 1.0;
     transform.data[3][3] = 1.0;
@@ -35,7 +35,7 @@ pub fn rotation_x(radians: f32) -> Matrix {
 }
 
 pub fn rotation_y(radians: f32) -> Matrix {
-    let mut transform = build_matrix(4, 4);
+    let mut transform = build_matrix(4);
 
     transform.data[1][1] = 1.0;
     transform.data[3][3] = 1.0;
@@ -52,7 +52,7 @@ pub fn rotation_y(radians: f32) -> Matrix {
 }
 
 pub fn rotation_z(radians: f32) -> Matrix {
-    let mut transform = build_matrix(4, 4);
+    let mut transform = build_matrix(4);
 
     transform.data[2][2] = 1.0;
     transform.data[3][3] = 1.0;
