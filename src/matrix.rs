@@ -2,25 +2,23 @@ use crate::tuple::*;
 use approx::AbsDiffEq;
 use std::ops::Mul;
 
+// Only supports square matrices
 #[derive(Clone, Debug, PartialEq)]
 pub struct Matrix {
-    rows: usize,
-    columns: usize,
+    size: usize,
     // TODO: maybe this should be private with accessor
     pub data: Vec<Vec<f32>>,
 }
 
-// TODO: simplify by only supporting square matrices
-pub fn build_matrix(rows: usize, columns: usize) -> Matrix {
+pub fn build_matrix(size: usize) -> Matrix {
     Matrix {
-        rows,
-        columns,
-        data: vec![vec![0.0; columns]; rows],
+        size,
+        data: vec![vec![0.0; size]; size],
     }
 }
 
 pub fn identity_4x4() -> Matrix {
-    let mut m = build_matrix(4, 4);
+    let mut m = build_matrix(4);
     m.data[0][0] = 1.0;
     m.data[1][1] = 1.0;
     m.data[2][2] = 1.0;
@@ -39,16 +37,10 @@ impl Mul for &Matrix {
             4,
             "Only 4x4 matrices can be multiplied by tuples!"
         );
-        debug_assert_eq!(
-            other.data.len(),
-            4,
-            "Only 4x4 matrices can be multiplied by tuples!"
-        );
-        let rows = self.rows;
-        let columns = other.columns;
-        let mut new_matrix = build_matrix(rows, columns);
-        for r in 0..rows {
-            for c in 0..columns {
+        let size = self.size;
+        let mut new_matrix = build_matrix(size);
+        for r in 0..size {
+            for c in 0..size {
                 new_matrix.data[r][c] = self.data[r][0] * other.data[0][c]
                     + self.data[r][1] * other.data[1][c]
                     + self.data[r][2] * other.data[2][c]
@@ -96,8 +88,8 @@ impl AbsDiffEq for Matrix {
     }
 
     fn abs_diff_eq(&self, other: &Self, epsilon: Self::Epsilon) -> bool {
-        for row in 0..self.rows {
-            for col in 0..self.columns {
+        for row in 0..self.size {
+            for col in 0..self.size {
                 if !f32::abs_diff_eq(&self.data[row][col], &other.data[row][col], epsilon) {
                     println!(
                         "{} not close enough to {}",
@@ -115,9 +107,9 @@ impl Matrix {
     // TODO: would it be better to mutate instead of copying?
     pub fn transpose(&self) -> Matrix {
         // debug_assert!(self.rows == 4 && self.columns == 4, "Only 4x4 matrices can be tr");
-        let mut m = build_matrix(self.columns, self.rows);
-        for row in 0..self.rows {
-            for col in 0..self.columns {
+        let mut m = build_matrix(self.size);
+        for row in 0..self.size {
+            for col in 0..self.size {
                 m.data[col][row] = self.data[row][col];
             }
         }
@@ -126,7 +118,7 @@ impl Matrix {
 
     pub fn determinant(&self) -> f32 {
         // base case: 2x2 matrix
-        if self.rows == 2 {
+        if self.size == 2 {
             determinant(
                 self.data[0][0],
                 self.data[0][1],
@@ -138,7 +130,7 @@ impl Matrix {
             let mut det = 0.0;
             // pivot on row 0 because it's simple
             // a human would probably choose the row with the most 0's
-            for col in 0..self.columns {
+            for col in 0..self.size {
                 let cofactor = self.cofactor(0, col);
                 det += cofactor * self.data[0][col];
             }
@@ -148,14 +140,14 @@ impl Matrix {
 
     // for an nxn matrix, return an n-1 x n-1 matrix with remove_row row and remove_col col removed
     pub fn submatrix(&self, remove_row: usize, remove_col: usize) -> Matrix {
-        let mut m = build_matrix(self.rows - 1, self.columns - 1);
+        let mut m = build_matrix(self.size - 1);
         let mut new_row = 0;
-        for old_row in 0..self.rows {
+        for old_row in 0..self.size {
             if old_row == remove_row {
                 continue;
             }
             let mut new_col = 0;
-            for old_col in 0..self.columns {
+            for old_col in 0..self.size {
                 if old_col == remove_col {
                     continue;
                 }
@@ -188,9 +180,9 @@ impl Matrix {
     pub fn inverse(&self) -> Matrix {
         debug_assert!(self.invertible());
         let determinant = self.determinant();
-        let mut matrix_inverse = build_matrix(self.rows, self.columns);
-        for row in 0..self.rows {
-            for column in 0..self.columns {
+        let mut matrix_inverse = build_matrix(self.size);
+        for row in 0..self.size {
+            for column in 0..self.size {
                 let c = self.cofactor(row, column);
                 matrix_inverse.data[column][row] = c / determinant;
                 // println!(
@@ -215,10 +207,9 @@ fn determinant(a: f32, b: f32, c: f32, d: f32) -> f32 {
 #[cfg(test)]
 mod tests {
     use super::*;
-
     #[test]
     fn test_matrix_multiplied_by_tuple() {
-        let mut matrix_a = build_matrix(4, 4);
+        let mut matrix_a = build_matrix(4);
         matrix_a.data[0][0] = 1.0;
         matrix_a.data[0][1] = 2.0;
         matrix_a.data[0][2] = 3.0;
@@ -246,7 +237,7 @@ mod tests {
 
     #[test]
     fn test_multiplying_two_matrices() {
-        let mut matrix_a = build_matrix(4, 4);
+        let mut matrix_a = build_matrix(4);
         matrix_a.data[0][0] = 1.0;
         matrix_a.data[0][1] = 2.0;
         matrix_a.data[0][2] = 3.0;
@@ -267,7 +258,7 @@ mod tests {
         matrix_a.data[3][2] = 3.0;
         matrix_a.data[3][3] = 2.0;
 
-        let mut matrix_b = build_matrix(4, 4);
+        let mut matrix_b = build_matrix(4);
         matrix_b.data[0][0] = -2.0;
         matrix_b.data[0][1] = 1.0;
         matrix_b.data[0][2] = 2.0;
@@ -288,7 +279,7 @@ mod tests {
         matrix_b.data[3][2] = 7.0;
         matrix_b.data[3][3] = 8.0;
 
-        let mut expected = build_matrix(4, 4);
+        let mut expected = build_matrix(4);
         expected.data[0][0] = 20.0;
         expected.data[0][1] = 22.0;
         expected.data[0][2] = 50.0;
@@ -313,7 +304,7 @@ mod tests {
 
     #[test]
     fn test_multiplying_by_identity_matrix() {
-        let mut matrix_a = build_matrix(4, 4);
+        let mut matrix_a = build_matrix(4);
         matrix_a.data[0][0] = 0.0;
         matrix_a.data[0][1] = 1.0;
         matrix_a.data[0][2] = 2.0;
@@ -340,24 +331,28 @@ mod tests {
 
     #[test]
     fn test_matrix_transpose() {
-        let mut m = build_matrix(4, 3);
+        let mut m = build_matrix(4);
         m.data[0][0] = 0.0;
         m.data[0][1] = 9.0;
         m.data[0][2] = 3.0;
+        m.data[0][3] = 0.0;
 
         m.data[1][0] = 9.0;
         m.data[1][1] = 8.0;
         m.data[1][2] = 0.0;
+        m.data[1][3] = 0.0;
 
         m.data[2][0] = 1.0;
         m.data[2][1] = 8.0;
         m.data[2][2] = 5.0;
+        m.data[2][3] = 0.0;
 
         m.data[3][0] = 0.0;
         m.data[3][1] = 0.0;
         m.data[3][2] = 5.0;
+        m.data[3][3] = 0.0;
 
-        let mut m_transpose = build_matrix(3, 4);
+        let mut m_transpose = build_matrix(4);
         m_transpose.data[0][0] = 0.0;
         m_transpose.data[1][0] = 9.0;
         m_transpose.data[2][0] = 3.0;
@@ -373,6 +368,11 @@ mod tests {
         m_transpose.data[0][3] = 0.0;
         m_transpose.data[1][3] = 0.0;
         m_transpose.data[2][3] = 5.0;
+
+        m_transpose.data[3][0] = 0.0;
+        m_transpose.data[3][1] = 0.0;
+        m_transpose.data[3][2] = 0.0;
+        m_transpose.data[3][3] = 0.0;
 
         assert_eq!(m.transpose(), m_transpose);
     }
@@ -391,7 +391,7 @@ mod tests {
 
     #[test]
     fn test_submatrix_of_3x3() {
-        let mut matrix_a = build_matrix(3, 3);
+        let mut matrix_a = build_matrix(3);
         matrix_a.data[0][0] = 1.0;
         matrix_a.data[0][1] = 5.0;
         matrix_a.data[0][2] = 0.0;
@@ -404,7 +404,7 @@ mod tests {
         matrix_a.data[2][1] = 6.0;
         matrix_a.data[2][2] = -3.0;
 
-        let mut expected_submatrix = build_matrix(2, 2);
+        let mut expected_submatrix = build_matrix(2);
         expected_submatrix.data[0][0] = -3.0;
         expected_submatrix.data[0][1] = 2.0;
 
@@ -416,7 +416,7 @@ mod tests {
 
     #[test]
     fn test_submatrix_of_4x4() {
-        let mut matrix_a = build_matrix(4, 4);
+        let mut matrix_a = build_matrix(4);
         matrix_a.data[0][0] = -6.0;
         matrix_a.data[0][1] = 1.0;
         matrix_a.data[0][2] = 1.0;
@@ -437,7 +437,7 @@ mod tests {
         matrix_a.data[3][2] = -1.0;
         matrix_a.data[3][3] = 1.0;
 
-        let mut expected_submatrix = build_matrix(3, 3);
+        let mut expected_submatrix = build_matrix(3);
         expected_submatrix.data[0][0] = -6.0;
         expected_submatrix.data[0][1] = 1.0;
         expected_submatrix.data[0][2] = 6.0;
@@ -455,7 +455,7 @@ mod tests {
 
     #[test]
     fn test_minor_of_3x3_matrix() {
-        let mut matrix_a = build_matrix(3, 3);
+        let mut matrix_a = build_matrix(3);
         matrix_a.data[0][0] = 3.0;
         matrix_a.data[0][1] = 5.0;
         matrix_a.data[0][2] = 0.0;
@@ -473,7 +473,7 @@ mod tests {
 
     #[test]
     fn test_cofactor_of_3x3_matrix() {
-        let mut matrix_a = build_matrix(3, 3);
+        let mut matrix_a = build_matrix(3);
         matrix_a.data[0][0] = 3.0;
         matrix_a.data[0][1] = 5.0;
         matrix_a.data[0][2] = 0.0;
@@ -492,7 +492,7 @@ mod tests {
 
     #[test]
     fn test_determinant_of_3x3_matrix() {
-        let mut matrix_a = build_matrix(3, 3);
+        let mut matrix_a = build_matrix(3);
         matrix_a.data[0][0] = 1.0;
         matrix_a.data[0][1] = 2.0;
         matrix_a.data[0][2] = 6.0;
@@ -513,7 +513,7 @@ mod tests {
 
     #[test]
     fn test_determinant_of_4x4_matrix() {
-        let mut matrix_a = build_matrix(4, 4);
+        let mut matrix_a = build_matrix(4);
         matrix_a.data[0][0] = -2.0;
         matrix_a.data[0][1] = -8.0;
         matrix_a.data[0][2] = 3.0;
@@ -543,7 +543,7 @@ mod tests {
 
     #[test]
     fn test_non_0_determinant_matrix_is_invertible() {
-        let mut matrix_a = build_matrix(4, 4);
+        let mut matrix_a = build_matrix(4);
         matrix_a.data[0][0] = 6.0;
         matrix_a.data[0][1] = 4.0;
         matrix_a.data[0][2] = 4.0;
@@ -570,7 +570,7 @@ mod tests {
 
     #[test]
     fn test_0_determinant_matrix_is_invertible() {
-        let mut matrix_a = build_matrix(4, 4);
+        let mut matrix_a = build_matrix(4);
         matrix_a.data[0][0] = -4.0;
         matrix_a.data[0][1] = 2.0;
         matrix_a.data[0][2] = -2.0;
@@ -597,7 +597,7 @@ mod tests {
 
     #[test]
     fn test_matrix_inversion_1() {
-        let mut matrix_a = build_matrix(4, 4);
+        let mut matrix_a = build_matrix(4);
         matrix_a.data[0][0] = -5.0;
         matrix_a.data[0][1] = 2.0;
         matrix_a.data[0][2] = 6.0;
@@ -618,7 +618,7 @@ mod tests {
         matrix_a.data[3][2] = 7.0;
         matrix_a.data[3][3] = 4.0;
 
-        let mut expected_inverse = build_matrix(4, 4);
+        let mut expected_inverse = build_matrix(4);
         let expected_determinant = 532.0;
         expected_inverse.data[0][0] = 116.0 / expected_determinant;
         expected_inverse.data[1][0] = -430.0 / expected_determinant;
@@ -642,7 +642,7 @@ mod tests {
 
     #[test]
     fn test_matrix_inversion_2() {
-        let mut matrix_a = build_matrix(4, 4);
+        let mut matrix_a = build_matrix(4);
         matrix_a.data[0][0] = 8.0;
         matrix_a.data[0][1] = -5.0;
         matrix_a.data[0][2] = 9.0;
@@ -663,7 +663,7 @@ mod tests {
         matrix_a.data[3][2] = -9.0;
         matrix_a.data[3][3] = -4.0;
 
-        let mut expected_inverse = build_matrix(4, 4);
+        let mut expected_inverse = build_matrix(4);
         let expected_determinant = -585.0;
         expected_inverse.data[0][0] = 90.0 / expected_determinant;
         expected_inverse.data[1][0] = 45.0 / expected_determinant;
@@ -687,7 +687,7 @@ mod tests {
 
     #[test]
     fn test_matrix_inversion_3() {
-        let mut matrix_a = build_matrix(4, 4);
+        let mut matrix_a = build_matrix(4);
         matrix_a.data[0][0] = 9.0;
         matrix_a.data[0][1] = 3.0;
         matrix_a.data[0][2] = 0.0;
@@ -708,7 +708,7 @@ mod tests {
         matrix_a.data[3][2] = 6.0;
         matrix_a.data[3][3] = 2.0;
 
-        let mut expected_inverse = build_matrix(4, 4);
+        let mut expected_inverse = build_matrix(4);
         let expected_determinant = 1620.0;
         expected_inverse.data[0][0] = -66.0 / expected_determinant;
         expected_inverse.data[1][0] = -126.0 / expected_determinant;
@@ -732,7 +732,7 @@ mod tests {
 
     #[test]
     fn test_invert_inverts_multiplication() {
-        let mut matrix_a = build_matrix(4, 4);
+        let mut matrix_a = build_matrix(4);
         matrix_a.data[0][0] = 3.0;
         matrix_a.data[0][1] = -9.0;
         matrix_a.data[0][2] = 7.0;
@@ -753,7 +753,7 @@ mod tests {
         matrix_a.data[3][2] = -1.0;
         matrix_a.data[3][3] = 1.0;
 
-        let mut matrix_b = build_matrix(4, 4);
+        let mut matrix_b = build_matrix(4);
         matrix_b.data[0][0] = 8.0;
         matrix_b.data[0][1] = 2.0;
         matrix_b.data[0][2] = 2.0;
