@@ -61,12 +61,20 @@ pub fn build_tuple(x: f32, y: f32, z: f32, w: f32) -> Tuple {
     Tuple { x, y, z, w }
 }
 
-pub fn point(x: f32, y: f32, z: f32) -> Tuple {
-    build_tuple(x, y, z, 1.0)
+// Use like this: point!(1,2,3)
+#[macro_export]
+macro_rules! point {
+    ($x:expr, $y:expr, $z:expr) => {{
+        build_tuple($x as f32, $y as f32, $z as f32, 1.0)
+    }};
 }
 
-pub fn vector(x: f32, y: f32, z: f32) -> Tuple {
-    build_tuple(x, y, z, 0.0)
+// Use like this: vector!(1,2,3)
+#[macro_export]
+macro_rules! vector {
+    ($x:expr, $y:expr, $z:expr) => {{
+        build_tuple($x as f32, $y as f32, $z as f32, 0.0)
+    }};
 }
 
 impl Add for Tuple {
@@ -197,7 +205,7 @@ mod tests {
 
     #[test]
     fn test_point_creates_tuple_with_w_equal_1() -> () {
-        let p = point(1.1, 2.2, 3.3);
+        let p = point!(1.1, 2.2, 3.3);
         assert_eq!(
             p,
             Tuple {
@@ -211,7 +219,7 @@ mod tests {
 
     #[test]
     fn test_vector_creates_tuple_with_w_equal_0() -> () {
-        let v = vector(1.1, 2.2, 3.3);
+        let v = vector!(1.1, 2.2, 3.3);
         assert_eq!(
             v,
             Tuple {
@@ -251,29 +259,29 @@ mod tests {
 
     #[test]
     fn test_subtract_points() {
-        let p1 = point(1.0, 2.0, 3.0);
-        let p2 = point(4.0, 5.0, 6.0);
+        let p1 = point!(1, 2, 3);
+        let p2 = point!(4, 5, 6);
 
         let subtrahend = p1 - p2;
-        assert_abs_diff_eq!(subtrahend, vector(-3.0, -3.0, -3.0));
+        assert_abs_diff_eq!(subtrahend, vector!(-3, -3, -3));
     }
 
     #[test]
     fn test_subtract_vector_from_point() {
-        let p = point(3.0, 2.0, 1.0);
-        let v = vector(5.0, 6.0, 7.0);
+        let p = point!(3, 2, 1);
+        let v = vector!(5, 6, 7);
 
         let subtrahend = p - v;
-        assert_abs_diff_eq!(subtrahend, point(-2.0, -4.0, -6.0));
+        assert_abs_diff_eq!(subtrahend, point!(-2, -4, -6));
     }
 
     #[test]
     fn test_subtract_vectors() {
-        let v1 = vector(3.0, 2.0, 1.0);
-        let v2 = vector(5.0, 6.0, 7.0);
+        let v1 = vector!(3, 2, 1);
+        let v2 = vector!(5, 6, 7);
 
         let subtrahend = v1 - v2;
-        assert_abs_diff_eq!(subtrahend, vector(-2.0, -4.0, -6.0));
+        assert_abs_diff_eq!(subtrahend, vector!(-2, -4, -6));
     }
 
     #[test]
@@ -340,48 +348,48 @@ mod tests {
 
     #[test]
     fn test_vector_magnitude() {
-        let x = vector(1.0, 0.0, 0.0);
+        let x = vector!(1, 0, 0);
         assert_eq!(x.magnitude(), 1.0);
 
-        let y = vector(0.0, 1.0, 0.0);
+        let y = vector!(0, 1, 0);
         assert_eq!(y.magnitude(), 1.0);
 
-        let z = vector(0.0, 0.0, 1.0);
+        let z = vector!(0, 0, 1);
         assert_eq!(z.magnitude(), 1.0);
 
         // Note: should technically use some kind of epsilon comparison
-        let v1 = vector(1.0, 2.0, 3.0);
+        let v1 = vector!(1, 2, 3);
         assert_eq!(v1.magnitude(), (14.0 as f32).sqrt());
 
-        let v2 = vector(-1.0, -2.0, -3.0);
+        let v2 = vector!(-1, -2, -3);
         assert_eq!(v2.magnitude(), (14.0 as f32).sqrt());
     }
 
     #[test]
     fn test_vector_norm() {
-        let x = vector(4.0, 0.0, 0.0);
-        assert_abs_diff_eq!(x.norm(), vector(1.0, 0.0, 0.0));
+        let x = vector!(4, 0, 0);
+        assert_abs_diff_eq!(x.norm(), vector!(1, 0, 0));
 
-        let y = vector(1.0, 2.0, 3.0);
+        let y = vector!(1, 2, 3);
         let mag = (14.0 as f32).sqrt();
-        assert_abs_diff_eq!(y.norm(), vector(1.0 / mag, 2.0 / mag, 3.0 / mag));
+        assert_abs_diff_eq!(y.norm(), vector!(1.0 / mag, 2.0 / mag, 3.0 / mag));
 
-        let normed = vector(1.0, 2.0, 3.0).norm();
+        let normed = vector!(1, 2, 3).norm();
         assert_abs_diff_eq!(normed.magnitude(), 1.0);
     }
 
     #[test]
     fn test_vector_dot_product() {
-        let x = vector(1.1, 2.2, 3.3);
-        let y = vector(2.2, 3.3, 4.4);
+        let x = vector!(1.1, 2.2, 3.3);
+        let y = vector!(2.2, 3.3, 4.4);
         assert_abs_diff_eq!(x.dot(y), 24.2);
     }
 
     #[test]
     fn test_vector_cross_product() {
-        let x = vector(1.0, 2.0, 3.0);
-        let y = vector(2.0, 3.0, 4.0);
-        assert_eq!(x.cross(y), vector(-1.0, 2.0, -1.0));
-        assert_eq!(y.cross(x), vector(1.0, -2.0, 1.0));
+        let x = vector!(1, 2, 3);
+        let y = vector!(2, 3, 4);
+        assert_eq!(x.cross(y), vector!(-1, 2, -1));
+        assert_eq!(y.cross(x), vector!(1, -2, 1));
     }
 }
