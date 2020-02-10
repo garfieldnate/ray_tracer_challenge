@@ -5,25 +5,21 @@ use std::ops::Mul;
 // Only supports square matrices
 #[derive(Clone, Debug, PartialEq)]
 pub struct Matrix {
-    size: usize,
     // TODO: maybe this should be private with accessor
     pub data: Vec<Vec<f32>>,
 }
 
-// TODO: derive size from data dyanmically instead of storing it
 pub fn build_matrix(size: usize) -> Matrix {
     Matrix {
-        size,
         data: vec![vec![0.0; size]; size],
     }
 }
 
-// Use like this: matrix!([0,1],[1.5,2])
+// Use like this: matrix!([0, 1], [1.5, 2])
 macro_rules! matrix {
     ($([$($x:expr),* $(,)*]),+ $(,)*) => {{
         let data = vec![$(vec![$($x as f32,)*],)*];
         Matrix {
-            size: data.len(),
             data
         }
     }};
@@ -37,9 +33,9 @@ pub fn identity_4x4() -> Matrix {
 impl Mul<f32> for &Matrix {
     type Output = Matrix;
     fn mul(self, other: f32) -> Matrix {
-        let mut m = build_matrix(self.size);
-        for row in 0..self.size {
-            for col in 0..self.size {
+        let mut m = build_matrix(self.size());
+        for row in 0..self.size() {
+            for col in 0..self.size() {
                 m.data[row][col] = self.data[row][col] * other;
             }
         }
@@ -51,7 +47,8 @@ impl Mul<&Tuple> for &Matrix {
     type Output = Tuple;
     fn mul(self, other: &Tuple) -> Tuple {
         debug_assert_eq!(
-            self.size, 4,
+            self.size(),
+            4,
             "Only 4x4 matrices can be multiplied by tuples!"
         );
         let x = self.data[0][0] * other.x
@@ -83,7 +80,7 @@ impl Mul for &Matrix {
             4,
             "Only 4x4 matrices can be multiplied by tuples!"
         );
-        let size = self.size;
+        let size = self.size();
         let mut new_matrix = build_matrix(size);
         for r in 0..size {
             for c in 0..size {
@@ -106,8 +103,8 @@ impl AbsDiffEq for Matrix {
     }
 
     fn abs_diff_eq(&self, other: &Self, epsilon: Self::Epsilon) -> bool {
-        for row in 0..self.size {
-            for col in 0..self.size {
+        for row in 0..self.size() {
+            for col in 0..self.size() {
                 if !f32::abs_diff_eq(&self.data[row][col], &other.data[row][col], epsilon) {
                     println!(
                         "{} not close enough to {}",
@@ -122,12 +119,15 @@ impl AbsDiffEq for Matrix {
 }
 
 impl Matrix {
+    pub fn size(&self) -> usize {
+        self.data.len()
+    }
     // TODO: would it be better to mutate instead of copying?
     pub fn transpose(&self) -> Matrix {
         // debug_assert!(self.rows == 4 && self.columns == 4, "Only 4x4 matrices can be tr");
-        let mut m = build_matrix(self.size);
-        for row in 0..self.size {
-            for col in 0..self.size {
+        let mut m = build_matrix(self.size());
+        for row in 0..self.size() {
+            for col in 0..self.size() {
                 m.data[col][row] = self.data[row][col];
             }
         }
@@ -136,14 +136,14 @@ impl Matrix {
 
     pub fn determinant(&self) -> f32 {
         // base case: 2x2 matrix
-        if self.size == 2 {
+        if self.size() == 2 {
             self.data[0][0] * self.data[1][1] - self.data[0][1] * self.data[1][0]
         } else {
             // recurse: combine determinants of submatrices
             let mut det = 0.0;
             // pivot on row 0 because it's simple
             // a human would probably choose the row with the most 0's
-            for col in 0..self.size {
+            for col in 0..self.size() {
                 let cofactor = self.cofactor(0, col);
                 det += cofactor * self.data[0][col];
             }
@@ -153,14 +153,14 @@ impl Matrix {
 
     // for an nxn matrix, return an n-1 x n-1 matrix with remove_row row and remove_col col removed
     pub fn submatrix(&self, remove_row: usize, remove_col: usize) -> Matrix {
-        let mut m = build_matrix(self.size - 1);
+        let mut m = build_matrix(self.size() - 1);
         let mut new_row = 0;
-        for old_row in 0..self.size {
+        for old_row in 0..self.size() {
             if old_row == remove_row {
                 continue;
             }
             let mut new_col = 0;
-            for old_col in 0..self.size {
+            for old_col in 0..self.size() {
                 if old_col == remove_col {
                     continue;
                 }
@@ -193,9 +193,9 @@ impl Matrix {
     pub fn inverse(&self) -> Matrix {
         debug_assert!(self.invertible());
         let determinant = self.determinant();
-        let mut matrix_inverse = build_matrix(self.size);
-        for row in 0..self.size {
-            for column in 0..self.size {
+        let mut matrix_inverse = build_matrix(self.size());
+        for row in 0..self.size() {
+            for column in 0..self.size() {
                 let c = self.cofactor(row, column);
                 matrix_inverse.data[column][row] = c / determinant;
                 // println!(
