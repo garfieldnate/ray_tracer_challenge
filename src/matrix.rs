@@ -16,6 +16,7 @@ pub fn build_matrix(size: usize) -> Matrix {
 }
 
 // Use like this: matrix!([0, 1], [1.5, 2])
+#[macro_export]
 macro_rules! matrix {
     ($([$($x:expr),* $(,)*]),+ $(,)*) => {{
         let data = vec![$(vec![$($x as f32,)*],)*];
