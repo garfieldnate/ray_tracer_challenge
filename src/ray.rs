@@ -1,3 +1,5 @@
+use crate::matrix::identity_4x4;
+use crate::matrix::Matrix;
 use crate::tuple::{build_tuple, Tuple};
 use std::cmp::Ordering::Equal;
 
@@ -17,16 +19,30 @@ impl Ray {
     fn position(&self, distance: f32) -> Tuple {
         self.origin + self.direction * distance
     }
+    fn transform(&self, transform_matrix: &Matrix) -> Ray {
+        build_ray(
+            transform_matrix * &self.origin,
+            transform_matrix * &self.direction,
+        )
+    }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Sphere {
     center: Tuple,
+    transform: Matrix,
 }
 
 pub fn build_sphere() -> Sphere {
     Sphere {
         center: point!(0, 0, 0),
+        transform: identity_4x4(),
+    }
+}
+
+impl Sphere {
+    fn set_transform(&mut self, transform_matrix: Matrix) {
+        self.transform = transform_matrix;
     }
 }
 
@@ -80,6 +96,9 @@ impl Sphere {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::matrix::identity_4x4;
+    use crate::transformations::scaling;
+    use crate::transformations::translation;
     use crate::tuple::build_tuple;
     #[test]
     fn basic_ray_creation() {
@@ -233,5 +252,37 @@ mod tests {
         let interactions = vec![&i1, &i2, &i3, &i4];
         let i = Intersection::hit(&interactions).unwrap();
         assert_eq!(&i4, i);
+    }
+
+    #[test]
+    fn ray_translation() {
+        let r = build_ray(point!(1, 2, 3), vector!(0, 1, 0));
+        let m = translation(3.0, 4.0, 5.0);
+        let r2 = r.transform(&m);
+        assert_eq!(r2.origin, point!(4, 6, 8));
+        assert_eq!(r2.direction, vector!(0, 1, 0));
+    }
+
+    #[test]
+    fn ray_scaling() {
+        let r = build_ray(point!(1, 2, 3), vector!(0, 1, 0));
+        let m = scaling(2.0, 3.0, 4.0);
+        let r2 = r.transform(&m);
+        assert_eq!(r2.origin, point!(2, 6, 12));
+        assert_eq!(r2.direction, vector!(0, 3, 0));
+    }
+
+    #[test]
+    fn sphere_default_transform() {
+        let s = build_sphere();
+        assert_eq!(s.transform, identity_4x4());
+    }
+
+    #[test]
+    fn set_sphere_transformation() {
+        let mut s = build_sphere();
+        let t = translation(2.0, 3.0, 4.0);
+        s.set_transform(t.clone());
+        assert_eq!(s.transform, t);
     }
 }
