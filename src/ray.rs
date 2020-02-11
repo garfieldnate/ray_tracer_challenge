@@ -70,12 +70,13 @@ impl Intersection<'_> {
 
 impl Sphere {
     pub fn intersect(&self, ray: Ray) -> Vec<Intersection> {
+        let transformed_ray = ray.transform(&self.transform.inverse());
         // ​# the vector from the sphere's center to the ray origin​
-        let sphere_to_ray = ray.origin - self.center;
+        let sphere_to_ray = transformed_ray.origin - self.center;
         // println!("sphere to ray: {:?}", sphere_to_ray);
-        let a = ray.direction.dot(ray.direction);
+        let a = transformed_ray.direction.dot(transformed_ray.direction);
         // println!("a: {}", a);
-        let b = 2.0 * ray.direction.dot(sphere_to_ray);
+        let b = 2.0 * transformed_ray.direction.dot(sphere_to_ray);
         // println!("b: {}", b);
         let c = sphere_to_ray.dot(sphere_to_ray) - 1.0;
         // println!("c: {}", c);
@@ -284,5 +285,24 @@ mod tests {
         let t = translation(2.0, 3.0, 4.0);
         s.set_transform(t.clone());
         assert_eq!(s.transform, t);
+    }
+
+    #[test]
+    fn intersect_scaled_sphere_with_ray() {
+        let r = build_ray(point!(0, 0, -5), vector!(0, 0, 1));
+        let mut s = build_sphere();
+        s.set_transform(scaling(2.0, 2.0, 2.0));
+        let xs = s.intersect(r);
+        assert_eq!(xs[0].distance, 3.0);
+        assert_eq!(xs[1].distance, 7.0);
+    }
+
+    #[test]
+    fn intersect_translated_sphere_with_ray() {
+        let r = build_ray(point!(0, 0, -5), vector!(0, 0, 1));
+        let mut s = build_sphere();
+        s.set_transform(translation(5.0, 0.0, 0.0));
+        let xs = s.intersect(r);
+        assert_eq!(xs.len(), 0);
     }
 }
