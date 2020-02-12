@@ -4,6 +4,7 @@ use crate::material::Material;
 use crate::ray::Ray;
 use crate::tuple::Tuple;
 
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Light {
     position: Tuple,
     intensity: Color,

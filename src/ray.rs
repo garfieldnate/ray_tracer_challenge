@@ -18,10 +18,10 @@ pub fn build_ray(origin: Tuple, direction: Tuple) -> Ray {
 }
 
 impl Ray {
-    fn position(&self, distance: f32) -> Tuple {
+    pub fn position(&self, distance: f32) -> Tuple {
         self.origin + self.direction * distance
     }
-    fn transform(&self, transform_matrix: &Matrix) -> Ray {
+    pub fn transform(&self, transform_matrix: &Matrix) -> Ray {
         build_ray(
             transform_matrix * &self.origin,
             transform_matrix * &self.direction,
@@ -36,7 +36,7 @@ impl Ray {
 pub struct Sphere {
     center: Tuple,
     transform: Matrix,
-    material: Material,
+    pub material: Material,
 }
 
 pub fn build_sphere() -> Sphere {
@@ -58,8 +58,8 @@ impl Sphere {
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Intersection<'a> {
-    distance: f32,
-    object: &'a Sphere,
+    pub distance: f32,
+    pub object: &'a Sphere,
 }
 
 fn build_intersection<'a>(distance: f32, object: &'a Sphere) -> Intersection<'a> {
