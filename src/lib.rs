@@ -16,5 +16,7 @@ pub mod tuple;
 
 pub mod canvas;
 pub mod color;
+pub mod light;
+pub mod material;
 pub mod ray;
 pub mod transformations;
