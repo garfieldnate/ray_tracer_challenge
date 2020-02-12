@@ -1,3 +1,5 @@
+use crate::material::build_material;
+use crate::material::Material;
 use crate::matrix::identity_4x4;
 use crate::matrix::Matrix;
 use crate::tuple::{build_tuple, Tuple};
@@ -25,24 +27,32 @@ impl Ray {
             transform_matrix * &self.direction,
         )
     }
+    pub fn reflect(in_vector: Tuple, normal_vector: Tuple) -> Tuple {
+        in_vector - (normal_vector * 2.0 * in_vector.dot(normal_vector))
+    }
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Sphere {
     center: Tuple,
     transform: Matrix,
+    material: Material,
 }
 
 pub fn build_sphere() -> Sphere {
     Sphere {
         center: point!(0, 0, 0),
         transform: identity_4x4(),
+        material: build_material(),
     }
 }
 
 impl Sphere {
     pub fn set_transform(&mut self, transform_matrix: Matrix) {
         self.transform = transform_matrix;
+    }
+    pub fn set_material(&mut self, m: Material) {
+        self.material = m;
     }
 }
 
@@ -105,6 +115,7 @@ impl Sphere {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::material::build_material;
     use crate::matrix::identity_4x4;
     use crate::transformations::rotation_z;
     use crate::transformations::scaling;
@@ -113,7 +124,7 @@ mod tests {
     use std::f32::consts::FRAC_1_SQRT_2;
     use std::f32::consts::PI;
 
-    fn FRAC_1_SQRT_3() -> f32 {
+    fn frac_1_sqrt_3() -> f32 {
         1.0 / (3f32.sqrt())
     }
 
@@ -291,17 +302,22 @@ mod tests {
     }
 
     #[test]
-    fn sphere_default_transform() {
+    fn sphere_default_values() {
         let s = build_sphere();
         assert_eq!(s.transform, identity_4x4());
+        assert_eq!(s.material, build_material());
     }
 
     #[test]
-    fn set_sphere_transformation() {
+    fn set_sphere_values() {
         let mut s = build_sphere();
         let t = translation(2.0, 3.0, 4.0);
+        let mut m = build_material();
+        m.ambient = 1.0;
         s.set_transform(t.clone());
+        s.set_material(m);
         assert_eq!(s.transform, t);
+        assert_eq!(s.material, m);
     }
 
     #[test]
@@ -347,17 +363,17 @@ mod tests {
     #[test]
     fn sphere_normal_on_nonaxial_point() {
         let s = build_sphere();
-        let n = s.normal_at(point!(FRAC_1_SQRT_3(), FRAC_1_SQRT_3(), FRAC_1_SQRT_3()));
+        let n = s.normal_at(point!(frac_1_sqrt_3(), frac_1_sqrt_3(), frac_1_sqrt_3()));
         assert_abs_diff_eq!(
             n,
-            vector!(FRAC_1_SQRT_3(), FRAC_1_SQRT_3(), FRAC_1_SQRT_3())
+            vector!(frac_1_sqrt_3(), frac_1_sqrt_3(), frac_1_sqrt_3())
         );
     }
 
     #[test]
     fn normal_is_normalized_vector() {
         let s = build_sphere();
-        let n = s.normal_at(point!(FRAC_1_SQRT_3(), FRAC_1_SQRT_3(), FRAC_1_SQRT_3()));
+        let n = s.normal_at(point!(frac_1_sqrt_3(), frac_1_sqrt_3(), frac_1_sqrt_3()));
         assert_abs_diff_eq!(n, n.norm());
     }
 
@@ -376,5 +392,21 @@ mod tests {
         s.set_transform(m);
         let n = s.normal_at(point!(0, FRAC_1_SQRT_2, -FRAC_1_SQRT_2));
         assert_abs_diff_eq!(n, vector!(0, 0.97014254, -0.24253564));
+    }
+
+    #[test]
+    fn reflect_vector_approaching_at_45_degrees() {
+        let v = vector!(1, -1, 0);
+        let n = vector!(0, 1, 0);
+        let r = Ray::reflect(v, n);
+        assert_eq!(r, vector!(1, 1, 0));
+    }
+
+    #[test]
+    fn reflect_vector_off_slanted_surface() {
+        let v = vector!(0, -1, 0);
+        let n = vector!(FRAC_1_SQRT_2, FRAC_1_SQRT_2, 0);
+        let r = Ray::reflect(v, n);
+        assert_abs_diff_eq!(r, vector!(1, 0, 0));
     }
 }
