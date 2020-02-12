@@ -1,5 +1,6 @@
 # TODO
 
+* Move Sphere to its own file; maybe a new directory for shapes
 * Canvas write_pixel: fail properly for out of bounds
 * cleanup after [codereview.se](https://codereview.stackexchange.com/questions/236895/color-and-canvas-implementations-in-rust-for-ray-tracer-challenge) responds
 * transformation should probably all be in matrix
