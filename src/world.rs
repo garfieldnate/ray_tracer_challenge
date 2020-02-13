@@ -41,17 +41,29 @@ pub struct PrecomputedValues<'a> {
     point: Tuple,
     eye_vector: Tuple,
     surface_normal: Tuple,
+    inside: bool,
 }
 pub fn precompute_values<'a>(r: Ray, i: Intersection<'a>) -> PrecomputedValues<'a> {
     let point = r.position(i.distance);
+    let mut surface_normal = i.object.normal_at(point);
+    let eye_vector = -r.direction;
+    let inside;
+    if surface_normal.dot(eye_vector) < 0.0 {
+        // surface and eye are pointed in opposite directions, so the hit must be inside
+        inside = true;
+        surface_normal = -surface_normal;
+    } else {
+        inside = false;
+    }
     PrecomputedValues {
         // copy the intersection's properties, for convenience​
         distance: i.distance,
         object: i.object,
         // precompute some useful values
-        point: point,
-        eye_vector: -r.direction,
-        surface_normal: i.object.normal_at(point),
+        point,
+        eye_vector,
+        surface_normal,
+        inside,
     }
 }
 
@@ -113,5 +125,30 @@ mod tests {
         assert_eq!(comps.point, point!(0, 0, -1));
         assert_eq!(comps.eye_vector, vector!(0, 0, -1));
         assert_eq!(comps.surface_normal, vector!(0, 0, -1));
+    }
+
+    #[test]
+    fn precompute_hit_occurs_outside() {
+        let r = build_ray(point!(0, 0, -5), vector!(0, 0, 1));
+        let shape = default_sphere();
+        let i = build_intersection(4.0, &shape);
+        let comps = precompute_values(r, i);
+        assert!(!comps.inside);
+    }
+
+    #[test]
+    fn precompute_hit_occurs_inside() {
+        let r = build_ray(point!(0, 0, 0), vector!(0, 0, 1));
+        let shape = default_sphere();
+        let i = build_intersection(1.0, &shape);
+        let comps = precompute_values(r, i);
+        assert_eq!(comps.point, point!(0, 0, 1));
+        assert_eq!(comps.eye_vector, vector!(0, 0, -1));
+        assert_eq!(comps.inside, true);
+        assert_eq!(
+            comps.surface_normal,
+            vector!(0, 0, -1),
+            "Surface normal should be inverted because hit is inside shape"
+        );
     }
 }
