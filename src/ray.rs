@@ -7,8 +7,8 @@ use std::cmp::Ordering::Equal;
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Ray {
-	origin: Tuple,
-	direction: Tuple,
+	pub origin: Tuple,
+	pub direction: Tuple,
 }
 
 pub fn build_ray(origin: Tuple, direction: Tuple) -> Ray {
@@ -80,7 +80,7 @@ pub struct Intersection<'a> {
 	pub object: &'a Sphere,
 }
 
-fn build_intersection<'a>(distance: f32, object: &'a Sphere) -> Intersection<'a> {
+pub fn build_intersection<'a>(distance: f32, object: &'a Sphere) -> Intersection<'a> {
 	Intersection { distance, object }
 }
 
