@@ -1,3 +1,6 @@
+use crate::color::build_color;
+use crate::color::Color;
+use crate::light::phong_lighting;
 use crate::light::PointLight;
 use crate::ray::Intersection;
 use crate::ray::Ray;
@@ -25,13 +28,32 @@ impl World {
             .flatten()
             .collect();
         intersections.sort_by(|i1, i2| i1.distance.partial_cmp(&i2.distance).unwrap_or(Equal));
-        // intersections.sort_by_key(|i| i.distance);
-
-        // for o in &self.objects {
-        //     let xs = o.intersect(r);
-        //     intersections.append(xs),
-        // }
         intersections
+    }
+
+    pub fn shade_hit(&self, comps: PrecomputedValues) -> Color {
+        phong_lighting(
+            comps.object.material,
+            self.light.unwrap(),
+            comps.point,
+            comps.eye_vector,
+            comps.surface_normal,
+        )
+    }
+
+    pub fn color_at(&self, r: Ray) -> Color {
+        let intersections = self.intersect(r);
+        if intersections.is_empty() {
+            build_color(0.0, 0.0, 0.0)
+        } else {
+            match Intersection::hit(&intersections) {
+                Some(hit) => {
+                    let comps = precompute_values(r, hit);
+                    self.shade_hit(comps)
+                }
+                None => build_color(0.0, 0.0, 0.0),
+            }
+        }
     }
 }
 
@@ -43,7 +65,7 @@ pub struct PrecomputedValues<'a> {
     surface_normal: Tuple,
     inside: bool,
 }
-pub fn precompute_values<'a>(r: Ray, i: Intersection<'a>) -> PrecomputedValues<'a> {
+pub fn precompute_values<'a>(r: Ray, i: &Intersection<'a>) -> PrecomputedValues<'a> {
     let point = r.position(i.distance);
     let mut surface_normal = i.object.normal_at(point);
     let eye_vector = -r.direction;
@@ -120,7 +142,7 @@ mod tests {
         let r = build_ray(point!(0, 0, -5), vector!(0, 0, 1));
         let shape = default_sphere();
         let i = build_intersection(4.0, &shape);
-        let comps = precompute_values(r, i);
+        let comps = precompute_values(r, &i);
         assert_eq!(comps.distance, i.distance);
         assert_eq!(comps.point, point!(0, 0, -1));
         assert_eq!(comps.eye_vector, vector!(0, 0, -1));
@@ -132,7 +154,7 @@ mod tests {
         let r = build_ray(point!(0, 0, -5), vector!(0, 0, 1));
         let shape = default_sphere();
         let i = build_intersection(4.0, &shape);
-        let comps = precompute_values(r, i);
+        let comps = precompute_values(r, &i);
         assert!(!comps.inside);
     }
 
@@ -141,7 +163,7 @@ mod tests {
         let r = build_ray(point!(0, 0, 0), vector!(0, 0, 1));
         let shape = default_sphere();
         let i = build_intersection(1.0, &shape);
-        let comps = precompute_values(r, i);
+        let comps = precompute_values(r, &i);
         assert_eq!(comps.point, point!(0, 0, 1));
         assert_eq!(comps.eye_vector, vector!(0, 0, -1));
         assert_eq!(comps.inside, true);
@@ -150,5 +172,60 @@ mod tests {
             vector!(0, 0, -1),
             "Surface normal should be inverted because hit is inside shape"
         );
+    }
+
+    #[test]
+    fn shade_intersection() {
+        let w = default_world();
+        let r = build_ray(point!(0, 0, -5), vector!(0, 0, 1));
+        let shape = &w.objects[0];
+        let i = build_intersection(4.0, shape);
+        let comps = precompute_values(r, &i);
+        let c = w.shade_hit(comps);
+        assert_abs_diff_eq!(c, build_color(0.38066125, 0.4758265, 0.28549594))
+    }
+
+    #[test]
+    fn shade_intersection_from_inside() {
+        let mut w = default_world();
+        w.light = Some(build_point_light(
+            point!(0, 0.25, 0),
+            build_color(1.0, 1.0, 1.0),
+        ));
+        let r = build_ray(point!(0, 0, 0), vector!(0, 0, 1));
+        let shape = &w.objects[1];
+        let i = build_intersection(0.5, shape);
+        let comps = precompute_values(r, &i);
+        let c = w.shade_hit(comps);
+        assert_abs_diff_eq!(c, build_color(0.9049845, 0.9049845, 0.9049845))
+    }
+
+    #[test]
+    fn color_when_ray_misses() {
+        let w = default_world();
+        let r = build_ray(point!(0, 0, -5), vector!(0, 1, 0));
+        let c = w.color_at(r);
+        assert_eq!(c, build_color(0.0, 0.0, 0.0));
+    }
+
+    #[test]
+    fn color_when_ray_hits() {
+        let w = default_world();
+        let r = build_ray(point!(0, 0, -5), vector!(0, 0, 1));
+        let c = w.color_at(r);
+        assert_abs_diff_eq!(c, build_color(0.38066125, 0.4758265, 0.28549594))
+    }
+
+    #[test]
+    fn color_when_intersection_behind_ray() {
+        let mut w = default_world();
+        // TODO: can't take w.objects[x] and mutate it...
+        // outer
+        w.objects[0].material.ambient = 1.0;
+        // inner
+        w.objects[1].material.ambient = 1.0;
+        let r = build_ray(point!(0, 0, 0.75), vector!(0, 0, -1));
+        let c = w.color_at(r);
+        assert_eq!(c, w.objects[1].material.color);
     }
 }
