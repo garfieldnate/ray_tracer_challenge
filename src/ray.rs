@@ -1,4 +1,4 @@
-use crate::material::build_material;
+use crate::material::default_material;
 use crate::material::Material;
 use crate::matrix::identity_4x4;
 use crate::matrix::Matrix;
@@ -49,11 +49,19 @@ pub struct Sphere {
 	pub material: Material,
 }
 
-pub fn build_sphere() -> Sphere {
+pub fn default_sphere() -> Sphere {
 	Sphere {
 		center: point!(0, 0, 0),
 		transform: identity_4x4(),
-		material: build_material(),
+		material: default_material(),
+	}
+}
+
+pub fn build_sphere(transform: Matrix, material: Material) -> Sphere {
+	Sphere {
+		center: point!(0, 0, 0),
+		transform,
+		material,
 	}
 }
 
@@ -128,7 +136,6 @@ impl Sphere {
 #[cfg(test)]
 mod tests {
 	use super::*;
-	use crate::material::build_material;
 	use crate::matrix::identity_4x4;
 	use crate::transformations::rotation_z;
 	use crate::transformations::scaling;
@@ -162,7 +169,7 @@ mod tests {
 	#[test]
 	fn ray_intersects_sphere_at_two_points() {
 		let r = build_ray(point!(0, 0, -5), vector!(0, 0, 1));
-		let s = build_sphere();
+		let s = default_sphere();
 		let intersections = s.intersect(r);
 		assert_eq!(intersections.len(), 2);
 		assert_eq!(intersections[0].distance, 4.0);
@@ -172,7 +179,7 @@ mod tests {
 	#[test]
 	fn ray_intersects_sphere_at_tangent() {
 		let r = build_ray(point!(0, 1, -5), vector!(0, 0, 1));
-		let s = build_sphere();
+		let s = default_sphere();
 		let intersections = s.intersect(r);
 		assert_eq!(intersections.len(), 2);
 		assert_eq!(intersections[0].distance, 5.0);
@@ -182,7 +189,7 @@ mod tests {
 	#[test]
 	fn ray_misses_sphere() {
 		let r = build_ray(point!(0, 2, -5), vector!(0, 0, 1));
-		let s = build_sphere();
+		let s = default_sphere();
 		let intersections = s.intersect(r);
 		assert!(intersections.is_empty());
 	}
@@ -190,7 +197,7 @@ mod tests {
 	#[test]
 	fn ray_originates_inside_sphere() {
 		let r = build_ray(point!(0, 0, 0), vector!(0, 0, 1));
-		let s = build_sphere();
+		let s = default_sphere();
 		let intersections = s.intersect(r);
 		assert_eq!(intersections.len(), 2);
 		assert_eq!(intersections[0].distance, -1.0);
@@ -200,7 +207,7 @@ mod tests {
 	#[test]
 	fn sphere_is_behind_ray() {
 		let r = build_ray(point!(0, 0, 5), vector!(0, 0, 1));
-		let s = build_sphere();
+		let s = default_sphere();
 		let intersections = s.intersect(r);
 		assert_eq!(intersections.len(), 2);
 		assert_eq!(intersections[0].distance, -6.0);
@@ -209,7 +216,7 @@ mod tests {
 
 	#[test]
 	fn basic_intersection_creation() {
-		let s = build_sphere();
+		let s = default_sphere();
 		let i = build_intersection(1.0, &s);
 		assert_eq!(i.distance, 1.0);
 		assert_eq!(&s as *const _, i.object as *const _);
@@ -217,7 +224,7 @@ mod tests {
 
 	#[test]
 	fn hit_all_intersections_have_positive_distance() {
-		let s = build_sphere();
+		let s = default_sphere();
 		let i1 = Intersection {
 			distance: 1.0,
 			object: &s,
@@ -234,7 +241,7 @@ mod tests {
 
 	#[test]
 	fn hit_some_interactions_have_negative_distance() {
-		let s = build_sphere();
+		let s = default_sphere();
 		let i1 = Intersection {
 			distance: -1.0,
 			object: &s,
@@ -254,7 +261,7 @@ mod tests {
 
 	#[test]
 	fn no_hit_when_all_interactions_negative() {
-		let s = build_sphere();
+		let s = default_sphere();
 		let i1 = Intersection {
 			distance: -2.0,
 			object: &s,
@@ -274,7 +281,7 @@ mod tests {
 
 	#[test]
 	fn hit_is_lowest_nonnegative_intersection() {
-		let s = build_sphere();
+		let s = default_sphere();
 		let i1 = Intersection {
 			distance: 5.0,
 			object: &s,
@@ -316,16 +323,16 @@ mod tests {
 
 	#[test]
 	fn sphere_default_values() {
-		let s = build_sphere();
+		let s = default_sphere();
 		assert_eq!(s.transform, identity_4x4());
-		assert_eq!(s.material, build_material());
+		assert_eq!(s.material, default_material());
 	}
 
 	#[test]
 	fn set_sphere_values() {
-		let mut s = build_sphere();
+		let mut s = default_sphere();
 		let t = translation(2.0, 3.0, 4.0);
-		let mut m = build_material();
+		let mut m = default_material();
 		m.ambient = 1.0;
 		s.set_transform(t.clone());
 		s.set_material(m);
@@ -336,7 +343,7 @@ mod tests {
 	#[test]
 	fn intersect_scaled_sphere_with_ray() {
 		let r = build_ray(point!(0, 0, -5), vector!(0, 0, 1));
-		let mut s = build_sphere();
+		let mut s = default_sphere();
 		s.set_transform(scaling(2.0, 2.0, 2.0));
 		let xs = s.intersect(r);
 		assert_eq!(xs[0].distance, 3.0);
@@ -346,7 +353,7 @@ mod tests {
 	#[test]
 	fn intersect_translated_sphere_with_ray() {
 		let r = build_ray(point!(0, 0, -5), vector!(0, 0, 1));
-		let mut s = build_sphere();
+		let mut s = default_sphere();
 		s.set_transform(translation(5.0, 0.0, 0.0));
 		let xs = s.intersect(r);
 		assert_eq!(xs.len(), 0);
@@ -354,28 +361,28 @@ mod tests {
 
 	#[test]
 	fn sphere_normal_on_x_axis() {
-		let s = build_sphere();
+		let s = default_sphere();
 		let n = s.normal_at(point!(1, 0, 0));
 		assert_eq!(n, vector!(1, 0, 0));
 	}
 
 	#[test]
 	fn sphere_normal_on_y_axis() {
-		let s = build_sphere();
+		let s = default_sphere();
 		let n = s.normal_at(point!(0, 1, 0));
 		assert_eq!(n, vector!(0, 1, 0));
 	}
 
 	#[test]
 	fn sphere_normal_on_z_axis() {
-		let s = build_sphere();
+		let s = default_sphere();
 		let n = s.normal_at(point!(0, 0, 1));
 		assert_eq!(n, vector!(0, 0, 1));
 	}
 
 	#[test]
 	fn sphere_normal_on_nonaxial_point() {
-		let s = build_sphere();
+		let s = default_sphere();
 		let n = s.normal_at(point!(frac_1_sqrt_3(), frac_1_sqrt_3(), frac_1_sqrt_3()));
 		assert_abs_diff_eq!(
 			n,
@@ -385,14 +392,14 @@ mod tests {
 
 	#[test]
 	fn normal_is_normalized_vector() {
-		let s = build_sphere();
+		let s = default_sphere();
 		let n = s.normal_at(point!(frac_1_sqrt_3(), frac_1_sqrt_3(), frac_1_sqrt_3()));
 		assert_abs_diff_eq!(n, n.norm());
 	}
 
 	#[test]
 	fn normal_of_translated_sphere() {
-		let mut s = build_sphere();
+		let mut s = default_sphere();
 		s.set_transform(translation(0.0, 1.0, 0.0));
 		let n = s.normal_at(point!(0, 1.70711, -0.70711));
 		assert_abs_diff_eq!(n, vector!(0, 0.7071068, -0.70710677));
@@ -400,7 +407,7 @@ mod tests {
 
 	#[test]
 	fn normal_of_transformed_sphere() {
-		let mut s = build_sphere();
+		let mut s = default_sphere();
 		let m = &scaling(1.0, 0.5, 1.0) * &rotation_z(PI / 5.0);
 		s.set_transform(m);
 		let n = s.normal_at(point!(0, FRAC_1_SQRT_2, -FRAC_1_SQRT_2));

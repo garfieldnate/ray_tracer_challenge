@@ -20,3 +20,4 @@ pub mod light;
 pub mod material;
 pub mod ray;
 pub mod transformations;
+pub mod world;

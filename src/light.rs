@@ -64,7 +64,7 @@ pub fn phong_lighting(
 mod tests {
 	use super::*;
 	use crate::color::build_color;
-	use crate::material::build_material;
+	use crate::material::default_material;
 	use crate::tuple::build_tuple;
 	use std::f32::consts::FRAC_1_SQRT_2;
 
@@ -79,7 +79,7 @@ mod tests {
 
 	#[test]
 	fn lighting_eye_between_light_and_surface() {
-		let m = build_material();
+		let m = default_material();
 		let position = point!(0, 0, 0);
 		let eyev = vector!(0, 0, -1);
 		let normalv = vector!(0, 0, -1);
@@ -90,7 +90,7 @@ mod tests {
 
 	#[test]
 	fn light_eye_between_light_and_surface_eye_offset_45_degrees() {
-		let m = build_material();
+		let m = default_material();
 		let position = point!(0, 0, 0);
 		let eyev = vector!(0, FRAC_1_SQRT_2, FRAC_1_SQRT_2);
 		let normalv = vector!(0, 0, -1);
@@ -101,7 +101,7 @@ mod tests {
 
 	#[test]
 	fn light_eye_between_light_and_surface_light_offset_45_degrees() {
-		let m = build_material();
+		let m = default_material();
 		let position = point!(0, 0, 0);
 		let eyev = vector!(0, 0, -1);
 		let normalv = vector!(0, 0, -1);
@@ -116,7 +116,7 @@ mod tests {
 
 	#[test]
 	fn light_eye_in_path_of_reflection_vector() {
-		let m = build_material();
+		let m = default_material();
 		let position = point!(0, 0, 0);
 		let eyev = vector!(0, -FRAC_1_SQRT_2, -FRAC_1_SQRT_2);
 		let normalv = vector!(0, 0, -1);
@@ -128,7 +128,7 @@ mod tests {
 
 	#[test]
 	fn light_behind_surface() {
-		let m = build_material();
+		let m = default_material();
 		let position = point!(0, 0, 0);
 		let eyev = vector!(0, 0, -1);
 		let normalv = vector!(0, 0, -1);

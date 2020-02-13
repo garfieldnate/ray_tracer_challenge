@@ -3,7 +3,7 @@ use ray_tracer_challenge::canvas::build_canvas;
 use ray_tracer_challenge::color::build_color;
 use ray_tracer_challenge::point;
 use ray_tracer_challenge::ray::build_ray;
-use ray_tracer_challenge::ray::build_sphere;
+use ray_tracer_challenge::ray::default_sphere;
 use ray_tracer_challenge::ray::Intersection;
 use ray_tracer_challenge::transformations::scaling;
 use ray_tracer_challenge::transformations::shearing;
@@ -19,7 +19,7 @@ fn main() {
     let mut canvas = build_canvas(canvas_pixels, canvas_pixels);
     // red
     let color = build_color(1.0, 0.0, 0.0);
-    let mut shape = build_sphere();
+    let mut shape = default_sphere();
     shape.set_transform(&shearing(1.0, 0.0, 0.0, 0.0, 0.0, 0.0) * &scaling(0.5, 1.0, 1.0));
     // for each row of pixels in the canvas
     for y in 0..canvas_pixels - 1 {

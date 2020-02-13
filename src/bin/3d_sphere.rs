@@ -3,10 +3,10 @@ use ray_tracer_challenge::canvas::build_canvas;
 use ray_tracer_challenge::color::build_color;
 use ray_tracer_challenge::light::build_point_light;
 use ray_tracer_challenge::light::phong_lighting;
-use ray_tracer_challenge::material::build_material;
+use ray_tracer_challenge::material::default_material;
 use ray_tracer_challenge::point;
 use ray_tracer_challenge::ray::build_ray;
-use ray_tracer_challenge::ray::build_sphere;
+use ray_tracer_challenge::ray::default_sphere;
 use ray_tracer_challenge::ray::Intersection;
 use ray_tracer_challenge::transformations::scaling;
 use ray_tracer_challenge::transformations::shearing;
@@ -22,9 +22,9 @@ fn main() {
 	let mut canvas = build_canvas(canvas_pixels, canvas_pixels);
 	// red
 	// let color = build_color(1.0, 0.0, 0.0);
-	let mut material = build_material();
+	let mut material = default_material();
 	material.color = build_color(1.0, 0.2, 1.0);
-	let mut shape = build_sphere();
+	let mut shape = default_sphere();
 	shape.set_material(material);
 	let light = build_point_light(point!(-10, 10, -10), build_color(1.0, 1.0, 1.0));
 
