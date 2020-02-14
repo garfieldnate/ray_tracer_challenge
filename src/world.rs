@@ -1,11 +1,16 @@
 use crate::color::build_color;
 use crate::color::Color;
+use crate::light::build_point_light;
 use crate::light::phong_lighting;
 use crate::light::PointLight;
+use crate::material::default_material;
+use crate::matrix::identity_4x4;
+use crate::ray::build_sphere;
 use crate::ray::Intersection;
 use crate::ray::Ray;
 use crate::ray::Sphere;
-use crate::tuple::Tuple;
+use crate::transformations::scaling;
+use crate::tuple::{build_tuple, Tuple};
 use std::cmp::Ordering::Equal;
 
 pub struct World {
@@ -17,6 +22,22 @@ pub fn build_world() -> World {
     World {
         objects: vec![],
         light: Option::None,
+    }
+}
+
+pub fn default_world() -> World {
+    let mut m = default_material();
+    m.color = build_color(0.8, 1.0, 0.6);
+    m.diffuse = 0.7;
+    m.specular = 0.2;
+    let s1 = build_sphere(identity_4x4(), m);
+    let s2 = build_sphere(scaling(0.5, 0.5, 0.5), default_material());
+    World {
+        objects: vec![s1, s2],
+        light: Some(build_point_light(
+            point!(-10.0, 10.0, -10.0),
+            build_color(1.0, 1.0, 1.0),
+        )),
     }
 }
 
@@ -94,30 +115,11 @@ mod tests {
     use super::*;
     use crate::color::build_color;
     use crate::light::build_point_light;
-    use crate::material::default_material;
-    use crate::matrix::identity_4x4;
     use crate::ray::build_intersection;
     use crate::ray::build_ray;
-    use crate::ray::build_sphere;
     use crate::ray::default_sphere;
-    use crate::transformations::scaling;
     use crate::tuple::build_tuple;
 
-    fn default_world() -> World {
-        let mut m = default_material();
-        m.color = build_color(0.8, 1.0, 0.6);
-        m.diffuse = 0.7;
-        m.specular = 0.2;
-        let s1 = build_sphere(identity_4x4(), m);
-        let s2 = build_sphere(scaling(0.5, 0.5, 0.5), default_material());
-        World {
-            objects: vec![s1, s2],
-            light: Some(build_point_light(
-                point!(-10.0, 10.0, -10.0),
-                build_color(1.0, 1.0, 1.0),
-            )),
-        }
-    }
     #[test]
     fn create_blank_world() {
         let w = build_world();
