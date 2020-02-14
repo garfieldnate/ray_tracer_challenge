@@ -14,8 +14,8 @@ use crate::tuple::{build_tuple, Tuple};
 use std::cmp::Ordering::Equal;
 
 pub struct World {
-    objects: Vec<Sphere>,
-    light: Option<PointLight>,
+    pub objects: Vec<Sphere>,
+    pub light: Option<PointLight>,
 }
 
 pub fn build_world() -> World {

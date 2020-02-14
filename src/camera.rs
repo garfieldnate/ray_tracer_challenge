@@ -34,6 +34,8 @@ pub fn build_camera(
     // so tangent of half of the field of view angle will equal half the width of the canvas.
     let half_view = (field_of_view / 2.0).tan();
 
+    // TODO: I don't get what this is for. It seems like we pick the longer dimension to be the width
+    // and the shorter to be the height. But wouldn't that turn the image sideways?
     let aspect_ratio = (width_pixels as f32) / (height_pixels as f32);
     let half_width_world: f32;
     let half_height_world: f32;
@@ -75,7 +77,7 @@ impl Camera {
     }
 
     pub fn render(&self, world: World) -> Canvas {
-        let mut canvas = build_canvas(self.height_pixels as usize, self.width_pixels as usize);
+        let mut canvas = build_canvas(self.width_pixels as usize, self.height_pixels as usize);
         for y in 0..self.height_pixels - 1 {
             for x in 0..self.width_pixels - 1 {
                 let ray = self.ray_for_pixel(x, y);

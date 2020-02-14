@@ -29,10 +29,10 @@ impl Ray {
 	}
 	// derivation: think of a rhombus shape sitting on point on the surface, with the
 	// bottom left and right sides being the incoming and reflected vectors and
-	// the surface normal pointing through the middle of the rhombus.
+	// the surface normal pointing to the middle of the rhombus.
 	// To find the reflected vector from the incoming vector, project
-	// the incoming vector onto the surface normal, then double its height to get the
-	// the top point of the rhombus. Finally, subtract the incoming vector from this
+	// the incoming vector onto the surface normal, then double the resulting vector's height to get the
+	// the top point of the rhombus. Finally, subtract the incoming vector from this top
 	// point to get the left side of the rhombus, or the reflected vector.
 	// This gives us 2 * projection * normal - incoming. The sign needs to be flipped
 	// to get the reflection direction right, though, so we have
@@ -87,12 +87,10 @@ pub fn build_intersection<'a>(distance: f32, object: &'a Sphere) -> Intersection
 impl Intersection<'_> {
 	// returns the a reference to the intersection with the lowest non-negative distance (or None if all are negative)
 	pub fn hit<'a>(intersections: &'a Vec<Intersection<'a>>) -> Option<&'a Intersection<'a>> {
-		// TODO: kind of annoying that we have to dereference to get a reference here
 		intersections
 			.iter()
 			.filter(|i| i.distance >= 0.0)
 			.min_by(|i1, i2| i1.distance.partial_cmp(&i2.distance).unwrap_or(Equal))
-		// .map(|i| *i)
 	}
 }
 
