@@ -4,7 +4,7 @@
 use ray_tracer_challenge::canvas::build_canvas;
 use ray_tracer_challenge::color::build_color;
 use ray_tracer_challenge::tuple::{build_tuple, Tuple};
-use ray_tracer_challenge::{point, vector};
+use ray_tracer_challenge::{color, point, vector};
 
 struct Projectile {
     position: Tuple,
@@ -33,7 +33,7 @@ fn main() {
     let wind = vector!(-0.02, 0, 0);
     let environment = Environment { gravity, wind };
     let mut canvas = build_canvas(700, 550);
-    let trace_color = build_color(0.53, 0.39, 0.074);
+    let trace_color = color!(0.53, 0.39, 0.074);
 
     while proj.position.y >= 0.0 && proj.position.x >= 0.0 {
         canvas.write_pixel(

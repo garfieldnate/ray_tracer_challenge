@@ -11,7 +11,7 @@ pub fn build_canvas(width: usize, height: usize) -> Canvas {
     Canvas {
         width: width,
         height: height,
-        data: vec![vec![build_color(0.0, 0.0, 0.0); width]; height],
+        data: vec![vec![color!(0, 0, 0); width]; height],
     }
 }
 
@@ -107,7 +107,7 @@ mod tests {
     #[test]
     fn test_write_and_read_pixels() {
         let mut canvas = build_canvas(10, 5);
-        let color = build_color(0.1, 0.2, 0.3);
+        let color = color!(0.1, 0.2, 0.3);
         canvas.write_pixel(7, 4, color);
         assert_eq!(canvas.pixel_at(7, 4), color);
     }
@@ -125,9 +125,9 @@ mod tests {
     #[test]
     fn test_ppm_pixel_data() {
         let mut c = build_canvas(5, 3);
-        c.write_pixel(0, 0, build_color(1.5, 0.0, 0.0));
-        c.write_pixel(2, 1, build_color(0.0, 0.5, 0.0));
-        c.write_pixel(4, 2, build_color(-0.5, 0.0, 1.0));
+        c.write_pixel(0, 0, color!(1.5, 0, 0));
+        c.write_pixel(2, 1, color!(0, 0.5, 0));
+        c.write_pixel(4, 2, color!(-0.5, 0, 1));
 
         let ppm = c.to_ppm();
         let mut lines = ppm.lines();
@@ -144,7 +144,7 @@ mod tests {
     #[test]
     fn test_splitting_long_ppm_lines() {
         let mut canvas = build_canvas(10, 2);
-        let color = build_color(1.0, 0.8, 0.6);
+        let color = color!(1, 0.8, 0.6);
         // TODO: maybe turn this into a function on canvas?
         for row in 0..canvas.height {
             for column in 0..canvas.width {

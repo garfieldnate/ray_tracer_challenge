@@ -11,7 +11,7 @@ use ray_tracer_challenge::transformations::translation;
 use ray_tracer_challenge::transformations::view_transform;
 use ray_tracer_challenge::tuple::build_tuple;
 use ray_tracer_challenge::world::World;
-use ray_tracer_challenge::{point, vector};
+use ray_tracer_challenge::{color, point, vector};
 use std::f32::consts::PI;
 
 // To render larger, be sure to use an optimized (release) build and give it several minutes to finish
@@ -22,7 +22,7 @@ const CANVAS_HEIGHT: u32 = 50;
 
 fn main() {
     let mut room_material = default_material();
-    room_material.color = build_color(1.0, 0.9, 0.9);
+    room_material.color = color!(1, 0.9, 0.9);
     room_material.specular = 0.0;
     // The floor is an extremely flattened sphere with a matte texture.
     let floor = build_sphere(scaling(10.0, 0.01, 10.0), room_material);
@@ -44,7 +44,7 @@ fn main() {
     // The large sphere in the middle is a unit sphere, translated upward slightly and colored green.
 
     let mut middle_sphere_material = default_material();
-    middle_sphere_material.color = build_color(0.1, 1.0, 0.5);
+    middle_sphere_material.color = color!(0.1, 1, 0.5);
     middle_sphere_material.diffuse = 0.7;
     middle_sphere_material.specular = 0.3;
     let middle = build_sphere(translation(-0.5, 1.0, 0.5), middle_sphere_material);
@@ -52,7 +52,7 @@ fn main() {
     // The smaller green sphere on the right is scaled in half
 
     let mut right_sphere_material = default_material();
-    right_sphere_material.color = build_color(0.5, 1.0, 0.1);
+    right_sphere_material.color = color!(0.5, 1, 0.1);
     right_sphere_material.diffuse = 0.7;
     right_sphere_material.specular = 0.3;
     let right = build_sphere(
@@ -63,7 +63,7 @@ fn main() {
 
     // The smallest sphere is scaled by a third before being translated
     let mut left_sphere_material = default_material();
-    left_sphere_material.color = build_color(1.0, 0.8, 0.1);
+    left_sphere_material.color = color!(1, 0.8, 0.1);
     left_sphere_material.diffuse = 0.7;
     left_sphere_material.specular = 0.3;
     let left = build_sphere(
@@ -74,10 +74,7 @@ fn main() {
     let world = World {
         objects: vec![floor, left_wall, right_wall, left, middle, right],
         // The light source is white, shining from above and to the left
-        light: Some(build_point_light(
-            point!(-10, 10, -10),
-            build_color(1.0, 1.0, 1.0),
-        )),
+        light: Some(build_point_light(point!(-10, 10, -10), color!(1, 1, 1))),
     };
 
     let camera = build_camera(
