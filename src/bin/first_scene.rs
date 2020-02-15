@@ -2,7 +2,7 @@ use ray_tracer_challenge::camera::build_camera;
 use ray_tracer_challenge::color::build_color;
 use ray_tracer_challenge::light::build_point_light;
 use ray_tracer_challenge::material::default_material;
-use ray_tracer_challenge::ray::build_sphere;
+use ray_tracer_challenge::shape::sphere::build_sphere;
 use ray_tracer_challenge::transformations::rotation_x;
 use ray_tracer_challenge::transformations::rotation_y;
 use ray_tracer_challenge::transformations::scaling;

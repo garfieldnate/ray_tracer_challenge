@@ -51,6 +51,7 @@ trait Shape {
 // TODO: Maybe someday Rust will support delegation: https://github.com/rust-lang/rfcs/pull/2393
 // like Kotlin does. Could also check out the ambassador crate.
 // TODO: cache inverse and inverse transpose
+#[derive(Clone, Debug, PartialEq)]
 pub struct BaseShape {
     t: Matrix,
     m: Material,

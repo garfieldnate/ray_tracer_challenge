@@ -2,8 +2,8 @@
 use ray_tracer_challenge::canvas::build_canvas;
 use ray_tracer_challenge::color::build_color;
 use ray_tracer_challenge::ray::build_ray;
-use ray_tracer_challenge::ray::default_sphere;
 use ray_tracer_challenge::ray::Intersection;
+use ray_tracer_challenge::shape::sphere::default_sphere;
 use ray_tracer_challenge::transformations::scaling;
 use ray_tracer_challenge::transformations::shearing;
 use ray_tracer_challenge::tuple::build_tuple;
