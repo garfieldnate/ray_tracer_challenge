@@ -106,9 +106,11 @@ pub struct PrecomputedValues<'a> {
     eye_vector: Tuple,
     surface_normal: Tuple,
     inside: bool,
-    // a point a tiny distance above surface to allow correct shadow calcluations with inexact floating point arithmetic
+    // a point a tiny distance above the surface to avoid self-shadowing/salt-and-pepper noise, caused
+    // by finite precision in floating point calculations
     over_point: Tuple,
 }
+const SELF_SHADOW_AVOIDANCE_EPSILON: f32 = f32::EPSILON * 10000.0;
 
 pub fn precompute_values<'a>(r: Ray, i: &Intersection<'a>) -> PrecomputedValues<'a> {
     let point = r.position(i.distance);
@@ -124,7 +126,7 @@ pub fn precompute_values<'a>(r: Ray, i: &Intersection<'a>) -> PrecomputedValues<
         inside = false;
     }
 
-    let over_point = point + surface_normal * f32::EPSILON;
+    let over_point = point + surface_normal * SELF_SHADOW_AVOIDANCE_EPSILON;
     // println!("point: {:?}, over_point:{:?}", point, over_point);
 
     PrecomputedValues {
@@ -215,7 +217,7 @@ mod tests {
         let i = build_intersection(4.0, shape);
         let comps = precompute_values(r, &i);
         let c = w.shade_hit(comps);
-        assert_abs_diff_eq!(c, build_color(0.38066125, 0.4758265, 0.28549594))
+        assert_abs_diff_eq!(c, build_color(0.38063288, 0.47579104, 0.28547466))
     }
 
     #[test]
@@ -230,7 +232,7 @@ mod tests {
         let i = build_intersection(0.5, shape);
         let comps = precompute_values(r, &i);
         let c = w.shade_hit(comps);
-        assert_abs_diff_eq!(c, build_color(0.9049845, 0.9049845, 0.9049845))
+        assert_abs_diff_eq!(c, build_color(0.9045995, 0.9045995, 0.9045995))
     }
 
     #[test]
@@ -246,7 +248,7 @@ mod tests {
         let w = default_world();
         let r = build_ray(point!(0, 0, -5), vector!(0, 0, 1));
         let c = w.color_at(r);
-        assert_abs_diff_eq!(c, build_color(0.38066125, 0.4758265, 0.28549594))
+        assert_abs_diff_eq!(c, build_color(0.38063288, 0.47579104, 0.28547466))
     }
 
     #[test]
@@ -298,8 +300,8 @@ mod tests {
         let comps = precompute_values(r, &intersection);
         // println!("{:?}", comps.point);
         // println!("{:?}", comps.over_point);
-        assert!(comps.over_point.z < -f32::EPSILON / 2.0);
-        assert!(comps.over_point.z > -f32::EPSILON * 2.0);
+        assert!(comps.over_point.z < -SELF_SHADOW_AVOIDANCE_EPSILON / 2.0);
+        assert!(comps.over_point.z > -SELF_SHADOW_AVOIDANCE_EPSILON * 2.0);
         assert!(comps.point.z > comps.over_point.z);
     }
 
