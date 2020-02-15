@@ -13,10 +13,11 @@ extern crate approx;
 pub mod matrix;
 #[macro_use]
 pub mod tuple;
+#[macro_use]
+pub mod color;
 
 pub mod camera;
 pub mod canvas;
-pub mod color;
 pub mod light;
 pub mod material;
 pub mod ray;

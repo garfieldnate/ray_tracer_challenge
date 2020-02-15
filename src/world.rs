@@ -30,7 +30,7 @@ pub fn build_world() -> World {
 
 pub fn default_world() -> World {
     let mut m = default_material();
-    m.color = build_color(0.8, 1.0, 0.6);
+    m.color = color!(0.8, 1.0, 0.6);
     m.diffuse = 0.7;
     m.specular = 0.2;
     let s1 = build_sphere(identity_4x4(), m);
@@ -39,7 +39,7 @@ pub fn default_world() -> World {
         objects: vec![s1, s2],
         light: Some(build_point_light(
             point!(-10.0, 10.0, -10.0),
-            build_color(1.0, 1.0, 1.0),
+            color!(1, 1, 1),
         )),
     }
 }
@@ -69,14 +69,14 @@ impl World {
     pub fn color_at(&self, r: Ray) -> Color {
         let intersections = self.intersect(r);
         if intersections.is_empty() {
-            build_color(0.0, 0.0, 0.0)
+            color!(0, 0, 0)
         } else {
             match Intersection::hit(&intersections) {
                 Some(hit) => {
                     let comps = precompute_values(r, hit);
                     self.shade_hit(comps)
                 }
-                None => build_color(0.0, 0.0, 0.0),
+                None => color!(0, 0, 0),
             }
         }
     }
@@ -217,22 +217,19 @@ mod tests {
         let i = build_intersection(4.0, shape);
         let comps = precompute_values(r, &i);
         let c = w.shade_hit(comps);
-        assert_abs_diff_eq!(c, build_color(0.38063288, 0.47579104, 0.28547466))
+        assert_abs_diff_eq!(c, color!(0.38063288, 0.47579104, 0.28547466))
     }
 
     #[test]
     fn shade_intersection_from_inside() {
         let mut w = default_world();
-        w.light = Some(build_point_light(
-            point!(0, 0.25, 0),
-            build_color(1.0, 1.0, 1.0),
-        ));
+        w.light = Some(build_point_light(point!(0, 0.25, 0), color!(1, 1, 1)));
         let r = build_ray(point!(0, 0, 0), vector!(0, 0, 1));
         let shape = &w.objects[1];
         let i = build_intersection(0.5, shape);
         let comps = precompute_values(r, &i);
         let c = w.shade_hit(comps);
-        assert_abs_diff_eq!(c, build_color(0.9045995, 0.9045995, 0.9045995))
+        assert_abs_diff_eq!(c, color!(0.9045995, 0.9045995, 0.9045995))
     }
 
     #[test]
@@ -240,7 +237,7 @@ mod tests {
         let w = default_world();
         let r = build_ray(point!(0, 0, -5), vector!(0, 1, 0));
         let c = w.color_at(r);
-        assert_eq!(c, build_color(0.0, 0.0, 0.0));
+        assert_eq!(c, color!(0, 0, 0));
     }
 
     #[test]
@@ -248,7 +245,7 @@ mod tests {
         let w = default_world();
         let r = build_ray(point!(0, 0, -5), vector!(0, 0, 1));
         let c = w.color_at(r);
-        assert_abs_diff_eq!(c, build_color(0.38063288, 0.47579104, 0.28547466))
+        assert_abs_diff_eq!(c, color!(0.38063288, 0.47579104, 0.28547466))
     }
 
     #[test]
@@ -308,10 +305,7 @@ mod tests {
     #[test]
     fn shade_hit_for_intersection_in_shadow() {
         let mut w = build_world();
-        w.light = Some(build_point_light(
-            point!(0, 0, -10),
-            build_color(1.0, 1.0, 1.0),
-        ));
+        w.light = Some(build_point_light(point!(0, 0, -10), color!(1, 1, 1)));
         let s1 = default_sphere();
         let s2 = build_sphere(translation(0.0, 0.0, 10.0), default_material());
         w.objects.push(s1);
@@ -320,6 +314,6 @@ mod tests {
         let i = build_intersection(4.0, &w.objects[1]);
         let comps = precompute_values(r, &i);
         let c = w.shade_hit(comps);
-        assert_eq!(c, build_color(0.1, 0.1, 0.1));
+        assert_eq!(c, color!(0.1, 0.1, 0.1));
     }
 }

@@ -4,13 +4,13 @@ use ray_tracer_challenge::color::build_color;
 use ray_tracer_challenge::light::build_point_light;
 use ray_tracer_challenge::light::phong_lighting;
 use ray_tracer_challenge::material::default_material;
-use ray_tracer_challenge::point;
 use ray_tracer_challenge::ray::build_ray;
 use ray_tracer_challenge::ray::default_sphere;
 use ray_tracer_challenge::ray::Intersection;
 use ray_tracer_challenge::transformations::scaling;
 use ray_tracer_challenge::transformations::shearing;
 use ray_tracer_challenge::tuple::build_tuple;
+use ray_tracer_challenge::{color, point};
 
 fn main() {
 	let ray_origin = point!(0, 0, -5);
@@ -21,12 +21,12 @@ fn main() {
 	let half = wall_size / 2.0;
 	let mut canvas = build_canvas(canvas_pixels, canvas_pixels);
 	// red
-	// let color = build_color(1.0, 0.0, 0.0);
+	// let color = color!(1, 0, 0);
 	let mut material = default_material();
-	material.color = build_color(1.0, 0.2, 1.0);
+	material.color = color!(1, 0.2, 1);
 	let mut shape = default_sphere();
 	shape.set_material(material);
-	let light = build_point_light(point!(-10, 10, -10), build_color(1.0, 1.0, 1.0));
+	let light = build_point_light(point!(-10, 10, -10), color!(1, 1, 1));
 
 	shape.set_transform(&shearing(1.0, 0.0, 0.0, 0.0, 0.0, 0.0) * &scaling(0.5, 1.0, 1.0));
 	// for each row of pixels in the canvas

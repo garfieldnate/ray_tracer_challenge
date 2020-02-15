@@ -156,7 +156,7 @@ mod tests {
         let image = c.render(w);
         assert_abs_diff_eq!(
             image.pixel_at(5, 5),
-            build_color(0.38063288, 0.47579104, 0.28547466)
+            color!(0.38063288, 0.47579104, 0.28547466)
         );
     }
 }
