@@ -5,6 +5,7 @@ use crate::light::phong_lighting;
 use crate::light::PointLight;
 use crate::material::default_material;
 use crate::matrix::identity_4x4;
+use crate::ray::build_ray;
 use crate::ray::build_sphere;
 use crate::ray::Intersection;
 use crate::ray::Ray;
@@ -13,6 +14,7 @@ use crate::transformations::scaling;
 use crate::tuple::{build_tuple, Tuple};
 use std::cmp::Ordering::Equal;
 
+// TODO: book said no light by default, but that seems weird. We always have a light, otherwise we can't see anything! Plus using Option complicates/makes dangerous everything.
 pub struct World {
     pub objects: Vec<Sphere>,
     pub light: Option<PointLight>,
@@ -59,6 +61,7 @@ impl World {
             comps.point,
             comps.eye_vector,
             comps.surface_normal,
+            self.is_shadowed(comps.point),
         )
     }
 
@@ -74,6 +77,23 @@ impl World {
                 }
                 None => build_color(0.0, 0.0, 0.0),
             }
+        }
+    }
+
+    pub fn is_shadowed(&self, point: Tuple) -> bool {
+        // create a ray from a point to the light
+        // if there's an intersection between the light and the point, then the point is in shadow
+        let light_to_point_vector = self.light.unwrap().position - point;
+        let distance = light_to_point_vector.magnitude();
+        let direction = light_to_point_vector.norm();
+
+        let r = build_ray(point, direction);
+        let intersections = self.intersect(r);
+
+        let hit = Intersection::hit(&intersections);
+        match hit {
+            Some(i) => i.distance < distance,
+            None => false,
         }
     }
 }
@@ -118,6 +138,7 @@ mod tests {
     use crate::ray::build_intersection;
     use crate::ray::build_ray;
     use crate::ray::default_sphere;
+    use crate::transformations::translation;
     use crate::tuple::build_tuple;
 
     #[test]
@@ -229,5 +250,51 @@ mod tests {
         let r = build_ray(point!(0, 0, 0.75), vector!(0, 0, -1));
         let c = w.color_at(r);
         assert_eq!(c, w.objects[1].material.color);
+    }
+
+    #[test]
+    fn no_shadow_when_nothing_is_colinear_with_point_and_light() {
+        let w = default_world();
+        let p = point!(0, 10, 0);
+        assert_eq!(w.is_shadowed(p), false);
+    }
+
+    #[test]
+    fn no_shadow_when_object_is_between_point_and_light() {
+        let w = default_world();
+        let p = point!(10, -10, 10);
+        assert_eq!(w.is_shadowed(p), true);
+    }
+
+    #[test]
+    fn no_shadow_when_object_is_behind_light() {
+        let w = default_world();
+        let p = point!(-20, 20, -20);
+        assert_eq!(w.is_shadowed(p), false);
+    }
+
+    #[test]
+    fn no_shadow_when_object_is_behind_point() {
+        let w = default_world();
+        let p = point!(-2, 2, -2);
+        assert_eq!(w.is_shadowed(p), false);
+    }
+
+    #[test]
+    fn shade_hit_for_intersection_in_shadow() {
+        let mut w = build_world();
+        w.light = Some(build_point_light(
+            point!(0, 0, -10),
+            build_color(1.0, 1.0, 1.0),
+        ));
+        let s1 = default_sphere();
+        let s2 = build_sphere(translation(0.0, 0.0, 10.0), default_material());
+        w.objects.push(s1);
+        w.objects.push(s2);
+        let r = build_ray(point!(0, 0, 5), vector!(0, 0, 1));
+        let i = build_intersection(4.0, &w.objects[1]);
+        let comps = precompute_values(r, &i);
+        let c = w.shade_hit(comps);
+        assert_eq!(c, build_color(0.1, 0.1, 0.1));
     }
 }
