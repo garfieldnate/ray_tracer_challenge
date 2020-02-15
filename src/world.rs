@@ -13,6 +13,7 @@ use crate::ray::Sphere;
 use crate::transformations::scaling;
 use crate::tuple::{build_tuple, Tuple};
 use std::cmp::Ordering::Equal;
+use std::f32;
 
 // TODO: book said no light by default, but that seems weird. We always have a light, otherwise we can't see anything! Plus using Option complicates/makes dangerous everything.
 pub struct World {
@@ -58,10 +59,10 @@ impl World {
         phong_lighting(
             comps.object.material,
             self.light.unwrap(),
-            comps.point,
+            comps.over_point,
             comps.eye_vector,
             comps.surface_normal,
-            self.is_shadowed(comps.point),
+            self.is_shadowed(comps.over_point),
         )
     }
 
@@ -105,11 +106,15 @@ pub struct PrecomputedValues<'a> {
     eye_vector: Tuple,
     surface_normal: Tuple,
     inside: bool,
+    // a point a tiny distance above surface to allow correct shadow calcluations with inexact floating point arithmetic
+    over_point: Tuple,
 }
+
 pub fn precompute_values<'a>(r: Ray, i: &Intersection<'a>) -> PrecomputedValues<'a> {
     let point = r.position(i.distance);
     let mut surface_normal = i.object.normal_at(point);
     let eye_vector = -r.direction;
+
     let inside;
     if surface_normal.dot(eye_vector) < 0.0 {
         // surface and eye are pointed in opposite directions, so the hit must be inside
@@ -118,6 +123,10 @@ pub fn precompute_values<'a>(r: Ray, i: &Intersection<'a>) -> PrecomputedValues<
     } else {
         inside = false;
     }
+
+    let over_point = point + surface_normal * f32::EPSILON;
+    // println!("point: {:?}, over_point:{:?}", point, over_point);
+
     PrecomputedValues {
         // copy the intersection's properties, for convenience​
         distance: i.distance,
@@ -127,6 +136,7 @@ pub fn precompute_values<'a>(r: Ray, i: &Intersection<'a>) -> PrecomputedValues<
         eye_vector,
         surface_normal,
         inside,
+        over_point,
     }
 }
 
@@ -278,6 +288,19 @@ mod tests {
         let w = default_world();
         let p = point!(-2, 2, -2);
         assert_eq!(w.is_shadowed(p), false);
+    }
+
+    #[test]
+    fn hit_should_offset_point_for_shadow_calculations() {
+        let r = build_ray(point!(0, 0, -5), vector!(0, 0, 1));
+        let shape = build_sphere(translation(0.0, 0.0, 1.0), default_material());
+        let intersection = build_intersection(5.0, &shape);
+        let comps = precompute_values(r, &intersection);
+        // println!("{:?}", comps.point);
+        // println!("{:?}", comps.over_point);
+        assert!(comps.over_point.z < -f32::EPSILON / 2.0);
+        assert!(comps.over_point.z > -f32::EPSILON * 2.0);
+        assert!(comps.point.z > comps.over_point.z);
     }
 
     #[test]
