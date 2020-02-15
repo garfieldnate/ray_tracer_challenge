@@ -21,5 +21,6 @@ pub mod canvas;
 pub mod light;
 pub mod material;
 pub mod ray;
+pub mod shape;
 pub mod transformations;
 pub mod world;
