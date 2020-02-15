@@ -6,10 +6,10 @@ use crate::light::PointLight;
 use crate::material::default_material;
 use crate::matrix::identity_4x4;
 use crate::ray::build_ray;
-use crate::ray::build_sphere;
 use crate::ray::Intersection;
 use crate::ray::Ray;
-use crate::ray::Sphere;
+use crate::shape::sphere::build_sphere;
+use crate::shape::sphere::Sphere;
 use crate::transformations::scaling;
 use crate::tuple::{build_tuple, Tuple};
 use std::cmp::Ordering::Equal;
@@ -149,7 +149,7 @@ mod tests {
     use crate::light::build_point_light;
     use crate::ray::build_intersection;
     use crate::ray::build_ray;
-    use crate::ray::default_sphere;
+    use crate::shape::sphere::default_sphere;
     use crate::transformations::translation;
     use crate::tuple::build_tuple;
 
