@@ -4,7 +4,7 @@ use crate::ray::Intersection;
 use crate::ray::Ray;
 use crate::shape::shape::BaseShape;
 use crate::shape::shape::Shape;
-use crate::tuple::{build_tuple, Tuple};
+use crate::tuple::Tuple;
 use std::f32;
 
 #[derive(Clone, Debug, PartialEq)]

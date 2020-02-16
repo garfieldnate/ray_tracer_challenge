@@ -71,7 +71,6 @@ mod tests {
 	use super::*;
 	use crate::color::build_color;
 	use crate::material::default_material;
-	use crate::tuple::build_tuple;
 	use std::f32::consts::FRAC_1_SQRT_2;
 
 	#[test]

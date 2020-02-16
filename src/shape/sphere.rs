@@ -4,7 +4,7 @@ use crate::ray::Intersection;
 use crate::ray::Ray;
 use crate::shape::shape::BaseShape;
 use crate::shape::shape::Shape;
-use crate::tuple::{build_tuple, Tuple};
+use crate::tuple::Tuple;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Sphere {
@@ -74,7 +74,6 @@ mod tests {
     use super::*;
     use crate::transformations::scaling;
     use crate::transformations::translation;
-    use crate::tuple::build_tuple;
 
     fn frac_1_sqrt_3() -> f32 {
         1.0 / (3f32.sqrt())

@@ -7,7 +7,7 @@ use ray_tracer_challenge::shape::shape::Shape;
 use ray_tracer_challenge::shape::sphere::Sphere;
 use ray_tracer_challenge::transformations::scaling;
 use ray_tracer_challenge::transformations::shearing;
-use ray_tracer_challenge::tuple::build_tuple;
+use ray_tracer_challenge::tuple::Tuple;
 use ray_tracer_challenge::{color, point};
 
 fn main() {
