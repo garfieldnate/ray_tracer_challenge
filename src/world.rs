@@ -14,7 +14,7 @@ use std::f32;
 
 // TODO: book said no light by default, but that seems weird. We always have a light, otherwise we can't see anything! Plus using Option complicates/makes dangerous everything.
 pub struct World {
-    pub objects: Vec<Sphere>,
+    pub objects: Vec<Box<dyn Shape>>,
     pub light: Option<PointLight>,
 }
 
@@ -35,7 +35,7 @@ pub fn default_world() -> World {
     let s1 = Sphere::build(identity_4x4(), m);
     let s2 = Sphere::build(scaling(0.5, 0.5, 0.5), default_material());
     World {
-        objects: vec![s1, s2],
+        objects: vec![Box::new(s1), Box::new(s2)],
         light: Some(PointLight::new(point!(-10.0, 10.0, -10.0), color!(1, 1, 1))),
     }
 }
@@ -204,7 +204,7 @@ mod tests {
         let w = default_world();
         let r = Ray::new(point!(0, 0, -5), vector!(0, 0, 1));
         let shape = &w.objects[0];
-        let i = Intersection::new(4.0, shape);
+        let i = Intersection::new(4.0, shape.as_ref());
         let comps = precompute_values(r, &i);
         let c = w.shade_hit(comps);
         assert_abs_diff_eq!(c, color!(0.38063288, 0.47579104, 0.28547466))
@@ -216,7 +216,7 @@ mod tests {
         w.light = Some(PointLight::new(point!(0, 0.25, 0), color!(1, 1, 1)));
         let r = Ray::new(point!(0, 0, 0), vector!(0, 0, 1));
         let shape = &w.objects[1];
-        let i = Intersection::new(0.5, shape);
+        let i = Intersection::new(0.5, shape.as_ref());
         let comps = precompute_values(r, &i);
         let c = w.shade_hit(comps);
         assert_abs_diff_eq!(c, color!(0.9045995, 0.9045995, 0.9045995))
@@ -300,10 +300,10 @@ mod tests {
         w.light = Some(PointLight::new(point!(0, 0, -10), color!(1, 1, 1)));
         let s1 = Sphere::new();
         let s2 = Sphere::build(translation(0.0, 0.0, 10.0), default_material());
-        w.objects.push(s1);
-        w.objects.push(s2);
+        w.objects.push(Box::new(s1));
+        w.objects.push(Box::new(s2));
         let r = Ray::new(point!(0, 0, 5), vector!(0, 0, 1));
-        let i = Intersection::new(4.0, &w.objects[1]);
+        let i = Intersection::new(4.0, w.objects[1].as_ref());
         let comps = precompute_values(r, &i);
         let c = w.shade_hit(comps);
         assert_eq!(c, color!(0.1, 0.1, 0.1));
