@@ -13,20 +13,22 @@ pub struct Sphere {
     center: Tuple,
 }
 
-pub fn build_sphere(transform: Matrix, material: Material) -> Sphere {
-    let mut s = Sphere::new();
-    s.set_transformation(transform);
-    s.set_material(material);
-    s
-}
-
-impl Shape for Sphere {
-    fn new() -> Self {
+impl Sphere {
+    pub fn new() -> Self {
         Sphere {
             center: point!(0, 0, 0),
             base: BaseShape::new(),
         }
     }
+
+    pub fn build(transform: Matrix, material: Material) -> Sphere {
+        let mut s = Sphere::new();
+        s.set_transformation(transform);
+        s.set_material(material);
+        s
+    }
+}
+impl Shape for Sphere {
     fn local_intersect(&self, object_ray: Ray) -> Vec<Intersection> {
         // ​# the vector from the sphere's center to the ray origin​
         let sphere_to_ray = object_ray.origin - self.center;
