@@ -63,7 +63,7 @@ impl Intersection<'_> {
 #[cfg(test)]
 mod tests {
 	use super::*;
-	use crate::shape::sphere::default_sphere;
+	use crate::shape::shape::Shape;
 	use crate::transformations::scaling;
 	use crate::transformations::translation;
 	use crate::tuple::build_tuple;
@@ -89,7 +89,7 @@ mod tests {
 	#[test]
 	fn ray_intersects_sphere_at_two_points() {
 		let r = build_ray(point!(0, 0, -5), vector!(0, 0, 1));
-		let s = default_sphere();
+		let s = Sphere::new();
 		let intersections = s.intersect(r);
 		assert_eq!(intersections.len(), 2);
 		assert_eq!(intersections[0].distance, 4.0);
@@ -99,7 +99,7 @@ mod tests {
 	#[test]
 	fn ray_intersects_sphere_at_tangent() {
 		let r = build_ray(point!(0, 1, -5), vector!(0, 0, 1));
-		let s = default_sphere();
+		let s = Sphere::new();
 		let intersections = s.intersect(r);
 		assert_eq!(intersections.len(), 2);
 		assert_eq!(intersections[0].distance, 5.0);
@@ -109,7 +109,7 @@ mod tests {
 	#[test]
 	fn ray_misses_sphere() {
 		let r = build_ray(point!(0, 2, -5), vector!(0, 0, 1));
-		let s = default_sphere();
+		let s = Sphere::new();
 		let intersections = s.intersect(r);
 		assert!(intersections.is_empty());
 	}
@@ -117,7 +117,7 @@ mod tests {
 	#[test]
 	fn ray_originates_inside_sphere() {
 		let r = build_ray(point!(0, 0, 0), vector!(0, 0, 1));
-		let s = default_sphere();
+		let s = Sphere::new();
 		let intersections = s.intersect(r);
 		assert_eq!(intersections.len(), 2);
 		assert_eq!(intersections[0].distance, -1.0);
@@ -127,7 +127,7 @@ mod tests {
 	#[test]
 	fn sphere_is_behind_ray() {
 		let r = build_ray(point!(0, 0, 5), vector!(0, 0, 1));
-		let s = default_sphere();
+		let s = Sphere::new();
 		let intersections = s.intersect(r);
 		assert_eq!(intersections.len(), 2);
 		assert_eq!(intersections[0].distance, -6.0);
@@ -136,7 +136,7 @@ mod tests {
 
 	#[test]
 	fn basic_intersection_creation() {
-		let s = default_sphere();
+		let s = Sphere::new();
 		let i = build_intersection(1.0, &s);
 		assert_eq!(i.distance, 1.0);
 		assert_eq!(&s as *const _, i.object as *const _);
@@ -144,7 +144,7 @@ mod tests {
 
 	#[test]
 	fn hit_all_intersections_have_positive_distance() {
-		let s = default_sphere();
+		let s = Sphere::new();
 		let i1 = Intersection {
 			distance: 1.0,
 			object: &s,
@@ -161,7 +161,7 @@ mod tests {
 
 	#[test]
 	fn hit_some_interactions_have_negative_distance() {
-		let s = default_sphere();
+		let s = Sphere::new();
 		let i1 = Intersection {
 			distance: -1.0,
 			object: &s,
@@ -181,7 +181,7 @@ mod tests {
 
 	#[test]
 	fn no_hit_when_all_interactions_negative() {
-		let s = default_sphere();
+		let s = Sphere::new();
 		let i1 = Intersection {
 			distance: -2.0,
 			object: &s,
@@ -201,7 +201,7 @@ mod tests {
 
 	#[test]
 	fn hit_is_lowest_nonnegative_intersection() {
-		let s = default_sphere();
+		let s = Sphere::new();
 		let i1 = Intersection {
 			distance: 5.0,
 			object: &s,

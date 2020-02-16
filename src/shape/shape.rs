@@ -6,9 +6,7 @@ use crate::ray::Intersection;
 use crate::ray::Ray;
 use crate::tuple::Tuple;
 
-// TODO: once Rust supports trait fields (see https://github.com/rust-lang/rfcs/pull/1546),
-// simplify the support for default transformation and material
-trait Shape {
+pub trait Shape {
     fn new() -> Self;
     fn transformation(&self) -> &Matrix;
     fn set_transformation(&mut self, t: Matrix);
@@ -76,6 +74,8 @@ impl Shape for BaseShape {
     fn set_material(&mut self, m: Material) {
         self.m = m;
     }
+
+    // These two methods cannot be delegated to
     fn local_intersect(&self, _object_ray: Ray) -> Vec<Intersection> {
         unimplemented!()
     }

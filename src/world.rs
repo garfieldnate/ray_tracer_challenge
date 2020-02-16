@@ -8,6 +8,7 @@ use crate::matrix::identity_4x4;
 use crate::ray::build_ray;
 use crate::ray::Intersection;
 use crate::ray::Ray;
+use crate::shape::shape::Shape;
 use crate::shape::sphere::build_sphere;
 use crate::shape::sphere::Sphere;
 use crate::transformations::scaling;
@@ -57,7 +58,7 @@ impl World {
 
     pub fn shade_hit(&self, comps: PrecomputedValues) -> Color {
         phong_lighting(
-            comps.object.material,
+            comps.object.material(),
             self.light.unwrap(),
             comps.over_point,
             comps.eye_vector,
@@ -149,7 +150,6 @@ mod tests {
     use crate::light::build_point_light;
     use crate::ray::build_intersection;
     use crate::ray::build_ray;
-    use crate::shape::sphere::default_sphere;
     use crate::transformations::translation;
     use crate::tuple::build_tuple;
 
@@ -175,7 +175,7 @@ mod tests {
     #[test]
     fn precompute_intersection_state() {
         let r = build_ray(point!(0, 0, -5), vector!(0, 0, 1));
-        let shape = default_sphere();
+        let shape = Sphere::new();
         let i = build_intersection(4.0, &shape);
         let comps = precompute_values(r, &i);
         assert_eq!(comps.distance, i.distance);
@@ -187,7 +187,7 @@ mod tests {
     #[test]
     fn precompute_hit_occurs_outside() {
         let r = build_ray(point!(0, 0, -5), vector!(0, 0, 1));
-        let shape = default_sphere();
+        let shape = Sphere::new();
         let i = build_intersection(4.0, &shape);
         let comps = precompute_values(r, &i);
         assert!(!comps.inside);
@@ -196,7 +196,7 @@ mod tests {
     #[test]
     fn precompute_hit_occurs_inside() {
         let r = build_ray(point!(0, 0, 0), vector!(0, 0, 1));
-        let shape = default_sphere();
+        let shape = Sphere::new();
         let i = build_intersection(1.0, &shape);
         let comps = precompute_values(r, &i);
         assert_eq!(comps.point, point!(0, 0, 1));
@@ -253,12 +253,14 @@ mod tests {
         let mut w = default_world();
         // TODO: can't take w.objects[x] and mutate it...
         // outer
-        w.objects[0].material.ambient = 1.0;
+        let mut material = default_material();
+        material.ambient = 1.0;
+        w.objects[0].set_material(material);
         // inner
-        w.objects[1].material.ambient = 1.0;
+        w.objects[1].set_material(material);
         let r = build_ray(point!(0, 0, 0.75), vector!(0, 0, -1));
         let c = w.color_at(r);
-        assert_eq!(c, w.objects[1].material.color);
+        assert_eq!(c, w.objects[1].material().color);
     }
 
     #[test]
@@ -306,7 +308,7 @@ mod tests {
     fn shade_hit_for_intersection_in_shadow() {
         let mut w = build_world();
         w.light = Some(build_point_light(point!(0, 0, -10), color!(1, 1, 1)));
-        let s1 = default_sphere();
+        let s1 = Sphere::new();
         let s2 = build_sphere(translation(0.0, 0.0, 10.0), default_material());
         w.objects.push(s1);
         w.objects.push(s2);
