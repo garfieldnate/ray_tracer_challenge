@@ -93,7 +93,6 @@ mod tests {
     use crate::transformations::rotation_z;
     use crate::transformations::scaling;
     use crate::transformations::translation;
-    use crate::tuple::build_tuple;
     use std::cell::RefCell;
     use std::f32::consts::FRAC_1_SQRT_2;
     use std::f32::consts::PI;

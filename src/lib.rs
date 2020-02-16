@@ -8,7 +8,7 @@ extern crate approx;
 // The macros will automatically be available in all following mods. However, for binaries in
 // the bin directory, the macros must be imported from the root crate, like
 // `use ray_tracer_challeng::point`, etc.
-// The client must also always import `build_tuple` and `Tuple`, etc. for the macro usage to compile.
+// The client must also always import `Tuple`, etc. for the macro usage to compile.
 #[macro_use]
 pub mod matrix;
 #[macro_use]

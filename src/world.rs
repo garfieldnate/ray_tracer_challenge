@@ -10,7 +10,7 @@ use crate::ray::Ray;
 use crate::shape::shape::Shape;
 use crate::shape::sphere::Sphere;
 use crate::transformations::scaling;
-use crate::tuple::{build_tuple, Tuple};
+use crate::tuple::Tuple;
 use std::cmp::Ordering::Equal;
 use std::f32;
 
@@ -147,7 +147,6 @@ mod tests {
     use crate::color::build_color;
     use crate::light::build_point_light;
     use crate::transformations::translation;
-    use crate::tuple::build_tuple;
 
     #[test]
     fn create_blank_world() {

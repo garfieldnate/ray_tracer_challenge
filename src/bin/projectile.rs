@@ -3,7 +3,7 @@
 // TODO: display resulting PPM file instead of just printing the text
 use ray_tracer_challenge::canvas::build_canvas;
 use ray_tracer_challenge::color::build_color;
-use ray_tracer_challenge::tuple::{build_tuple, Tuple};
+use ray_tracer_challenge::tuple::Tuple;
 use ray_tracer_challenge::{color, point, vector};
 
 struct Projectile {

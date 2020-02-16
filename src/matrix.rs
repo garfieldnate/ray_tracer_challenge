@@ -233,9 +233,9 @@ mod tests {
     #[test]
     fn test_matrix_multiplied_by_tuple() {
         let matrix_a = matrix!([1, 2, 3, 4], [2, 4, 4, 2], [8, 6, 4, 1], [0, 0, 0, 1]);
-        let b = build_tuple(1.0, 2.0, 3.0, 1.0);
+        let b = Tuple::new(1.0, 2.0, 3.0, 1.0);
 
-        assert_eq!(&matrix_a * &b, build_tuple(18.0, 24.0, 33.0, 1.0));
+        assert_eq!(&matrix_a * &b, Tuple::new(18.0, 24.0, 33.0, 1.0));
     }
 
     #[test]

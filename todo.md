@@ -1,6 +1,5 @@
 # TODO
 
-* I think if we create Tuple::build instead of build_tuple, we can stop importing it everywhere we use the point and vector macros! Do this everywhere. build_ray, etc.
 * Use ambassador crate for BaseShape delegation
 * Switch to f64 for geometric calculations everywhere (leave f32 for colors).
     - From _Fundamentals of Computer Graphics_:
@@ -11,8 +10,6 @@
 * transformation should probably all be in matrix
 * Having to use & everywhere sucks for matrix multplication sucks
 * Projectile seems surprisingly slow. Are we copying data when we shouldn't?
-* When you import the point!() or vector!() macros, you have to also manually import build_tuple and Tuple. Can that be automated?
-
 
 ### Maybes/Ideas
 

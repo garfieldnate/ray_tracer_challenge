@@ -2,7 +2,7 @@ use crate::canvas::build_canvas;
 use crate::canvas::Canvas;
 use crate::matrix::Matrix;
 use crate::ray::Ray;
-use crate::tuple::{build_tuple, Tuple};
+use crate::tuple::Tuple;
 use crate::world::World;
 
 pub struct Camera {

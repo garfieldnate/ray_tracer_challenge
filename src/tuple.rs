@@ -12,6 +12,13 @@ pub struct Tuple {
 // TODO: implement approximate comparison via approx crate
 // TODO: allow changing datatypes to f64?
 impl Tuple {
+    pub fn new(x: f32, y: f32, z: f32, w: f32) -> Self {
+        debug_assert!(w == 1.0 || w == 0.0, "w must be 0 or 1; was {}", w);
+        debug_assert!(!x.is_nan(), "x cannot be NaN");
+        debug_assert!(!y.is_nan(), "x cannot be NaN");
+        debug_assert!(!z.is_nan(), "z cannot be NaN");
+        Tuple { x, y, z, w }
+    }
     pub fn is_vector(&self) -> bool {
         self.w == 0.0
     }
@@ -49,19 +56,11 @@ impl Tuple {
     }
 }
 
-pub fn build_tuple(x: f32, y: f32, z: f32, w: f32) -> Tuple {
-    debug_assert!(w == 1.0 || w == 0.0, "w must be 0 or 1; was {}", w);
-    debug_assert!(!x.is_nan(), "x cannot be NaN");
-    debug_assert!(!y.is_nan(), "x cannot be NaN");
-    debug_assert!(!z.is_nan(), "z cannot be NaN");
-    Tuple { x, y, z, w }
-}
-
 // Use like this: point!(1,2,3)
 #[macro_export]
 macro_rules! point {
     ($x:expr, $y:expr, $z:expr) => {{
-        build_tuple($x as f32, $y as f32, $z as f32, 1.0)
+        Tuple::new($x as f32, $y as f32, $z as f32, 1.0)
     }};
 }
 
@@ -69,14 +68,14 @@ macro_rules! point {
 #[macro_export]
 macro_rules! vector {
     ($x:expr, $y:expr, $z:expr) => {{
-        build_tuple($x as f32, $y as f32, $z as f32, 0.0)
+        Tuple::new($x as f32, $y as f32, $z as f32, 0.0)
     }};
 }
 
 impl Add for Tuple {
     type Output = Tuple;
     fn add(self, other: Tuple) -> Tuple {
-        build_tuple(
+        Tuple::new(
             self.x + other.x,
             self.y + other.y,
             self.z + other.z,
@@ -88,7 +87,7 @@ impl Add for Tuple {
 impl Sub for Tuple {
     type Output = Tuple;
     fn sub(self, other: Tuple) -> Tuple {
-        build_tuple(
+        Tuple::new(
             self.x - other.x,
             self.y - other.y,
             self.z - other.z,
@@ -164,8 +163,8 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_build_tuple_basic() -> () {
-        let tuple = build_tuple(1.1, 2.2, 3.3, 0.0);
+    fn test_tuple_constructor() -> () {
+        let tuple = Tuple::new(1.1, 2.2, 3.3, 0.0);
         assert_eq!(
             tuple,
             Tuple {
@@ -282,7 +281,7 @@ mod tests {
 
     #[test]
     fn test_tuple_negation() {
-        let tuple = build_tuple(1.0, -2.0, 3.0, 1.0);
+        let tuple = Tuple::new(1.0, -2.0, 3.0, 1.0);
         let negated = -tuple;
 
         assert_abs_diff_eq!(

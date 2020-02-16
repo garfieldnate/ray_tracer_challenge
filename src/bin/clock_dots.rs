@@ -2,7 +2,7 @@
 use ray_tracer_challenge::canvas::build_canvas;
 use ray_tracer_challenge::color::build_color;
 use ray_tracer_challenge::transformations::*;
-use ray_tracer_challenge::tuple::build_tuple;
+use ray_tracer_challenge::tuple::Tuple;
 use ray_tracer_challenge::{color, point};
 use std::f32::consts::PI;
 
