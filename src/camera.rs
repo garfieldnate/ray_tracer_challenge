@@ -91,7 +91,7 @@ impl Camera {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::color::build_color;
+    use crate::color::Color;
     use crate::matrix::identity_4x4;
     use crate::transformations::rotation_y;
     use crate::transformations::translation;

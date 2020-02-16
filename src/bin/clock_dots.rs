@@ -1,6 +1,6 @@
 // Create image of 12 points of an analog clock face
 use ray_tracer_challenge::canvas::build_canvas;
-use ray_tracer_challenge::color::build_color;
+use ray_tracer_challenge::color::Color;
 use ray_tracer_challenge::transformations::*;
 use ray_tracer_challenge::tuple::Tuple;
 use ray_tracer_challenge::{color, point};

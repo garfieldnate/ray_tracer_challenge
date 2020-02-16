@@ -1,6 +1,6 @@
 // Produce image of (squished) sphere's silhouette
 use ray_tracer_challenge::canvas::build_canvas;
-use ray_tracer_challenge::color::build_color;
+use ray_tracer_challenge::color::Color;
 use ray_tracer_challenge::ray::Intersection;
 use ray_tracer_challenge::ray::Ray;
 use ray_tracer_challenge::shape::shape::Shape;

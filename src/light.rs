@@ -1,4 +1,3 @@
-use crate::color::build_color;
 use crate::color::Color;
 use crate::material::Material;
 use crate::ray::Ray;
@@ -69,7 +68,7 @@ pub fn phong_lighting(
 #[cfg(test)]
 mod tests {
 	use super::*;
-	use crate::color::build_color;
+	use crate::color::Color;
 	use crate::material::default_material;
 	use std::f32::consts::FRAC_1_SQRT_2;
 
