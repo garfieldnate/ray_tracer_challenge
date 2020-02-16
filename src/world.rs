@@ -18,10 +18,12 @@ pub struct World {
     pub light: Option<PointLight>,
 }
 
-pub fn build_world() -> World {
-    World {
-        objects: vec![],
-        light: Option::None,
+impl World {
+    pub fn new() -> World {
+        World {
+            objects: vec![],
+            light: Option::None,
+        }
     }
 }
 
@@ -143,7 +145,7 @@ mod tests {
 
     #[test]
     fn create_blank_world() {
-        let w = build_world();
+        let w = World::new();
         assert!(w.objects.is_empty());
         assert!(w.light.is_none());
     }
@@ -294,7 +296,7 @@ mod tests {
 
     #[test]
     fn shade_hit_for_intersection_in_shadow() {
-        let mut w = build_world();
+        let mut w = World::new();
         w.light = Some(PointLight::new(point!(0, 0, -10), color!(1, 1, 1)));
         let s1 = Sphere::new();
         let s2 = Sphere::build(translation(0.0, 0.0, 10.0), default_material());
