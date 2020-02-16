@@ -18,42 +18,44 @@ pub struct Camera {
     transform: Matrix,
 }
 
-pub fn build_camera(
-    width_pixels: u32,
-    height_pixels: u32,
-    field_of_view: f32,
-    transform: Matrix,
-) -> Camera {
-    // calculate size of a pixel on the canvas using the fact that the canvas is 1 unit in front of the eye.
-    // Half of the canvas width can be found using trig: cut the canvas in half, forming a right triangle between
-    // the eye, the half-width point of the canvas, and one horizontal edge of the canvas. The field of view
-    // angle is bisected, and the eye-canvas corner is a right angle. Use sohcahtoa:
-    // tangent is opposite/adjacent, or (half canvas width)/(distance to canvas). The distance to the canvas is 1,
-    // so tangent of half of the field of view angle will equal half the width of the canvas.
-    let half_view = (field_of_view / 2.0).tan();
+impl Camera {
+    pub fn new(
+        width_pixels: u32,
+        height_pixels: u32,
+        field_of_view: f32,
+        transform: Matrix,
+    ) -> Camera {
+        // calculate size of a pixel on the canvas using the fact that the canvas is 1 unit in front of the eye.
+        // Half of the canvas width can be found using trig: cut the canvas in half, forming a right triangle between
+        // the eye, the half-width point of the canvas, and one horizontal edge of the canvas. The field of view
+        // angle is bisected, and the eye-canvas corner is a right angle. Use sohcahtoa:
+        // tangent is opposite/adjacent, or (half canvas width)/(distance to canvas). The distance to the canvas is 1,
+        // so tangent of half of the field of view angle will equal half the width of the canvas.
+        let half_view = (field_of_view / 2.0).tan();
 
-    // TODO: I don't get what this is for. It seems like we pick the longer dimension to be the width
-    // and the shorter to be the height. But wouldn't that turn the image sideways?
-    let aspect_ratio = (width_pixels as f32) / (height_pixels as f32);
-    let half_width_world: f32;
-    let half_height_world: f32;
-    if aspect_ratio >= 1.0 {
-        half_width_world = half_view;
-        half_height_world = half_view / aspect_ratio;
-    } else {
-        half_width_world = half_view * aspect_ratio;
-        half_height_world = half_view;
-    }
-    let pixel_size = (half_width_world * 2.0) / width_pixels as f32;
+        // TODO: I don't get what this is for. It seems like we pick the longer dimension to be the width
+        // and the shorter to be the height. But wouldn't that turn the image sideways?
+        let aspect_ratio = (width_pixels as f32) / (height_pixels as f32);
+        let half_width_world: f32;
+        let half_height_world: f32;
+        if aspect_ratio >= 1.0 {
+            half_width_world = half_view;
+            half_height_world = half_view / aspect_ratio;
+        } else {
+            half_width_world = half_view * aspect_ratio;
+            half_height_world = half_view;
+        }
+        let pixel_size = (half_width_world * 2.0) / width_pixels as f32;
 
-    Camera {
-        width_pixels,
-        height_pixels,
-        field_of_view,
-        transform,
-        half_width_world,
-        half_height_world,
-        pixel_size,
+        Camera {
+            width_pixels,
+            height_pixels,
+            field_of_view,
+            transform,
+            half_width_world,
+            half_height_world,
+            pixel_size,
+        }
     }
 }
 
@@ -102,19 +104,19 @@ mod tests {
 
     #[test]
     fn horizontal_canvas_pixel_size() {
-        let c = build_camera(200, 125, PI / 2.0, identity_4x4());
+        let c = Camera::new(200, 125, PI / 2.0, identity_4x4());
         assert_eq!(c.pixel_size, 0.01);
     }
 
     #[test]
     fn vertical_canvas_pixel_size() {
-        let c = build_camera(125, 200, PI / 2.0, identity_4x4());
+        let c = Camera::new(125, 200, PI / 2.0, identity_4x4());
         assert_eq!(c.pixel_size, 0.01);
     }
 
     #[test]
     fn construct_ray_through_canvas_center() {
-        let c = build_camera(201, 101, PI / 2.0, identity_4x4());
+        let c = Camera::new(201, 101, PI / 2.0, identity_4x4());
         let r = c.ray_for_pixel(100, 50);
         assert_eq!(r.origin, point!(0, 0, 0));
         assert_abs_diff_eq!(r.direction, vector!(0, 0, -1));
@@ -122,7 +124,7 @@ mod tests {
 
     #[test]
     fn construct_ray_through_canvas_corner() {
-        let c = build_camera(201, 101, PI / 2.0, identity_4x4());
+        let c = Camera::new(201, 101, PI / 2.0, identity_4x4());
         let r = c.ray_for_pixel(0, 0);
         assert_eq!(r.origin, point!(0, 0, 0));
         assert_abs_diff_eq!(r.direction, vector!(0.6651864, 0.33259323, -0.66851234));
@@ -130,7 +132,7 @@ mod tests {
 
     #[test]
     fn construct_ray_with_transformed_camera() {
-        let c = build_camera(
+        let c = Camera::new(
             201,
             101,
             PI / 2.0,
@@ -150,7 +152,7 @@ mod tests {
         let from = point!(0, 0, -5);
         let to = point!(0, 0, 0);
         let up = vector!(0, 1, 0);
-        let c = build_camera(11, 11, PI / 2.0, view_transform(from, to, up));
+        let c = Camera::new(11, 11, PI / 2.0, view_transform(from, to, up));
         let image = c.render(w);
         assert_abs_diff_eq!(
             image.pixel_at(5, 5),
