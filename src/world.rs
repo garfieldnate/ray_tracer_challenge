@@ -147,7 +147,6 @@ mod tests {
     use super::*;
     use crate::color::build_color;
     use crate::light::build_point_light;
-    use crate::ray::build_intersection;
     use crate::ray::build_ray;
     use crate::transformations::translation;
     use crate::tuple::build_tuple;
@@ -175,7 +174,7 @@ mod tests {
     fn precompute_intersection_state() {
         let r = build_ray(point!(0, 0, -5), vector!(0, 0, 1));
         let shape = Sphere::new();
-        let i = build_intersection(4.0, &shape);
+        let i = Intersection::new(4.0, &shape);
         let comps = precompute_values(r, &i);
         assert_eq!(comps.distance, i.distance);
         assert_eq!(comps.point, point!(0, 0, -1));
@@ -187,7 +186,7 @@ mod tests {
     fn precompute_hit_occurs_outside() {
         let r = build_ray(point!(0, 0, -5), vector!(0, 0, 1));
         let shape = Sphere::new();
-        let i = build_intersection(4.0, &shape);
+        let i = Intersection::new(4.0, &shape);
         let comps = precompute_values(r, &i);
         assert!(!comps.inside);
     }
@@ -196,7 +195,7 @@ mod tests {
     fn precompute_hit_occurs_inside() {
         let r = build_ray(point!(0, 0, 0), vector!(0, 0, 1));
         let shape = Sphere::new();
-        let i = build_intersection(1.0, &shape);
+        let i = Intersection::new(1.0, &shape);
         let comps = precompute_values(r, &i);
         assert_eq!(comps.point, point!(0, 0, 1));
         assert_eq!(comps.eye_vector, vector!(0, 0, -1));
@@ -213,7 +212,7 @@ mod tests {
         let w = default_world();
         let r = build_ray(point!(0, 0, -5), vector!(0, 0, 1));
         let shape = &w.objects[0];
-        let i = build_intersection(4.0, shape);
+        let i = Intersection::new(4.0, shape);
         let comps = precompute_values(r, &i);
         let c = w.shade_hit(comps);
         assert_abs_diff_eq!(c, color!(0.38063288, 0.47579104, 0.28547466))
@@ -225,7 +224,7 @@ mod tests {
         w.light = Some(build_point_light(point!(0, 0.25, 0), color!(1, 1, 1)));
         let r = build_ray(point!(0, 0, 0), vector!(0, 0, 1));
         let shape = &w.objects[1];
-        let i = build_intersection(0.5, shape);
+        let i = Intersection::new(0.5, shape);
         let comps = precompute_values(r, &i);
         let c = w.shade_hit(comps);
         assert_abs_diff_eq!(c, color!(0.9045995, 0.9045995, 0.9045995))
@@ -294,7 +293,7 @@ mod tests {
     fn hit_should_offset_point_for_shadow_calculations() {
         let r = build_ray(point!(0, 0, -5), vector!(0, 0, 1));
         let shape = Sphere::build(translation(0.0, 0.0, 1.0), default_material());
-        let intersection = build_intersection(5.0, &shape);
+        let intersection = Intersection::new(5.0, &shape);
         let comps = precompute_values(r, &intersection);
         // println!("{:?}", comps.point);
         // println!("{:?}", comps.over_point);
@@ -312,7 +311,7 @@ mod tests {
         w.objects.push(s1);
         w.objects.push(s2);
         let r = build_ray(point!(0, 0, 5), vector!(0, 0, 1));
-        let i = build_intersection(4.0, &w.objects[1]);
+        let i = Intersection::new(4.0, &w.objects[1]);
         let comps = precompute_values(r, &i);
         let c = w.shade_hit(comps);
         assert_eq!(c, color!(0.1, 0.1, 0.1));

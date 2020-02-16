@@ -53,11 +53,10 @@ impl PartialEq for Intersection<'_> {
 	}
 }
 
-pub fn build_intersection<'a>(distance: f32, object: &'a dyn Shape) -> Intersection<'a> {
-	Intersection { distance, object }
-}
-
 impl Intersection<'_> {
+	pub fn new<'a>(distance: f32, object: &'a dyn Shape) -> Intersection<'a> {
+		Intersection { distance, object }
+	}
 	// returns the a reference to the intersection with the lowest non-negative distance (or None if all are negative)
 	pub fn hit<'a>(intersections: &'a Vec<Intersection<'a>>) -> Option<&'a Intersection<'a>> {
 		intersections
@@ -146,7 +145,7 @@ mod tests {
 	#[test]
 	fn basic_intersection_creation() {
 		let s = Sphere::new();
-		let i = build_intersection(1.0, &s);
+		let i = Intersection::new(1.0, &s);
 		assert_eq!(i.distance, 1.0);
 		assert!(ptr::eq(&s as &dyn Shape, i.object as &dyn Shape));
 	}
