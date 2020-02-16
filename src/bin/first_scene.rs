@@ -1,4 +1,4 @@
-use ray_tracer_challenge::camera::build_camera;
+use ray_tracer_challenge::camera::Camera;
 use ray_tracer_challenge::color::Color;
 use ray_tracer_challenge::light::build_point_light;
 use ray_tracer_challenge::material::default_material;
@@ -77,7 +77,7 @@ fn main() {
         light: Some(build_point_light(point!(-10, 10, -10), color!(1, 1, 1))),
     };
 
-    let camera = build_camera(
+    let camera = Camera::new(
         CANVAS_WIDTH,
         CANVAS_HEIGHT,
         PI / 3.0,
