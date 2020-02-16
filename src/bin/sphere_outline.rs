@@ -1,8 +1,8 @@
 // Produce image of (squished) sphere's silhouette
 use ray_tracer_challenge::canvas::build_canvas;
 use ray_tracer_challenge::color::build_color;
-use ray_tracer_challenge::ray::build_ray;
 use ray_tracer_challenge::ray::Intersection;
+use ray_tracer_challenge::ray::Ray;
 use ray_tracer_challenge::shape::shape::Shape;
 use ray_tracer_challenge::shape::sphere::Sphere;
 use ray_tracer_challenge::transformations::scaling;
@@ -30,7 +30,7 @@ fn main() {
             // spans from -half to half
             let world_x = -half + pixel_size * x as f32;
             let target = point!(world_x, world_y, wall_z);
-            let r = build_ray(ray_origin, target - ray_origin);
+            let r = Ray::new(ray_origin, target - ray_origin);
             let xs = shape.intersect(r);
             match Intersection::hit(&xs) {
                 Some(_) => canvas.write_pixel(x, y, color),

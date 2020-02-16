@@ -61,7 +61,6 @@ impl Shape for Plane {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::ray::build_ray;
     #[test]
     fn normal_of_plane_is_constant_everywhere() {
         let p = Plane::new();
@@ -76,7 +75,7 @@ mod tests {
     #[test]
     fn intersect_with_parallel_ray() {
         let p = Plane::new();
-        let r = build_ray(point!(0, 10, 0), vector!(0, 0, 1));
+        let r = Ray::new(point!(0, 10, 0), vector!(0, 0, 1));
         let xs = p.local_intersect(r);
         assert!(xs.is_empty());
     }
@@ -84,7 +83,7 @@ mod tests {
     #[test]
     fn intersect_with_coplanar_ray() {
         let p = Plane::new();
-        let r = build_ray(point!(0, 0, 0), vector!(0, 0, 1));
+        let r = Ray::new(point!(0, 0, 0), vector!(0, 0, 1));
         let xs = p.local_intersect(r);
         assert!(xs.is_empty());
     }
@@ -92,7 +91,7 @@ mod tests {
     #[test]
     fn ray_intersects_plane_from_above() {
         let p = Plane::new();
-        let r = build_ray(point!(0, 1, 0), vector!(0, -1, 0));
+        let r = Ray::new(point!(0, 1, 0), vector!(0, -1, 0));
         let xs = p.local_intersect(r);
         assert_eq!(xs.len(), 1);
         assert_eq!(xs[0].distance, 1.0);
@@ -101,7 +100,7 @@ mod tests {
     #[test]
     fn ray_intersects_plane_from_below() {
         let p = Plane::new();
-        let r = build_ray(point!(0, -1, 0), vector!(0, 1, 0));
+        let r = Ray::new(point!(0, -1, 0), vector!(0, 1, 0));
         let xs = p.local_intersect(r);
         assert_eq!(xs.len(), 1);
         assert_eq!(xs[0].distance, 1.0);

@@ -10,18 +10,17 @@ pub struct Ray {
 	pub direction: Tuple,
 }
 
-pub fn build_ray(origin: Tuple, direction: Tuple) -> Ray {
-	debug_assert!(origin.is_point());
-	debug_assert!(direction.is_vector());
-	Ray { origin, direction }
-}
-
 impl Ray {
+	pub fn new(origin: Tuple, direction: Tuple) -> Self {
+		debug_assert!(origin.is_point());
+		debug_assert!(direction.is_vector());
+		Ray { origin, direction }
+	}
 	pub fn position(&self, distance: f32) -> Tuple {
 		self.origin + self.direction * distance
 	}
 	pub fn transform(&self, transform_matrix: &Matrix) -> Ray {
-		build_ray(
+		Self::new(
 			transform_matrix * &self.origin,
 			transform_matrix * &self.direction,
 		)
@@ -80,14 +79,14 @@ mod tests {
 	fn basic_ray_creation() {
 		let origin = point!(1, 2, 3);
 		let direction = vector!(4, 5, 6);
-		let r = build_ray(origin, direction);
+		let r = Ray::new(origin, direction);
 		assert_eq!(r.origin, origin);
 		assert_eq!(r.direction, direction);
 	}
 
 	#[test]
 	fn compute_point_from_distance() {
-		let r = build_ray(point!(2, 3, 4), vector!(1, 0, 0));
+		let r = Ray::new(point!(2, 3, 4), vector!(1, 0, 0));
 		assert_eq!(r.position(0.0), point!(2, 3, 4));
 		assert_eq!(r.position(1.0), point!(3, 3, 4));
 		assert_eq!(r.position(-1.0), point!(1, 3, 4));
@@ -96,7 +95,7 @@ mod tests {
 
 	#[test]
 	fn ray_intersects_sphere_at_two_points() {
-		let r = build_ray(point!(0, 0, -5), vector!(0, 0, 1));
+		let r = Ray::new(point!(0, 0, -5), vector!(0, 0, 1));
 		let s = Sphere::new();
 		let intersections = s.intersect(r);
 		assert_eq!(intersections.len(), 2);
@@ -106,7 +105,7 @@ mod tests {
 
 	#[test]
 	fn ray_intersects_sphere_at_tangent() {
-		let r = build_ray(point!(0, 1, -5), vector!(0, 0, 1));
+		let r = Ray::new(point!(0, 1, -5), vector!(0, 0, 1));
 		let s = Sphere::new();
 		let intersections = s.intersect(r);
 		assert_eq!(intersections.len(), 2);
@@ -116,7 +115,7 @@ mod tests {
 
 	#[test]
 	fn ray_misses_sphere() {
-		let r = build_ray(point!(0, 2, -5), vector!(0, 0, 1));
+		let r = Ray::new(point!(0, 2, -5), vector!(0, 0, 1));
 		let s = Sphere::new();
 		let intersections = s.intersect(r);
 		assert!(intersections.is_empty());
@@ -124,7 +123,7 @@ mod tests {
 
 	#[test]
 	fn ray_originates_inside_sphere() {
-		let r = build_ray(point!(0, 0, 0), vector!(0, 0, 1));
+		let r = Ray::new(point!(0, 0, 0), vector!(0, 0, 1));
 		let s = Sphere::new();
 		let intersections = s.intersect(r);
 		assert_eq!(intersections.len(), 2);
@@ -134,7 +133,7 @@ mod tests {
 
 	#[test]
 	fn sphere_is_behind_ray() {
-		let r = build_ray(point!(0, 0, 5), vector!(0, 0, 1));
+		let r = Ray::new(point!(0, 0, 5), vector!(0, 0, 1));
 		let s = Sphere::new();
 		let intersections = s.intersect(r);
 		assert_eq!(intersections.len(), 2);
@@ -233,7 +232,7 @@ mod tests {
 
 	#[test]
 	fn ray_translation() {
-		let r = build_ray(point!(1, 2, 3), vector!(0, 1, 0));
+		let r = Ray::new(point!(1, 2, 3), vector!(0, 1, 0));
 		let m = translation(3.0, 4.0, 5.0);
 		let r2 = r.transform(&m);
 		assert_eq!(r2.origin, point!(4, 6, 8));
@@ -242,7 +241,7 @@ mod tests {
 
 	#[test]
 	fn ray_scaling() {
-		let r = build_ray(point!(1, 2, 3), vector!(0, 1, 0));
+		let r = Ray::new(point!(1, 2, 3), vector!(0, 1, 0));
 		let m = scaling(2.0, 3.0, 4.0);
 		let r2 = r.transform(&m);
 		assert_eq!(r2.origin, point!(2, 6, 12));
