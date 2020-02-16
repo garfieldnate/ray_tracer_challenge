@@ -1,6 +1,6 @@
 use ray_tracer_challenge::camera::Camera;
 use ray_tracer_challenge::color::Color;
-use ray_tracer_challenge::light::build_point_light;
+use ray_tracer_challenge::light::PointLight;
 use ray_tracer_challenge::material::default_material;
 use ray_tracer_challenge::shape::sphere::Sphere;
 use ray_tracer_challenge::transformations::rotation_x;
@@ -74,7 +74,7 @@ fn main() {
     let world = World {
         objects: vec![floor, left_wall, right_wall, left, middle, right],
         // The light source is white, shining from above and to the left
-        light: Some(build_point_light(point!(-10, 10, -10), color!(1, 1, 1))),
+        light: Some(PointLight::new(point!(-10, 10, -10), color!(1, 1, 1))),
     };
 
     let camera = Camera::new(

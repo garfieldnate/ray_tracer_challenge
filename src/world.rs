@@ -1,5 +1,4 @@
 use crate::color::Color;
-use crate::light::build_point_light;
 use crate::light::phong_lighting;
 use crate::light::PointLight;
 use crate::material::default_material;
@@ -35,10 +34,7 @@ pub fn default_world() -> World {
     let s2 = Sphere::build(scaling(0.5, 0.5, 0.5), default_material());
     World {
         objects: vec![s1, s2],
-        light: Some(build_point_light(
-            point!(-10.0, 10.0, -10.0),
-            color!(1, 1, 1),
-        )),
+        light: Some(PointLight::new(point!(-10.0, 10.0, -10.0), color!(1, 1, 1))),
     }
 }
 
@@ -143,7 +139,6 @@ pub fn precompute_values<'a>(r: Ray, i: &Intersection<'a>) -> PrecomputedValues<
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::light::build_point_light;
     use crate::transformations::translation;
 
     #[test]
@@ -216,7 +211,7 @@ mod tests {
     #[test]
     fn shade_intersection_from_inside() {
         let mut w = default_world();
-        w.light = Some(build_point_light(point!(0, 0.25, 0), color!(1, 1, 1)));
+        w.light = Some(PointLight::new(point!(0, 0.25, 0), color!(1, 1, 1)));
         let r = Ray::new(point!(0, 0, 0), vector!(0, 0, 1));
         let shape = &w.objects[1];
         let i = Intersection::new(0.5, shape);
@@ -300,7 +295,7 @@ mod tests {
     #[test]
     fn shade_hit_for_intersection_in_shadow() {
         let mut w = build_world();
-        w.light = Some(build_point_light(point!(0, 0, -10), color!(1, 1, 1)));
+        w.light = Some(PointLight::new(point!(0, 0, -10), color!(1, 1, 1)));
         let s1 = Sphere::new();
         let s2 = Sphere::build(translation(0.0, 0.0, 10.0), default_material());
         w.objects.push(s1);

@@ -10,10 +10,12 @@ pub struct PointLight {
 	pub intensity: Color,
 }
 
-pub fn build_point_light(position: Tuple, intensity: Color) -> PointLight {
-	PointLight {
-		position,
-		intensity,
+impl PointLight {
+	pub fn new(position: Tuple, intensity: Color) -> PointLight {
+		PointLight {
+			position,
+			intensity,
+		}
 	}
 }
 
@@ -76,7 +78,7 @@ mod tests {
 	fn point_light_has_position_and_intensity() {
 		let position = point!(0, 0, 0);
 		let intensity = color!(1, 1, 1);
-		let light = build_point_light(position, intensity);
+		let light = PointLight::new(position, intensity);
 		assert_eq!(light.position, position);
 		assert_eq!(light.intensity, intensity);
 	}
@@ -87,7 +89,7 @@ mod tests {
 		let position = point!(0, 0, 0);
 		let eye_vector = vector!(0, 0, -1);
 		let surface_normal = vector!(0, 0, -1);
-		let light = build_point_light(point!(0, 0, -10), color!(1, 1, 1));
+		let light = PointLight::new(point!(0, 0, -10), color!(1, 1, 1));
 		let result = phong_lighting(m, light, position, eye_vector, surface_normal, false);
 		assert_eq!(result, color!(1.9, 1.9, 1.9));
 	}
@@ -98,7 +100,7 @@ mod tests {
 		let position = point!(0, 0, 0);
 		let eye_vector = vector!(0, FRAC_1_SQRT_2, FRAC_1_SQRT_2);
 		let surface_normal = vector!(0, 0, -1);
-		let light = build_point_light(point!(0, 0, -10), color!(1, 1, 1));
+		let light = PointLight::new(point!(0, 0, -10), color!(1, 1, 1));
 		let result = phong_lighting(m, light, position, eye_vector, surface_normal, false);
 		assert_eq!(result, color!(1, 1, 1));
 	}
@@ -109,7 +111,7 @@ mod tests {
 		let position = point!(0, 0, 0);
 		let eye_vector = vector!(0, 0, -1);
 		let surface_normal = vector!(0, 0, -1);
-		let light = build_point_light(point!(0, 10, -10), color!(1, 1, 1));
+		let light = PointLight::new(point!(0, 10, -10), color!(1, 1, 1));
 		let result = phong_lighting(m, light, position, eye_vector, surface_normal, false);
 		let expected_intensity = 0.1 + 0.9 * FRAC_1_SQRT_2;
 		assert_eq!(
@@ -124,7 +126,7 @@ mod tests {
 		let position = point!(0, 0, 0);
 		let eye_vector = vector!(0, -FRAC_1_SQRT_2, -FRAC_1_SQRT_2);
 		let surface_normal = vector!(0, 0, -1);
-		let light = build_point_light(point!(0, 10, -10), color!(1, 1, 1));
+		let light = PointLight::new(point!(0, 10, -10), color!(1, 1, 1));
 		let result = phong_lighting(m, light, position, eye_vector, surface_normal, false);
 		// 0.1 + 0.9 * FRAC_1_SQRT_2 + 0.9, but with some floating point errors
 		assert_abs_diff_eq!(result, color!(1.6363853, 1.6363853, 1.6363853));
@@ -136,7 +138,7 @@ mod tests {
 		let position = point!(0, 0, 0);
 		let eye_vector = vector!(0, 0, -1);
 		let surface_normal = vector!(0, 0, -1);
-		let light = build_point_light(point!(0, 0, 10), color!(1, 1, 1));
+		let light = PointLight::new(point!(0, 0, 10), color!(1, 1, 1));
 		let result = phong_lighting(m, light, position, eye_vector, surface_normal, false);
 		assert_abs_diff_eq!(result, color!(0.1, 0.1, 0.1));
 	}
@@ -147,7 +149,7 @@ mod tests {
 		let position = point!(0, 0, 0);
 		let eye_vector = vector!(0, 0, -1);
 		let surface_normal = vector!(0, 0, -1);
-		let light = build_point_light(point!(0, 0, -10), color!(1, 1, 1));
+		let light = PointLight::new(point!(0, 0, -10), color!(1, 1, 1));
 		let result = phong_lighting(material, light, position, eye_vector, surface_normal, true);
 		assert_eq!(result, color!(0.1, 0.1, 0.1));
 	}
