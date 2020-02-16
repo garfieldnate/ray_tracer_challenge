@@ -210,4 +210,11 @@ mod tests {
         let n = s.normal_at(point!(0, FRAC_1_SQRT_2, -FRAC_1_SQRT_2));
         assert_abs_diff_eq!(n, vector!(-0.08352663, 0.9325296, -0.3513003));
     }
+
+    #[test]
+    fn normal_is_normalized_vector() {
+        let s = TestShape::new();
+        let n = s.normal_at(point!(1, 5, 10));
+        assert_abs_diff_eq!(n, n.norm());
+    }
 }
