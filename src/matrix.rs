@@ -9,9 +9,11 @@ pub struct Matrix {
     pub data: Vec<Vec<f32>>,
 }
 
-pub fn build_matrix(size: usize) -> Matrix {
-    Matrix {
-        data: vec![vec![0.0; size]; size],
+impl Matrix {
+    pub fn new(size: usize) -> Matrix {
+        Matrix {
+            data: vec![vec![0.0; size]; size],
+        }
     }
 }
 
@@ -40,7 +42,7 @@ pub fn identity_4x4() -> Matrix {
 impl Mul<f32> for &Matrix {
     type Output = Matrix;
     fn mul(self, other: f32) -> Matrix {
-        let mut m = build_matrix(self.size());
+        let mut m = Matrix::new(self.size());
         for row in 0..self.size() {
             for col in 0..self.size() {
                 m.data[row][col] = self.data[row][col] * other;
@@ -88,7 +90,7 @@ impl Mul for &Matrix {
             "Only 4x4 matrices can be multiplied by tuples!"
         );
         let size = self.size();
-        let mut new_matrix = build_matrix(size);
+        let mut new_matrix = Matrix::new(size);
         for r in 0..size {
             for c in 0..size {
                 new_matrix.data[r][c] = self.data[r][0] * other.data[0][c]
@@ -132,7 +134,7 @@ impl Matrix {
     // TODO: would it be better to mutate instead of copying?
     pub fn transpose(&self) -> Matrix {
         // debug_assert!(self.rows == 4 && self.columns == 4, "Only 4x4 matrices can be tr");
-        let mut m = build_matrix(self.size());
+        let mut m = Matrix::new(self.size());
         for row in 0..self.size() {
             for col in 0..self.size() {
                 m.data[col][row] = self.data[row][col];
@@ -160,7 +162,7 @@ impl Matrix {
 
     // for an nxn matrix, return an n-1 x n-1 matrix with remove_row row and remove_col col removed
     pub fn submatrix(&self, remove_row: usize, remove_col: usize) -> Matrix {
-        let mut m = build_matrix(self.size() - 1);
+        let mut m = Matrix::new(self.size() - 1);
         let mut new_row = 0;
         for old_row in 0..self.size() {
             if old_row == remove_row {
@@ -200,7 +202,7 @@ impl Matrix {
     pub fn inverse(&self) -> Matrix {
         debug_assert!(self.invertible());
         let determinant = self.determinant();
-        let mut matrix_inverse = build_matrix(self.size());
+        let mut matrix_inverse = Matrix::new(self.size());
         for row in 0..self.size() {
             for column in 0..self.size() {
                 let c = self.cofactor(row, column);
