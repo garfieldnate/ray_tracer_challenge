@@ -1,7 +1,7 @@
 // Create image of projectile's path given initial velocity, gravity and wind
 // TODO: take command line args to tweak environment and projectile parameters
 // TODO: display resulting PPM file instead of just printing the text
-use ray_tracer_challenge::canvas::build_canvas;
+use ray_tracer_challenge::canvas::Canvas;
 use ray_tracer_challenge::color::Color;
 use ray_tracer_challenge::tuple::Tuple;
 use ray_tracer_challenge::{color, point, vector};
@@ -32,7 +32,7 @@ fn main() {
     let gravity = vector!(0, -0.1, 0);
     let wind = vector!(-0.02, 0, 0);
     let environment = Environment { gravity, wind };
-    let mut canvas = build_canvas(700, 550);
+    let mut canvas = Canvas::new(700, 550);
     let trace_color = color!(0.53, 0.39, 0.074);
 
     while proj.position.y >= 0.0 && proj.position.x >= 0.0 {

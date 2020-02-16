@@ -1,5 +1,5 @@
 // Produce image of (squished) sphere's silhouette
-use ray_tracer_challenge::canvas::build_canvas;
+use ray_tracer_challenge::canvas::Canvas;
 use ray_tracer_challenge::color::Color;
 use ray_tracer_challenge::ray::Intersection;
 use ray_tracer_challenge::ray::Ray;
@@ -17,7 +17,7 @@ fn main() {
     let canvas_pixels = 100;
     let pixel_size = wall_size / canvas_pixels as f32;
     let half = wall_size / 2.0;
-    let mut canvas = build_canvas(canvas_pixels, canvas_pixels);
+    let mut canvas = Canvas::new(canvas_pixels, canvas_pixels);
     // red
     let color = color!(1, 0, 0);
     let mut shape = Sphere::new();

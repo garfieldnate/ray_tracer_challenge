@@ -1,4 +1,3 @@
-use crate::canvas::build_canvas;
 use crate::canvas::Canvas;
 use crate::matrix::Matrix;
 use crate::ray::Ray;
@@ -76,7 +75,7 @@ impl Camera {
     }
 
     pub fn render(&self, world: World) -> Canvas {
-        let mut canvas = build_canvas(self.width_pixels as usize, self.height_pixels as usize);
+        let mut canvas = Canvas::new(self.width_pixels as usize, self.height_pixels as usize);
         for y in 0..self.height_pixels - 1 {
             for x in 0..self.width_pixels - 1 {
                 let ray = self.ray_for_pixel(x, y);

@@ -1,5 +1,5 @@
 // Create image of 12 points of an analog clock face
-use ray_tracer_challenge::canvas::build_canvas;
+use ray_tracer_challenge::canvas::Canvas;
 use ray_tracer_challenge::color::Color;
 use ray_tracer_challenge::transformations::*;
 use ray_tracer_challenge::tuple::Tuple;
@@ -8,7 +8,7 @@ use std::f32::consts::PI;
 
 const CANVAS_SIZE: usize = 300;
 fn main() {
-    let mut canvas = build_canvas(CANVAS_SIZE, CANVAS_SIZE);
+    let mut canvas = Canvas::new(CANVAS_SIZE, CANVAS_SIZE);
     let white = color!(1, 1, 1);
     let translate_to_center =
         translation((canvas.height / 2) as f32, (canvas.height / 2) as f32, 0.0);
