@@ -6,7 +6,9 @@ use ray_tracer_challenge::light::phong_lighting;
 use ray_tracer_challenge::material::default_material;
 use ray_tracer_challenge::ray::build_ray;
 use ray_tracer_challenge::ray::Intersection;
-use ray_tracer_challenge::shape::sphere::default_sphere;
+use ray_tracer_challenge::shape::shape::Shape;
+use ray_tracer_challenge::shape::sphere::Sphere;
+
 use ray_tracer_challenge::transformations::scaling;
 use ray_tracer_challenge::transformations::shearing;
 use ray_tracer_challenge::tuple::build_tuple;
@@ -24,11 +26,11 @@ fn main() {
 	// let color = color!(1, 0, 0);
 	let mut material = default_material();
 	material.color = color!(1, 0.2, 1);
-	let mut shape = default_sphere();
+	let mut shape = Sphere::new();
 	shape.set_material(material);
 	let light = build_point_light(point!(-10, 10, -10), color!(1, 1, 1));
 
-	shape.set_transform(&shearing(1.0, 0.0, 0.0, 0.0, 0.0, 0.0) * &scaling(0.5, 1.0, 1.0));
+	shape.set_transformation(&shearing(1.0, 0.0, 0.0, 0.0, 0.0, 0.0) * &scaling(0.5, 1.0, 1.0));
 	// for each row of pixels in the canvas
 	for y in 0..canvas_pixels - 1 {
 		let world_y = half - pixel_size * y as f32;
@@ -46,7 +48,7 @@ fn main() {
 					let normal = hit.object.normal_at(hit_point);
 					let eye = -ray_direction;
 					let color =
-						phong_lighting(hit.object.material, light, hit_point, eye, normal, false);
+						phong_lighting(hit.object.material(), light, hit_point, eye, normal, false);
 					canvas.write_pixel(x, y, color)
 				}
 				None => {}
