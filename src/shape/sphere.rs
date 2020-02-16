@@ -72,7 +72,6 @@ impl Shape for Sphere {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::ray::build_ray;
     use crate::transformations::scaling;
     use crate::transformations::translation;
     use crate::tuple::build_tuple;
@@ -83,7 +82,7 @@ mod tests {
 
     #[test]
     fn intersect_scaled_sphere_with_ray() {
-        let r = build_ray(point!(0, 0, -2.5), vector!(0, 0, 0.5));
+        let r = Ray::new(point!(0, 0, -2.5), vector!(0, 0, 0.5));
         let mut s = Sphere::new();
         s.set_transformation(scaling(2.0, 2.0, 2.0));
         let xs = s.local_intersect(r);
@@ -93,7 +92,7 @@ mod tests {
 
     #[test]
     fn intersect_translated_sphere_with_ray() {
-        let r = build_ray(point!(-5, 0, -5), vector!(0, 0, 1));
+        let r = Ray::new(point!(-5, 0, -5), vector!(0, 0, 1));
         let mut s = Sphere::new();
         s.set_transformation(translation(5.0, 0.0, 0.0));
         let xs = s.local_intersect(r);

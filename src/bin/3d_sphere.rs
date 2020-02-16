@@ -4,8 +4,8 @@ use ray_tracer_challenge::color::build_color;
 use ray_tracer_challenge::light::build_point_light;
 use ray_tracer_challenge::light::phong_lighting;
 use ray_tracer_challenge::material::default_material;
-use ray_tracer_challenge::ray::build_ray;
 use ray_tracer_challenge::ray::Intersection;
+use ray_tracer_challenge::ray::Ray;
 use ray_tracer_challenge::shape::shape::Shape;
 use ray_tracer_challenge::shape::sphere::Sphere;
 
@@ -40,7 +40,7 @@ fn main() {
 			let world_x = -half + pixel_size * x as f32;
 			let target = point!(world_x, world_y, wall_z);
 			let ray_direction = (target - ray_origin).norm();
-			let r = build_ray(ray_origin, ray_direction);
+			let r = Ray::new(ray_origin, ray_direction);
 			let xs = shape.intersect(r);
 			match Intersection::hit(&xs) {
 				Some(hit) => {

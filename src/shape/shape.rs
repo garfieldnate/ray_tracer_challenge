@@ -90,7 +90,6 @@ impl Shape for BaseShape {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::ray::build_ray;
     use crate::transformations::rotation_z;
     use crate::transformations::scaling;
     use crate::transformations::translation;
@@ -176,25 +175,25 @@ mod tests {
 
     #[test]
     fn intersect_scaled_shape_with_ray() {
-        let r = build_ray(point!(0, 0, -5), vector!(0, 0, 1));
+        let r = Ray::new(point!(0, 0, -5), vector!(0, 0, 1));
         let mut s = TestShape::new();
         s.set_transformation(scaling(2.0, 2.0, 2.0));
         s.intersect(r);
         assert_eq!(
             s.saved_ray.into_inner().unwrap(),
-            build_ray(point!(0, 0, -2.5), vector!(0, 0, 0.5))
+            Ray::new(point!(0, 0, -2.5), vector!(0, 0, 0.5))
         );
     }
 
     #[test]
     fn intersect_translated_shape_with_ray() {
-        let r = build_ray(point!(0, 0, -5), vector!(0, 0, 1));
+        let r = Ray::new(point!(0, 0, -5), vector!(0, 0, 1));
         let mut s = TestShape::new();
         s.set_transformation(translation(5.0, 0.0, 0.0));
         s.intersect(r);
         assert_eq!(
             s.saved_ray.into_inner().unwrap(),
-            build_ray(point!(-5, 0, -5), vector!(0, 0, 1))
+            Ray::new(point!(-5, 0, -5), vector!(0, 0, 1))
         );
     }
 

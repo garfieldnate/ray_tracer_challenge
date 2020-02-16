@@ -1,7 +1,6 @@
 use crate::canvas::build_canvas;
 use crate::canvas::Canvas;
 use crate::matrix::Matrix;
-use crate::ray::build_ray;
 use crate::ray::Ray;
 use crate::tuple::{build_tuple, Tuple};
 use crate::world::World;
@@ -73,7 +72,7 @@ impl Camera {
         let pixel: Tuple = &self.transform.inverse() * &point!(world_x, world_y, -1);
         let origin: Tuple = &self.transform.inverse() * &point!(0, 0, 0);
         let direction = (pixel - origin).norm();
-        build_ray(origin, direction)
+        Ray::new(origin, direction)
     }
 
     pub fn render(&self, world: World) -> Canvas {
