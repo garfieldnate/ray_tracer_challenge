@@ -58,8 +58,7 @@ pub trait Shape: Debug {
 
 // Other shape implementations are meant to delegate to this one where these defaults are acceptable.
 // TODO: Maybe someday Rust will support delegation: https://github.com/rust-lang/rfcs/pull/2393
-// like Kotlin does. Could also check out the ambassador crate.
-// TODO: cache inverse and inverse transpose
+// like Kotlin does. Could also use ambassador crate, if it adds partial delegation support.
 #[derive(Clone, Debug, PartialEq)]
 pub struct BaseShape {
     t: Matrix,
@@ -101,7 +100,6 @@ impl Shape for BaseShape {
         self.m = m;
     }
 
-    // these allow the implementer to cache the results if so desired
     fn transformation_inverse(&self) -> &Matrix {
         &self.t_inverse
     }
