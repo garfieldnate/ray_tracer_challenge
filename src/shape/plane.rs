@@ -56,6 +56,12 @@ impl Shape for Plane {
     fn set_material(&mut self, m: Material) {
         self.base.set_material(m);
     }
+    fn transformation_inverse(&self) -> &Matrix {
+        self.base.transformation_inverse()
+    }
+    fn transformation_inverse_transpose(&self) -> &Matrix {
+        self.base.transformation_inverse_transpose()
+    }
 }
 
 #[cfg(test)]
