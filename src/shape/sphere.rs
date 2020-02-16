@@ -74,12 +74,9 @@ impl Shape for Sphere {
 mod tests {
     use super::*;
     use crate::ray::build_ray;
-    use crate::transformations::rotation_z;
     use crate::transformations::scaling;
     use crate::transformations::translation;
     use crate::tuple::build_tuple;
-    use std::f32::consts::FRAC_1_SQRT_2;
-    use std::f32::consts::PI;
 
     fn frac_1_sqrt_3() -> f32 {
         1.0 / (3f32.sqrt())
@@ -87,75 +84,51 @@ mod tests {
 
     #[test]
     fn intersect_scaled_sphere_with_ray() {
-        let r = build_ray(point!(0, 0, -5), vector!(0, 0, 1));
+        let r = build_ray(point!(0, 0, -2.5), vector!(0, 0, 0.5));
         let mut s = Sphere::new();
         s.set_transformation(scaling(2.0, 2.0, 2.0));
-        let xs = s.intersect(r);
+        let xs = s.local_intersect(r);
         assert_eq!(xs[0].distance, 3.0);
         assert_eq!(xs[1].distance, 7.0);
     }
 
     #[test]
     fn intersect_translated_sphere_with_ray() {
-        let r = build_ray(point!(0, 0, -5), vector!(0, 0, 1));
+        let r = build_ray(point!(-5, 0, -5), vector!(0, 0, 1));
         let mut s = Sphere::new();
         s.set_transformation(translation(5.0, 0.0, 0.0));
-        let xs = s.intersect(r);
+        let xs = s.local_intersect(r);
         assert_eq!(xs.len(), 0);
     }
 
     #[test]
     fn sphere_normal_on_x_axis() {
         let s = Sphere::new();
-        let n = s.normal_at(point!(1, 0, 0));
+        let n = s.local_norm_at(point!(1, 0, 0));
         assert_eq!(n, vector!(1, 0, 0));
     }
 
     #[test]
     fn sphere_normal_on_y_axis() {
         let s = Sphere::new();
-        let n = s.normal_at(point!(0, 1, 0));
+        let n = s.local_norm_at(point!(0, 1, 0));
         assert_eq!(n, vector!(0, 1, 0));
     }
 
     #[test]
     fn sphere_normal_on_z_axis() {
         let s = Sphere::new();
-        let n = s.normal_at(point!(0, 0, 1));
+        let n = s.local_norm_at(point!(0, 0, 1));
         assert_eq!(n, vector!(0, 0, 1));
     }
 
     #[test]
     fn sphere_normal_on_nonaxial_point() {
         let s = Sphere::new();
-        let n = s.normal_at(point!(frac_1_sqrt_3(), frac_1_sqrt_3(), frac_1_sqrt_3()));
+        let n = s.local_norm_at(point!(frac_1_sqrt_3(), frac_1_sqrt_3(), frac_1_sqrt_3()));
         assert_abs_diff_eq!(
             n,
             vector!(frac_1_sqrt_3(), frac_1_sqrt_3(), frac_1_sqrt_3())
         );
-    }
-
-    #[test]
-    fn normal_is_normalized_vector() {
-        let s = Sphere::new();
-        let n = s.normal_at(point!(frac_1_sqrt_3(), frac_1_sqrt_3(), frac_1_sqrt_3()));
-        assert_abs_diff_eq!(n, n.norm());
-    }
-
-    #[test]
-    fn normal_of_translated_sphere() {
-        let mut s = Sphere::new();
-        s.set_transformation(translation(0.0, 1.0, 0.0));
-        let n = s.normal_at(point!(0, 1.70711, -0.70711));
-        assert_abs_diff_eq!(n, vector!(0, 0.7071068, -0.70710677));
-    }
-
-    #[test]
-    fn normal_of_transformed_sphere() {
-        let mut s = Sphere::new();
-        let m = &scaling(1.0, 0.5, 1.0) * &rotation_z(PI / 5.0);
-        s.set_transformation(m);
-        let n = s.normal_at(point!(0, FRAC_1_SQRT_2, -FRAC_1_SQRT_2));
-        assert_abs_diff_eq!(n, vector!(0, 0.97014254, -0.24253564));
     }
 }
