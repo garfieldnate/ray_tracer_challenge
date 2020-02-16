@@ -72,6 +72,8 @@ mod tests {
 	use super::*;
 	use crate::color::Color;
 	use crate::material::default_material;
+	use crate::material::Material;
+	use crate::pattern::Stripes;
 	use std::f32::consts::FRAC_1_SQRT_2;
 
 	#[test]
@@ -152,5 +154,48 @@ mod tests {
 		let light = PointLight::new(point!(0, 0, -10), color!(1, 1, 1));
 		let result = phong_lighting(material, light, position, eye_vector, surface_normal, true);
 		assert_eq!(result, color!(0.1, 0.1, 0.1));
+	}
+
+	fn black() -> Color {
+		color!(0, 0, 0)
+	}
+	fn white() -> Color {
+		color!(1, 1, 1)
+	}
+
+	#[test]
+	fn lighting_with_pattern_applied() {
+		let pattern = Stripes::new(white(), black());
+		let m = Material {
+			ambient: 1.0,
+			diffuse: 0.0,
+			specular: 0.0,
+			shininess: 200.0,
+			color: color!(0.5, 0.5, 0.5),
+			pattern: Some(Box::new(pattern)),
+		};
+		let eye_vector = vector!(0, 0, -1);
+		let surface_normal = vector!(0, 0, -1);
+		let light = PointLight::new(point!(0, 0, -10), white());
+
+		let c1 = phong_lighting(
+			m.clone(),
+			light,
+			point!(0.9, 0, 0),
+			eye_vector,
+			surface_normal,
+			false,
+		);
+		let c2 = phong_lighting(
+			m.clone(),
+			light,
+			point!(1.1, 0, 0),
+			eye_vector,
+			surface_normal,
+			false,
+		);
+
+		assert_eq!(c1, color!(1, 1, 1));
+		assert_eq!(c2, color!(0, 0, 0));
 	}
 }
