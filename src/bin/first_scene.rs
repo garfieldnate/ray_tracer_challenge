@@ -72,7 +72,14 @@ fn main() {
     );
 
     let world = World {
-        objects: vec![floor, left_wall, right_wall, left, middle, right],
+        objects: vec![
+            Box::new(floor),
+            Box::new(left_wall),
+            Box::new(right_wall),
+            Box::new(left),
+            Box::new(middle),
+            Box::new(right),
+        ],
         // The light source is white, shining from above and to the left
         light: Some(PointLight::new(point!(-10, 10, -10), color!(1, 1, 1))),
     };

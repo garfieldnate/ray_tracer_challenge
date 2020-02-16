@@ -4,7 +4,6 @@
 * Switch to f64 for geometric calculations everywhere (leave f32 for colors).
     - From _Fundamentals of Computer Graphics_:
     > I suggest using doubles for geometric computation and floats for color computation. For data that occupies a lot of memory, such as triangle meshes, I suggest storing float data, but converting to double when data is accessed through member functions.
-* Move many datatypes to their own files. Maybe a new directory for shapes.
 * Canvas write_pixel: fail properly for out of bounds
 * cleanup after [codereview.se](https://codereview.stackexchange.com/questions/236895/color-and-canvas-implementations-in-rust-for-ray-tracer-challenge) responds
 * transformation should probably all be in matrix
