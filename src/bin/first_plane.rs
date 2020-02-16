@@ -2,9 +2,8 @@ use ray_tracer_challenge::camera::Camera;
 use ray_tracer_challenge::color::Color;
 use ray_tracer_challenge::light::PointLight;
 use ray_tracer_challenge::material::default_material;
+use ray_tracer_challenge::shape::plane::Plane;
 use ray_tracer_challenge::shape::sphere::Sphere;
-use ray_tracer_challenge::transformations::rotation_x;
-use ray_tracer_challenge::transformations::rotation_y;
 use ray_tracer_challenge::transformations::scaling;
 use ray_tracer_challenge::transformations::shearing;
 use ray_tracer_challenge::transformations::translation;
@@ -24,22 +23,8 @@ fn main() {
     let mut room_material = default_material();
     room_material.color = color!(1, 0.9, 0.9);
     room_material.specular = 0.0;
-    // The floor is an extremely flattened sphere with a matte texture.
-    let floor = Sphere::build(scaling(10.0, 0.01, 10.0), room_material);
-
-    // The wall on the left has the same scale and color as the floor, but is also rotated and translated into place.
-    let left_wall = Sphere::build(
-        &translation(0.0, 0.0, 5.0)
-            * &(&rotation_y(-PI / 4.0) * &(&rotation_x(PI / 2.0) * &scaling(10.0, 0.01, 10.0))),
-        room_material,
-    );
-
-    // The wall on the right is identical to the left wall, but is rotated the opposite direction in y.
-    let right_wall = Sphere::build(
-        &translation(0.0, 0.0, 5.0)
-            * &(&rotation_y(PI / 4.0) * &(&rotation_x(PI / 2.0) * &scaling(10.0, 0.01, 10.0))),
-        room_material,
-    );
+    // The floor is a plane
+    let floor = Plane::build(scaling(10.0, 0.01, 10.0), room_material);
 
     // The large sphere in the middle is a unit sphere, translated upward slightly and colored green.
 
@@ -74,8 +59,6 @@ fn main() {
     let world = World {
         objects: vec![
             Box::new(floor),
-            Box::new(left_wall),
-            Box::new(right_wall),
             Box::new(left),
             Box::new(middle),
             Box::new(right),
