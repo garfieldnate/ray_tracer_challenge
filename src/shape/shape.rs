@@ -5,8 +5,9 @@ use crate::matrix::Matrix;
 use crate::ray::Intersection;
 use crate::ray::Ray;
 use crate::tuple::Tuple;
+use std::fmt::Debug;
 
-pub trait Shape {
+pub trait Shape: Debug {
     fn transformation(&self) -> &Matrix;
     fn set_transformation(&mut self, t: Matrix);
     fn material(&self) -> Material;
@@ -98,11 +99,12 @@ mod tests {
     use std::f32::consts::FRAC_1_SQRT_2;
     use std::f32::consts::PI;
 
-    // let mut saved_ray: Ray;
+    #[derive(Debug)]
     struct TestShape {
         base: BaseShape,
         saved_ray: RefCell<Option<Ray>>,
     }
+
     impl TestShape {
         fn new() -> Self {
             TestShape {
@@ -111,6 +113,7 @@ mod tests {
             }
         }
     }
+
     impl Shape for TestShape {
         fn transformation(&self) -> &Matrix {
             &self.base.t

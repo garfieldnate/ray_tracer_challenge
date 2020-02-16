@@ -1,6 +1,7 @@
 # TODO
 
-* I think if we create Tuple::build instead of build_tuple, we can stop importing it everywhere we use the point and vector macros!
+* I think if we create Tuple::build instead of build_tuple, we can stop importing it everywhere we use the point and vector macros! Do this everywhere. build_ray, etc.
+* Use ambassador crate for BaseShape delegation
 * Switch to f64 for geometric calculations everywhere (leave f32 for colors).
     - From _Fundamentals of Computer Graphics_:
     > I suggest using doubles for geometric computation and floats for color computation. For data that occupies a lot of memory, such as triangle meshes, I suggest storing float data, but converting to double when data is accessed through member functions.

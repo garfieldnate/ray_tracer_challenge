@@ -101,7 +101,7 @@ impl World {
 
 pub struct PrecomputedValues<'a> {
     distance: f32,
-    object: &'a Sphere,
+    object: &'a dyn Shape,
     point: Tuple,
     eye_vector: Tuple,
     surface_normal: Tuple,
