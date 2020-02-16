@@ -21,7 +21,7 @@ impl Sphere {
         }
     }
 
-    pub fn build(transform: Matrix, material: Material) -> Sphere {
+    pub fn build(transform: Matrix, material: Material) -> Self {
         let mut s = Sphere::new();
         s.set_transformation(transform);
         s.set_material(material);
