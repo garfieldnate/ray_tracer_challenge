@@ -25,20 +25,20 @@ fn main() {
     room_material.color = color!(1, 0.9, 0.9);
     room_material.specular = 0.0;
     // The floor is an extremely flattened sphere with a matte texture.
-    let floor = Sphere::build(scaling(10.0, 0.01, 10.0), room_material);
+    let floor = Sphere::build(scaling(10.0, 0.01, 10.0), room_material.clone());
 
     // The wall on the left has the same scale and color as the floor, but is also rotated and translated into place.
     let left_wall = Sphere::build(
         &translation(0.0, 0.0, 5.0)
             * &(&rotation_y(-PI / 4.0) * &(&rotation_x(PI / 2.0) * &scaling(10.0, 0.01, 10.0))),
-        room_material,
+        room_material.clone(),
     );
 
     // The wall on the right is identical to the left wall, but is rotated the opposite direction in y.
     let right_wall = Sphere::build(
         &translation(0.0, 0.0, 5.0)
             * &(&rotation_y(PI / 4.0) * &(&rotation_x(PI / 2.0) * &scaling(10.0, 0.01, 10.0))),
-        room_material,
+        room_material.clone(),
     );
 
     // The large sphere in the middle is a unit sphere, translated upward slightly and colored green.

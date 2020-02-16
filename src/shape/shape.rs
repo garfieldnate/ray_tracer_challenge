@@ -94,7 +94,7 @@ impl Shape for BaseShape {
         // );
     }
     fn material(&self) -> Material {
-        self.m
+        self.m.clone()
     }
     fn set_material(&mut self, m: Material) {
         self.m = m;
@@ -126,7 +126,7 @@ mod tests {
     use std::f32::consts::FRAC_1_SQRT_2;
     use std::f32::consts::PI;
 
-    #[derive(Debug)]
+    #[derive(Clone, Debug, PartialEq)]
     struct TestShape {
         base: BaseShape,
         saved_ray: RefCell<Option<Ray>>,
@@ -199,7 +199,7 @@ mod tests {
 
         let mut override_material = default_material();
         override_material.ambient = 1.0;
-        shape.set_material(override_material);
+        shape.set_material(override_material.clone());
         assert_eq!(
             shape.material(),
             override_material,

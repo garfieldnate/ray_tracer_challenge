@@ -245,9 +245,9 @@ mod tests {
         // outer
         let mut material = default_material();
         material.ambient = 1.0;
-        w.objects[0].set_material(material);
+        w.objects[0].set_material(material.clone());
         // inner
-        w.objects[1].set_material(material);
+        w.objects[1].set_material(material.clone());
         let r = Ray::new(point!(0, 0, 0.75), vector!(0, 0, -1));
         let c = w.color_at(r);
         assert_eq!(c, w.objects[1].material().color);

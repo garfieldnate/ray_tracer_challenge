@@ -1,9 +1,12 @@
 use crate::color::Color;
 use crate::tuple::Tuple;
+use dyn_clone::DynClone;
+use std::fmt::Debug;
 
-pub trait Pattern {
+pub trait Pattern: Debug + DynClone {
     fn color_at(&self, p: Tuple) -> Color;
 }
+dyn_clone::clone_trait_object!(Pattern);
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Stripes {
