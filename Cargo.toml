@@ -11,3 +11,4 @@ edition = "2018"
 
 # [dev-dependencies]
 approx = "0.3.2"
+dyn-clone = "1.0.1"

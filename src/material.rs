@@ -1,7 +1,11 @@
 use crate::color::Color;
+use crate::pattern::Pattern;
+use std::fmt::Debug;
+use std::ptr;
 
+type BoxedPattern = Box<dyn Pattern>;
 // Represents the reflective properties of a surface
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(PartialEq, Debug, Clone)]
 pub struct Material {
 	pub color: Color,
 	// light reflected from other objects in the environment [0,1]
@@ -14,6 +18,16 @@ pub struct Material {
 	pub specular: f32,
 	// higher values give smaller and tighter specular highlights [10,200] (no real upper bound)
 	pub shininess: f32,
+
+	pub pattern: Option<BoxedPattern>,
+}
+
+// Just check that the objects are the same
+// TODO: delete after fixed in Rust: https://github.com/rust-lang/rust/issues/39128
+impl PartialEq for BoxedPattern {
+	fn eq(&self, other: &Self) -> bool {
+		ptr::eq(self as *const _, other as *const _)
+	}
 }
 
 pub fn default_material() -> Material {
@@ -23,6 +37,7 @@ pub fn default_material() -> Material {
 		diffuse: 0.9,
 		specular: 0.9,
 		shininess: 200.0,
+		pattern: None,
 	}
 }
 
