@@ -1,7 +1,8 @@
 use crate::matrix::Matrix;
-use crate::shape::sphere::Sphere;
+use crate::shape::shape::Shape;
 use crate::tuple::Tuple;
 use std::cmp::Ordering::Equal;
+use std::ptr;
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Ray {
@@ -40,13 +41,19 @@ impl Ray {
 	}
 }
 
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug)]
 pub struct Intersection<'a> {
 	pub distance: f32,
-	pub object: &'a Sphere,
+	pub object: &'a dyn Shape,
 }
 
-pub fn build_intersection<'a>(distance: f32, object: &'a Sphere) -> Intersection<'a> {
+impl PartialEq for Intersection<'_> {
+	fn eq(&self, other: &Intersection) -> bool {
+		self.distance.eq(&other.distance) && ptr::eq(self.object, other.object)
+	}
+}
+
+pub fn build_intersection<'a>(distance: f32, object: &'a dyn Shape) -> Intersection<'a> {
 	Intersection { distance, object }
 }
 
@@ -64,10 +71,12 @@ impl Intersection<'_> {
 mod tests {
 	use super::*;
 	use crate::shape::shape::Shape;
+	use crate::shape::sphere::Sphere;
 	use crate::transformations::scaling;
 	use crate::transformations::translation;
 	use crate::tuple::build_tuple;
 	use std::f32::consts::FRAC_1_SQRT_2;
+
 	#[test]
 	fn basic_ray_creation() {
 		let origin = point!(1, 2, 3);
@@ -139,7 +148,7 @@ mod tests {
 		let s = Sphere::new();
 		let i = build_intersection(1.0, &s);
 		assert_eq!(i.distance, 1.0);
-		assert_eq!(&s as *const _, i.object as *const _);
+		assert!(ptr::eq(&s as &dyn Shape, i.object as &dyn Shape));
 	}
 
 	#[test]
