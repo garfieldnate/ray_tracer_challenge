@@ -14,10 +14,10 @@ use ray_tracer_challenge::{color, point, vector};
 use std::f32::consts::PI;
 
 // To render larger, be sure to use an optimized (release) build and give it several minutes to finish
-const CANVAS_WIDTH: u32 = 1000;
-const CANVAS_HEIGHT: u32 = 500;
-// const CANVAS_WIDTH: u32 = 100;
-// const CANVAS_HEIGHT: u32 = 50;
+// const CANVAS_WIDTH: u32 = 1000;
+// const CANVAS_HEIGHT: u32 = 500;
+const CANVAS_WIDTH: u32 = 100;
+const CANVAS_HEIGHT: u32 = 50;
 
 fn main() {
     let mut room_material = default_material();

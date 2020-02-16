@@ -15,20 +15,20 @@ pub trait Shape: Debug {
     fn local_intersect(&self, object_ray: Ray) -> Vec<Intersection>;
     fn local_norm_at(&self, object_point: Tuple) -> Tuple;
 
-    // These two should not be overridden by Shape implementers
+    // These should not be overridden by Shape implementers
 
     // When intersecting the shape with a ray, all shapes need to first convert the
     //ray into object space, transforming it by the inverse of the shape’s transformation
     //matrix.
     fn intersect(&self, world_ray: Ray) -> Vec<Intersection> {
-        let object_ray = world_ray.transform(&self.transformation().inverse());
+        let object_ray = world_ray.transform(&self.transformation_inverse());
         self.local_intersect(object_ray)
     }
 
     fn normal_at(&self, world_point: Tuple) -> Tuple {
         // When computing the normal vector, all shapes need to first convert the point to
         // object space, multiplying it by the inverse of the shape’s transformation matrix.
-        let object_point = &self.transformation().inverse() * &world_point;
+        let object_point = self.transformation_inverse() * &world_point;
 
         let object_normal = self.local_norm_at(object_point);
 
@@ -36,13 +36,24 @@ pub trait Shape: Debug {
         // transpose of the transformation matrix, and then normalize the resulting vector
         // before returning it.
         // TODO: why the inverse transpose instead of just the inverse?
-        let mut world_normal = &self.transformation().inverse().transpose() * &object_normal;
+        let mut world_normal = self.transformation_inverse_transpose() * &object_normal;
         // transpose of translation matrix will mess with w; manually setting it back
         // to 0 here is faster and simpler than avoiding the computation by taking the
         // 3x3 submatrix before the computation.
         world_normal.w = 0.0;
+
+        // println!("self.t.i: {:?}", self.transformation_inverse());
+        // println!("world point: {:?}", world_point);
+        // println!("object point: {:?}", object_point);
+        // println!("object normal: {:?}", object_normal);
+        // println!("self t.i.t: {:?}", self.transformation_inverse_transpose());
+        // println!("world normal: {:?}", world_normal);
         world_normal.norm()
     }
+
+    // these allow BaseShape to cache the results
+    fn transformation_inverse(&self) -> &Matrix;
+    fn transformation_inverse_transpose(&self) -> &Matrix;
 }
 
 // Other shape implementations are meant to delegate to this one where these defaults are acceptable.
@@ -52,6 +63,8 @@ pub trait Shape: Debug {
 #[derive(Clone, Debug, PartialEq)]
 pub struct BaseShape {
     t: Matrix,
+    t_inverse: Matrix,
+    t_inverse_transpose: Matrix,
     m: Material,
 }
 
@@ -59,6 +72,8 @@ impl BaseShape {
     pub fn new() -> Self {
         BaseShape {
             t: identity_4x4(),
+            t_inverse: identity_4x4(),
+            t_inverse_transpose: identity_4x4(),
             m: default_material(),
         }
     }
@@ -70,12 +85,28 @@ impl Shape for BaseShape {
     }
     fn set_transformation(&mut self, t: Matrix) {
         self.t = t;
+        self.t_inverse = self.t.inverse();
+        self.t_inverse_transpose = self.t.inverse().transpose();
+        // println!("t {:?}", self.transformation());
+        // println!("t_inverse {:?}", self.transformation_inverse());
+        // println!(
+        //     "t_inverse_transpose {:?}",
+        //     self.transformation_inverse_transpose()
+        // );
     }
     fn material(&self) -> Material {
         self.m
     }
     fn set_material(&mut self, m: Material) {
         self.m = m;
+    }
+
+    // these allow the implementer to cache the results if so desired
+    fn transformation_inverse(&self) -> &Matrix {
+        &self.t_inverse
+    }
+    fn transformation_inverse_transpose(&self) -> &Matrix {
+        &self.t_inverse_transpose
     }
 
     // These two methods cannot be delegated to
@@ -114,16 +145,16 @@ mod tests {
 
     impl Shape for TestShape {
         fn transformation(&self) -> &Matrix {
-            &self.base.t
+            &self.base.transformation()
         }
         fn set_transformation(&mut self, t: Matrix) {
-            self.base.t = t;
+            self.base.set_transformation(t);
         }
         fn material(&self) -> Material {
-            self.base.m
+            self.base.material()
         }
         fn set_material(&mut self, m: Material) {
-            self.base.m = m;
+            self.base.set_material(m)
         }
         fn local_intersect(&self, _object_ray: Ray) -> Vec<Intersection> {
             // save the incoming ray for a comparison test
@@ -137,6 +168,12 @@ mod tests {
                 3.0 * _object_point.y,
                 4.0 * _object_point.z
             )
+        }
+        fn transformation_inverse(&self) -> &Matrix {
+            self.base.transformation_inverse()
+        }
+        fn transformation_inverse_transpose(&self) -> &Matrix {
+            self.base.transformation_inverse_transpose()
         }
     }
 
