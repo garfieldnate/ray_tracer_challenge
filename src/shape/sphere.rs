@@ -1,6 +1,5 @@
 use crate::material::Material;
 use crate::matrix::Matrix;
-use crate::ray::build_intersection;
 use crate::ray::Intersection;
 use crate::ray::Ray;
 use crate::shape::shape::BaseShape;
@@ -47,8 +46,8 @@ impl Shape for Sphere {
 
         // Jingle bells!
         vec![
-            build_intersection((-b - discriminant.sqrt()) / (2.0 * a), self),
-            build_intersection((-b + discriminant.sqrt()) / (2.0 * a), self),
+            Intersection::new((-b - discriminant.sqrt()) / (2.0 * a), self),
+            Intersection::new((-b + discriminant.sqrt()) / (2.0 * a), self),
         ]
     }
     fn local_norm_at(&self, object_point: Tuple) -> Tuple {

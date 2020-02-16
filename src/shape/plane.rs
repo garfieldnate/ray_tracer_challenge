@@ -1,6 +1,5 @@
 use crate::material::Material;
 use crate::matrix::Matrix;
-use crate::ray::build_intersection;
 use crate::ray::Intersection;
 use crate::ray::Ray;
 use crate::shape::shape::BaseShape;
@@ -37,7 +36,7 @@ impl Shape for Plane {
         } else {
             // this formula works because the plain sits in the xz plane
             let distance = -object_ray.origin.y / object_ray.direction.y;
-            vec![build_intersection(distance, self)]
+            vec![Intersection::new(distance, self)]
         }
     }
     fn local_norm_at(&self, _object_point: Tuple) -> Tuple {
@@ -62,7 +61,6 @@ impl Shape for Plane {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::ray::build_intersection;
     use crate::ray::build_ray;
     #[test]
     fn normal_of_plane_is_constant_everywhere() {
