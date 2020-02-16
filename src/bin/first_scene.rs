@@ -1,5 +1,5 @@
 use ray_tracer_challenge::camera::build_camera;
-use ray_tracer_challenge::color::build_color;
+use ray_tracer_challenge::color::Color;
 use ray_tracer_challenge::light::build_point_light;
 use ray_tracer_challenge::material::default_material;
 use ray_tracer_challenge::shape::sphere::Sphere;

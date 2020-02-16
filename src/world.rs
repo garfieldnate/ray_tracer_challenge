@@ -1,4 +1,3 @@
-use crate::color::build_color;
 use crate::color::Color;
 use crate::light::build_point_light;
 use crate::light::phong_lighting;
@@ -144,7 +143,6 @@ pub fn precompute_values<'a>(r: Ray, i: &Intersection<'a>) -> PrecomputedValues<
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::color::build_color;
     use crate::light::build_point_light;
     use crate::transformations::translation;
 

@@ -8,15 +8,17 @@ pub struct Color {
     pub b: f32,
 }
 
-pub fn build_color(r: f32, g: f32, b: f32) -> Color {
-    Color { r: r, g: g, b: b }
+impl Color {
+    pub fn new(r: f32, g: f32, b: f32) -> Color {
+        Color { r: r, g: g, b: b }
+    }
 }
 
 // use like this: color!(1,1,0.5)
 #[macro_export]
 macro_rules! color {
     ($x:expr, $y:expr, $z:expr) => {{
-        build_color($x as f32, $y as f32, $z as f32)
+        Color::new($x as f32, $y as f32, $z as f32)
     }};
 }
 

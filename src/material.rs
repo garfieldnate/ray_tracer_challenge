@@ -1,4 +1,3 @@
-use crate::color::build_color;
 use crate::color::Color;
 
 // Represents the reflective properties of a surface
