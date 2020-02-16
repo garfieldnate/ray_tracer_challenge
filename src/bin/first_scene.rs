@@ -2,7 +2,7 @@ use ray_tracer_challenge::camera::build_camera;
 use ray_tracer_challenge::color::build_color;
 use ray_tracer_challenge::light::build_point_light;
 use ray_tracer_challenge::material::default_material;
-use ray_tracer_challenge::shape::sphere::build_sphere;
+use ray_tracer_challenge::shape::sphere::Sphere;
 use ray_tracer_challenge::transformations::rotation_x;
 use ray_tracer_challenge::transformations::rotation_y;
 use ray_tracer_challenge::transformations::scaling;
@@ -25,17 +25,17 @@ fn main() {
     room_material.color = color!(1, 0.9, 0.9);
     room_material.specular = 0.0;
     // The floor is an extremely flattened sphere with a matte texture.
-    let floor = build_sphere(scaling(10.0, 0.01, 10.0), room_material);
+    let floor = Sphere::build(scaling(10.0, 0.01, 10.0), room_material);
 
     // The wall on the left has the same scale and color as the floor, but is also rotated and translated into place.
-    let left_wall = build_sphere(
+    let left_wall = Sphere::build(
         &translation(0.0, 0.0, 5.0)
             * &(&rotation_y(-PI / 4.0) * &(&rotation_x(PI / 2.0) * &scaling(10.0, 0.01, 10.0))),
         room_material,
     );
 
     // The wall on the right is identical to the left wall, but is rotated the opposite direction in y.
-    let right_wall = build_sphere(
+    let right_wall = Sphere::build(
         &translation(0.0, 0.0, 5.0)
             * &(&rotation_y(PI / 4.0) * &(&rotation_x(PI / 2.0) * &scaling(10.0, 0.01, 10.0))),
         room_material,
@@ -47,7 +47,7 @@ fn main() {
     middle_sphere_material.color = color!(0.1, 1, 0.5);
     middle_sphere_material.diffuse = 0.7;
     middle_sphere_material.specular = 0.3;
-    let middle = build_sphere(translation(-0.5, 1.0, 0.5), middle_sphere_material);
+    let middle = Sphere::build(translation(-0.5, 1.0, 0.5), middle_sphere_material);
 
     // The smaller green sphere on the right is scaled in half
 
@@ -55,7 +55,7 @@ fn main() {
     right_sphere_material.color = color!(0.5, 1, 0.1);
     right_sphere_material.diffuse = 0.7;
     right_sphere_material.specular = 0.3;
-    let right = build_sphere(
+    let right = Sphere::build(
         &shearing(0.0, 1.0, 0.0, 0.0, 0.0, 1.0)
             * &(&translation(1.5, 0.5, -0.5) * &scaling(0.5, 0.5, 0.5)),
         right_sphere_material,
@@ -66,7 +66,7 @@ fn main() {
     left_sphere_material.color = color!(1, 0.8, 0.1);
     left_sphere_material.diffuse = 0.7;
     left_sphere_material.specular = 0.3;
-    let left = build_sphere(
+    let left = Sphere::build(
         &translation(-1.5, 0.33, -0.75) * &scaling(0.33, 0.33, 0.33),
         left_sphere_material,
     );

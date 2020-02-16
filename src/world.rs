@@ -9,7 +9,6 @@ use crate::ray::build_ray;
 use crate::ray::Intersection;
 use crate::ray::Ray;
 use crate::shape::shape::Shape;
-use crate::shape::sphere::build_sphere;
 use crate::shape::sphere::Sphere;
 use crate::transformations::scaling;
 use crate::tuple::{build_tuple, Tuple};
@@ -34,8 +33,8 @@ pub fn default_world() -> World {
     m.color = color!(0.8, 1.0, 0.6);
     m.diffuse = 0.7;
     m.specular = 0.2;
-    let s1 = build_sphere(identity_4x4(), m);
-    let s2 = build_sphere(scaling(0.5, 0.5, 0.5), default_material());
+    let s1 = Sphere::build(identity_4x4(), m);
+    let s2 = Sphere::build(scaling(0.5, 0.5, 0.5), default_material());
     World {
         objects: vec![s1, s2],
         light: Some(build_point_light(
@@ -294,7 +293,7 @@ mod tests {
     #[test]
     fn hit_should_offset_point_for_shadow_calculations() {
         let r = build_ray(point!(0, 0, -5), vector!(0, 0, 1));
-        let shape = build_sphere(translation(0.0, 0.0, 1.0), default_material());
+        let shape = Sphere::build(translation(0.0, 0.0, 1.0), default_material());
         let intersection = build_intersection(5.0, &shape);
         let comps = precompute_values(r, &intersection);
         // println!("{:?}", comps.point);
@@ -309,7 +308,7 @@ mod tests {
         let mut w = build_world();
         w.light = Some(build_point_light(point!(0, 0, -10), color!(1, 1, 1)));
         let s1 = Sphere::new();
-        let s2 = build_sphere(translation(0.0, 0.0, 10.0), default_material());
+        let s2 = Sphere::build(translation(0.0, 0.0, 10.0), default_material());
         w.objects.push(s1);
         w.objects.push(s2);
         let r = build_ray(point!(0, 0, 5), vector!(0, 0, 1));

@@ -7,7 +7,6 @@ use crate::ray::Ray;
 use crate::tuple::Tuple;
 
 pub trait Shape {
-    fn new() -> Self;
     fn transformation(&self) -> &Matrix;
     fn set_transformation(&mut self, t: Matrix);
     fn material(&self) -> Material;
@@ -55,13 +54,16 @@ pub struct BaseShape {
     m: Material,
 }
 
-impl Shape for BaseShape {
-    fn new() -> Self {
+impl BaseShape {
+    pub fn new() -> Self {
         BaseShape {
             t: identity_4x4(),
             m: default_material(),
         }
     }
+}
+
+impl Shape for BaseShape {
     fn transformation(&self) -> &Matrix {
         &self.t
     }
@@ -101,13 +103,15 @@ mod tests {
         base: BaseShape,
         saved_ray: RefCell<Option<Ray>>,
     }
-    impl Shape for TestShape {
+    impl TestShape {
         fn new() -> Self {
             TestShape {
                 base: BaseShape::new(),
                 saved_ray: RefCell::new(None),
             }
         }
+    }
+    impl Shape for TestShape {
         fn transformation(&self) -> &Matrix {
             &self.base.t
         }
