@@ -19,6 +19,6 @@
 
 ## VS Code Problems
 * Using MyStruct::new() in a file where it is imported, VS code cannot suggest what to import
-* Oh my gosh waiting for full recompilation everytime I change something, between every accepted suggestion, is awful!
+* Oh my gosh waiting for full recompilation everytime I change something, between every accepted suggestion, is awful! No suggestions work while compiling.
 * Sometimes have to restart to properly analyze a file. Particularly, when creating a new file in the bin directory, it won't be analyzed until restarting VS Code.
 *
