@@ -127,6 +127,12 @@ impl AbsDiffEq for Matrix {
     }
 }
 
+impl Default for Matrix {
+    fn default() -> Self {
+        identity_4x4()
+    }
+}
+
 impl Matrix {
     pub fn size(&self) -> usize {
         self.data.len()
