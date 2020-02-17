@@ -31,7 +31,11 @@ pub fn phong_lighting(
 	in_shadow: bool,
 ) -> Color {
 	// mix the surface color with the light's color
-	let effective_color = material.color * light.intensity;
+	let material_color = match material.pattern {
+		Some(p) => p.color_at(point),
+		None => material.color,
+	};
+	let effective_color = material_color * light.intensity;
 
 	let ambient = effective_color * material.ambient;
 
