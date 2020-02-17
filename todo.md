@@ -1,5 +1,6 @@
 # TODO
 
+* define common colors in color mod
 * Switch to IntelliJ for Rust
 * Use ambassador crate for BaseShape delegation
 * Add `Default` trait implementation everywhere

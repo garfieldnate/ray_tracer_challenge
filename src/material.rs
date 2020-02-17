@@ -1,5 +1,5 @@
 use crate::color::Color;
-use crate::pattern::Pattern;
+use crate::pattern::pattern::Pattern;
 use std::fmt::Debug;
 use std::ptr;
 

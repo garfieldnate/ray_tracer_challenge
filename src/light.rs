@@ -79,7 +79,7 @@ mod tests {
 	use crate::color::Color;
 	use crate::material::default_material;
 	use crate::material::Material;
-	use crate::pattern::Stripes;
+	use crate::pattern::stripes::Stripes;
 	use crate::shape::sphere::Sphere;
 	use std::f32::consts::FRAC_1_SQRT_2;
 
