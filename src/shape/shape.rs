@@ -86,12 +86,6 @@ impl Shape for BaseShape {
         self.t = t;
         self.t_inverse = self.t.inverse();
         self.t_inverse_transpose = self.t.inverse().transpose();
-        // println!("t {:?}", self.transformation());
-        // println!("t_inverse {:?}", self.transformation_inverse());
-        // println!(
-        //     "t_inverse_transpose {:?}",
-        //     self.transformation_inverse_transpose()
-        // );
     }
     fn material(&self) -> Material {
         self.m.clone()

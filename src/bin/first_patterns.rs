@@ -24,7 +24,7 @@ fn main() {
     let stripes = Stripes::new(color!(0.1, 1, 0.5), color!(0.9, 0.2, 0.6));
     let mut room_material = default_material();
     room_material.color = color!(1, 0.9, 0.9);
-    room_material.pattern = Some(Box::new(stripes));
+    room_material.pattern = Some(Box::new(stripes.clone()));
     room_material.specular = 0.0;
     // The floor is a plane
     let floor = Plane::build(scaling(10.0, 0.01, 10.0), room_material);
@@ -33,7 +33,7 @@ fn main() {
 
     let mut middle_sphere_material = default_material();
     middle_sphere_material.color = color!(0.1, 1, 0.5);
-    middle_sphere_material.pattern = Some(Box::new(stripes));
+    middle_sphere_material.pattern = Some(Box::new(stripes.clone()));
     middle_sphere_material.diffuse = 0.7;
     middle_sphere_material.specular = 0.3;
     let middle = Sphere::build(translation(-0.5, 1.0, 0.5), middle_sphere_material);
@@ -42,7 +42,7 @@ fn main() {
 
     let mut right_sphere_material = default_material();
     right_sphere_material.color = color!(0.5, 1, 0.1);
-    right_sphere_material.pattern = Some(Box::new(stripes));
+    right_sphere_material.pattern = Some(Box::new(stripes.clone()));
     right_sphere_material.diffuse = 0.7;
     right_sphere_material.specular = 0.3;
     let right = Sphere::build(
@@ -54,7 +54,7 @@ fn main() {
     // The smallest sphere is scaled by a third before being translated
     let mut left_sphere_material = default_material();
     left_sphere_material.color = color!(1, 0.8, 0.1);
-    left_sphere_material.pattern = Some(Box::new(stripes));
+    left_sphere_material.pattern = Some(Box::new(stripes.clone()));
     left_sphere_material.diffuse = 0.7;
     left_sphere_material.specular = 0.3;
     let left = Sphere::build(

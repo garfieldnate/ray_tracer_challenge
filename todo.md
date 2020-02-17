@@ -1,5 +1,6 @@
 # TODO
 
+* Switch to IntelliJ for Rust
 * Use ambassador crate for BaseShape delegation
 * Add `Default` trait implementation everywhere
 * Switch to f64 for geometric calculations everywhere (leave f32 for colors).
@@ -16,8 +17,3 @@
 * Better model of point vs. vector: typing should reflect difference
 * Reorganize as [workspace](https://doc.rust-lang.org/cargo/reference/manifest.html#the-workspace-section)
 * reimplement everything using geometric algebra for funsies
-
-
-### Rust Wishes
-* I wish that VSCode could auto-format macros. Doesn't seem to do indenting automatically.
-* I wish that the imports were auto-organized to differentiate between macros and other stuff.
