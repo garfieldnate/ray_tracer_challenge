@@ -47,8 +47,15 @@ fn main() {
 					let hit_point = r.position(hit.distance);
 					let normal = hit.object.normal_at(hit_point);
 					let eye = -ray_direction;
-					let color =
-						phong_lighting(hit.object.material(), light, hit_point, eye, normal, false);
+					let color = phong_lighting(
+						hit.object,
+						hit.object.material(),
+						light,
+						hit_point,
+						eye,
+						normal,
+						false,
+					);
 					canvas.write_pixel(x, y, color)
 				}
 				None => {}

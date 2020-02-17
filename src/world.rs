@@ -53,6 +53,7 @@ impl World {
 
     pub fn shade_hit(&self, comps: PrecomputedValues) -> Color {
         phong_lighting(
+            comps.object,
             comps.object.material(),
             self.light.unwrap(),
             comps.over_point,

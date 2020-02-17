@@ -1,6 +1,7 @@
 use crate::color::Color;
 use crate::material::Material;
 use crate::ray::Ray;
+use crate::shape::shape::Shape;
 use crate::tuple::Tuple;
 
 // A point light: has no size and exists at single point.
@@ -23,6 +24,7 @@ impl PointLight {
 // the Phong model of lighting: the result color is the sum of colors produced
 // by modeling ambient, diffuse and specular lighting.
 pub fn phong_lighting(
+	object: &dyn Shape,
 	material: Material,
 	light: PointLight,
 	point: Tuple,
@@ -32,7 +34,7 @@ pub fn phong_lighting(
 ) -> Color {
 	// mix the surface color with the light's color
 	let material_color = match material.pattern {
-		Some(p) => p.color_at(point),
+		Some(p) => p.color_at_object(point, object),
 		None => material.color,
 	};
 	let effective_color = material_color * light.intensity;
@@ -78,7 +80,12 @@ mod tests {
 	use crate::material::default_material;
 	use crate::material::Material;
 	use crate::pattern::Stripes;
+	use crate::shape::sphere::Sphere;
 	use std::f32::consts::FRAC_1_SQRT_2;
+
+	fn any_shape() -> Box<dyn Shape> {
+		Box::new(Sphere::new())
+	}
 
 	#[test]
 	fn point_light_has_position_and_intensity() {
@@ -96,7 +103,15 @@ mod tests {
 		let eye_vector = vector!(0, 0, -1);
 		let surface_normal = vector!(0, 0, -1);
 		let light = PointLight::new(point!(0, 0, -10), color!(1, 1, 1));
-		let result = phong_lighting(m, light, position, eye_vector, surface_normal, false);
+		let result = phong_lighting(
+			any_shape().as_ref(),
+			m,
+			light,
+			position,
+			eye_vector,
+			surface_normal,
+			false,
+		);
 		assert_eq!(result, color!(1.9, 1.9, 1.9));
 	}
 
@@ -107,7 +122,15 @@ mod tests {
 		let eye_vector = vector!(0, FRAC_1_SQRT_2, FRAC_1_SQRT_2);
 		let surface_normal = vector!(0, 0, -1);
 		let light = PointLight::new(point!(0, 0, -10), color!(1, 1, 1));
-		let result = phong_lighting(m, light, position, eye_vector, surface_normal, false);
+		let result = phong_lighting(
+			any_shape().as_ref(),
+			m,
+			light,
+			position,
+			eye_vector,
+			surface_normal,
+			false,
+		);
 		assert_eq!(result, color!(1, 1, 1));
 	}
 
@@ -118,7 +141,15 @@ mod tests {
 		let eye_vector = vector!(0, 0, -1);
 		let surface_normal = vector!(0, 0, -1);
 		let light = PointLight::new(point!(0, 10, -10), color!(1, 1, 1));
-		let result = phong_lighting(m, light, position, eye_vector, surface_normal, false);
+		let result = phong_lighting(
+			any_shape().as_ref(),
+			m,
+			light,
+			position,
+			eye_vector,
+			surface_normal,
+			false,
+		);
 		let expected_intensity = 0.1 + 0.9 * FRAC_1_SQRT_2;
 		assert_eq!(
 			result,
@@ -133,7 +164,15 @@ mod tests {
 		let eye_vector = vector!(0, -FRAC_1_SQRT_2, -FRAC_1_SQRT_2);
 		let surface_normal = vector!(0, 0, -1);
 		let light = PointLight::new(point!(0, 10, -10), color!(1, 1, 1));
-		let result = phong_lighting(m, light, position, eye_vector, surface_normal, false);
+		let result = phong_lighting(
+			any_shape().as_ref(),
+			m,
+			light,
+			position,
+			eye_vector,
+			surface_normal,
+			false,
+		);
 		// 0.1 + 0.9 * FRAC_1_SQRT_2 + 0.9, but with some floating point errors
 		assert_abs_diff_eq!(result, color!(1.6363853, 1.6363853, 1.6363853));
 	}
@@ -145,7 +184,15 @@ mod tests {
 		let eye_vector = vector!(0, 0, -1);
 		let surface_normal = vector!(0, 0, -1);
 		let light = PointLight::new(point!(0, 0, 10), color!(1, 1, 1));
-		let result = phong_lighting(m, light, position, eye_vector, surface_normal, false);
+		let result = phong_lighting(
+			any_shape().as_ref(),
+			m,
+			light,
+			position,
+			eye_vector,
+			surface_normal,
+			false,
+		);
 		assert_abs_diff_eq!(result, color!(0.1, 0.1, 0.1));
 	}
 
@@ -156,7 +203,15 @@ mod tests {
 		let eye_vector = vector!(0, 0, -1);
 		let surface_normal = vector!(0, 0, -1);
 		let light = PointLight::new(point!(0, 0, -10), color!(1, 1, 1));
-		let result = phong_lighting(material, light, position, eye_vector, surface_normal, true);
+		let result = phong_lighting(
+			any_shape().as_ref(),
+			material,
+			light,
+			position,
+			eye_vector,
+			surface_normal,
+			true,
+		);
 		assert_eq!(result, color!(0.1, 0.1, 0.1));
 	}
 
@@ -183,6 +238,7 @@ mod tests {
 		let light = PointLight::new(point!(0, 0, -10), white());
 
 		let c1 = phong_lighting(
+			any_shape().as_ref(),
 			m.clone(),
 			light,
 			point!(0.9, 0, 0),
@@ -191,6 +247,7 @@ mod tests {
 			false,
 		);
 		let c2 = phong_lighting(
+			any_shape().as_ref(),
 			m.clone(),
 			light,
 			point!(1.1, 0, 0),
