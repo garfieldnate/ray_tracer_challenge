@@ -52,39 +52,6 @@ impl Pattern for BasePattern {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
-pub struct Stripes {
-    a: Color,
-    b: Color,
-    base: BasePattern,
-}
-
-impl Stripes {
-    pub fn new(a: Color, b: Color) -> Stripes {
-        Stripes {
-            a,
-            b,
-            base: BasePattern::new(),
-        }
-    }
-}
-
-impl Pattern for Stripes {
-    fn set_transformation(&mut self, t: Matrix) {
-        self.base.set_transformation(t);
-    }
-    fn transformation_inverse(&self) -> &Matrix {
-        self.base.transformation_inverse()
-    }
-    fn color_at_world(&self, world_point: Tuple) -> Color {
-        if world_point.x.floor() as i32 % 2 == 0 {
-            self.a
-        } else {
-            self.b
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -126,68 +93,6 @@ mod tests {
             color!(world_point.x, world_point.y, world_point.z)
         }
     }
-
-    #[test]
-    fn stripe_pattern_constructor() {
-        let pattern = Stripes::new(white(), black());
-        assert_eq!(pattern.a, white());
-        assert_eq!(pattern.b, black());
-    }
-
-    #[test]
-    fn stripe_pattern_is_constant_in_y() {
-        let pattern = Stripes::new(white(), black());
-        assert_eq!(pattern.color_at_world(point!(0, 0, 0)), white());
-        assert_eq!(pattern.color_at_world(point!(0, 1, 0)), white());
-        assert_eq!(pattern.color_at_world(point!(0, 2, 0)), white());
-    }
-
-    #[test]
-    fn stripe_pattern_is_constant_in_z() {
-        let pattern = Stripes::new(white(), black());
-        assert_eq!(pattern.color_at_world(point!(0, 0, 0)), white());
-        assert_eq!(pattern.color_at_world(point!(0, 0, 1)), white());
-        assert_eq!(pattern.color_at_world(point!(0, 0, 2)), white());
-    }
-
-    #[test]
-    fn stripe_pattern_alternates_in_x() {
-        let pattern = Stripes::new(white(), black());
-        assert_eq!(pattern.color_at_world(point!(0, 0, 0)), white());
-        assert_eq!(pattern.color_at_world(point!(0.9, 0, 0)), white());
-        assert_eq!(pattern.color_at_world(point!(1, 0, 0)), black());
-        assert_eq!(pattern.color_at_world(point!(-0.1, 0, 0)), black());
-        assert_eq!(pattern.color_at_world(point!(-1, 0, 0)), black());
-        assert_eq!(pattern.color_at_world(point!(-1.1, 0, 0)), white());
-    }
-
-    #[test]
-    fn stripes_with_an_object_transformation() {
-        let object = Sphere::build(scaling(2.0, 2.0, 2.0), default_material());
-        let pattern = Stripes::new(white(), black());
-        let c = pattern.color_at_object(point!(1.5, 0, 0), &object);
-        assert_eq!(c, white());
-    }
-
-    #[test]
-    fn stripes_with_a_pattern_transformation() {
-        let object = Sphere::new();
-        let mut pattern = Stripes::new(white(), black());
-        pattern.set_transformation(scaling(2.0, 2.0, 2.0));
-        let c = pattern.color_at_object(point!(1.5, 0, 0), &object);
-        assert_eq!(c, white());
-    }
-
-    #[test]
-    fn stripes_with_both_object_and_pattern_transformation() {
-        let object = Sphere::build(scaling(2.0, 2.0, 2.0), default_material());
-        let mut pattern = Stripes::new(white(), black());
-        pattern.set_transformation(translation(0.5, 0.0, 0.0));
-        let c = pattern.color_at_object(point!(1.5, 0, 0), &object);
-        assert_eq!(c, white());
-    }
-
-    /////////////
 
     #[test]
     fn pattern_with_object_transformation() {

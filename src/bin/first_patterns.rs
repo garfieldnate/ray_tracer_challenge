@@ -2,7 +2,7 @@ use ray_tracer_challenge::camera::Camera;
 use ray_tracer_challenge::color::Color;
 use ray_tracer_challenge::light::PointLight;
 use ray_tracer_challenge::material::default_material;
-use ray_tracer_challenge::pattern::Stripes;
+use ray_tracer_challenge::pattern::stripes::Stripes;
 use ray_tracer_challenge::shape::plane::Plane;
 use ray_tracer_challenge::shape::sphere::Sphere;
 use ray_tracer_challenge::transformations::scaling;
