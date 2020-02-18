@@ -1,7 +1,9 @@
 # TODO
 
-* Make pattern compound, so that stripes can contain stripes, etc.
-* Additive and subtractive pattern compounds
+* Patterns
+    - Make pattern compound, so that stripes can contain stripes, etc.
+    - Additive and subtractive pattern compounds
+    - Perlin perturbat
 * define common colors in color mod
 * Switch to IntelliJ for Rust
 * Use ambassador crate for BaseShape delegation
@@ -14,6 +16,7 @@
 * transformation should probably all be in matrix
 * Having to use & everywhere sucks for matrix multplication sucks
 * Projectile seems surprisingly slow. Are we copying data when we shouldn't?
+* BoxedPattern type can be changed to `type BoxedPattern<'a> = &'a (dyn Pattern + 'a);`. Is that better or worse?
 
 ### Maybes/Ideas
 
