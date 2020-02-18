@@ -18,6 +18,7 @@ pub struct Material {
 	pub specular: f32,
 	// higher values give smaller and tighter specular highlights [10,200] (no real upper bound)
 	pub shininess: f32,
+	pub reflective: f32,
 
 	pub pattern: Option<BoxedPattern>,
 }
@@ -37,6 +38,7 @@ pub fn default_material() -> Material {
 		diffuse: 0.9,
 		specular: 0.9,
 		shininess: 200.0,
+		reflective: 0.0,
 		pattern: None,
 	}
 }
