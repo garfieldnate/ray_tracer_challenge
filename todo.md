@@ -1,5 +1,7 @@
 # TODO
 
+* Make pattern compound, so that stripes can contain stripes, etc.
+* Additive and subtractive pattern compounds
 * define common colors in color mod
 * Switch to IntelliJ for Rust
 * Use ambassador crate for BaseShape delegation

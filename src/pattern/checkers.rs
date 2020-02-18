@@ -5,7 +5,7 @@ use crate::pattern::pattern::Pattern;
 use crate::tuple::Tuple;
 
 #[derive(Clone, Debug, PartialEq)]
-struct Checkers {
+pub struct Checkers {
     base: BasePattern,
     a: Color,
     b: Color,

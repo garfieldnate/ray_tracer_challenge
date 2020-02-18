@@ -5,7 +5,7 @@ use crate::pattern::pattern::Pattern;
 use crate::tuple::Tuple;
 
 #[derive(Clone, Debug, PartialEq)]
-struct Gradient {
+pub struct Gradient {
     base: BasePattern,
     a: Color,
     distance: Color,
