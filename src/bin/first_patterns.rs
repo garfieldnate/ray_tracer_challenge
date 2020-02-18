@@ -2,9 +2,12 @@ use ray_tracer_challenge::camera::Camera;
 use ray_tracer_challenge::color::Color;
 use ray_tracer_challenge::light::PointLight;
 use ray_tracer_challenge::material::default_material;
+use ray_tracer_challenge::pattern::pattern::Pattern;
+use ray_tracer_challenge::pattern::sine_2d::Sine2D;
 use ray_tracer_challenge::pattern::stripes::Stripes;
 use ray_tracer_challenge::shape::plane::Plane;
 use ray_tracer_challenge::shape::sphere::Sphere;
+use ray_tracer_challenge::transformations::rotation_z;
 use ray_tracer_challenge::transformations::scaling;
 use ray_tracer_challenge::transformations::shearing;
 use ray_tracer_challenge::transformations::translation;
@@ -15,16 +18,19 @@ use ray_tracer_challenge::{color, point, vector};
 use std::f32::consts::PI;
 
 // To render larger, be sure to use an optimized (release) build and give it several minutes to finish
-// const CANVAS_WIDTH: u32 = 1000;
-// const CANVAS_HEIGHT: u32 = 500;
-const CANVAS_WIDTH: u32 = 100;
-const CANVAS_HEIGHT: u32 = 50;
+const CANVAS_WIDTH: u32 = 1000;
+const CANVAS_HEIGHT: u32 = 500;
+// const CANVAS_WIDTH: u32 = 100;
+// const CANVAS_HEIGHT: u32 = 50;
 
 fn main() {
-    let stripes = Stripes::new(color!(0.1, 1, 0.5), color!(0.9, 0.2, 0.6));
+    let mut stripes = Stripes::new(color!(1.0, 0.2, 0.4), color!(0.1, 0.1, 0.1));
+    stripes.set_transformation(&scaling(0.3, 0.3, 0.3) * &rotation_z(3.0 * PI / 4.0));
+    let mut sine2d = Sine2D::new(color!(0.1, 1, 0.5), color!(0.9, 0.2, 0.6));
+    sine2d.set_transformation(&scaling(0.005, 1.0, 0.005) * &translation(-5.0, 1.0, 0.5));
     let mut room_material = default_material();
     room_material.color = color!(1, 0.9, 0.9);
-    room_material.pattern = Some(Box::new(stripes.clone()));
+    room_material.pattern = Some(Box::new(sine2d.clone()));
     room_material.specular = 0.0;
     // The floor is a plane
     let floor = Plane::build(scaling(10.0, 0.01, 10.0), room_material);
