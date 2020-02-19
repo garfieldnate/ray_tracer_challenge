@@ -94,6 +94,14 @@ impl World {
 			None => false,
 		}
 	}
+
+	pub fn reflected_color(&self, comps: PrecomputedValues) -> Color {
+		if (comps.object.material().reflective == 0.0) {
+			color!(0, 0, 0)
+		} else {
+			unimplemented!();
+		}
+	}
 }
 
 pub struct PrecomputedValues<'a> {
@@ -217,12 +225,17 @@ mod tests {
 			vector!(0, FRAC_1_SQRT_2, FRAC_1_SQRT_2)
 		);
 	}
-	// 	​1: 	​Scenario​: Precomputing the reflection vector
-	// ​2: 	  ​Given​ shape ← plane()
-	// ​3: 	    ​And​ r ← ray(point(0, 1, -1), vector(0, -√2/2, √2/2))
-	// ​4: 	    ​And​ i ← intersection(√2, shape)
-	// ​5: 	  ​When​ comps ← prepare_computations(i, r)
-	// ​6: 	  ​Then​ comps.reflectv = vector(0, √2/2, √2/2)
+
+	#[test]
+	fn reflected_color_for_nonreflective_material() {
+		let mut w = default_world();
+		w.objects[1].material().ambient = 1.0;
+		let r = Ray::new(point!(0, 0, 0), vector!(0, 0, 1));
+		let i = Intersection::new(1.0, w.objects[1].as_ref());
+		let comps = precompute_values(r, &i);
+		let color = w.reflected_color(comps);
+		assert_eq!(color, color!(0, 0, 0));
+	}
 
 	#[test]
 	fn shade_intersection() {
