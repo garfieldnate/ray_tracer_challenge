@@ -18,6 +18,7 @@ pub mod color;
 
 pub mod camera;
 pub mod canvas;
+pub mod constants;
 pub mod light;
 pub mod material;
 pub mod pattern;
