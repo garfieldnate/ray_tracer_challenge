@@ -18,10 +18,10 @@ use ray_tracer_challenge::{color, point, vector};
 use std::f32::consts::PI;
 
 // To render larger, be sure to use an optimized (release) build and give it several minutes to finish
-// const CANVAS_WIDTH: u32 = 1000;
-// const CANVAS_HEIGHT: u32 = 500;
-const CANVAS_WIDTH: u32 = 100;
-const CANVAS_HEIGHT: u32 = 50;
+const CANVAS_WIDTH: u32 = 1000;
+const CANVAS_HEIGHT: u32 = 500;
+// const CANVAS_WIDTH: u32 = 100;
+// const CANVAS_HEIGHT: u32 = 50;
 
 fn main() {
     let mut stripes = Stripes::new(color!(1.0, 0.2, 0.4), color!(0.1, 0.1, 0.1));
@@ -32,6 +32,7 @@ fn main() {
     room_material.color = color!(1, 0.9, 0.9);
     room_material.pattern = Some(Box::new(sine2d.clone()));
     room_material.specular = 0.0;
+    room_material.reflective = 0.5;
     // The floor is a plane
     let floor = Plane::build(scaling(10.0, 0.01, 10.0), room_material);
 
@@ -63,6 +64,7 @@ fn main() {
     left_sphere_material.pattern = Some(Box::new(stripes.clone()));
     left_sphere_material.diffuse = 0.7;
     left_sphere_material.specular = 0.3;
+    left_sphere_material.reflective = 0.8;
     let left = Sphere::build(
         &translation(-1.5, 0.33, -0.75) * &scaling(0.33, 0.33, 0.33),
         left_sphere_material,
