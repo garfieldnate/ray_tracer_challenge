@@ -59,6 +59,7 @@ impl Camera {
     }
 }
 
+const REFLECTION_RECURSION_DEPTH: i16 = 5;
 impl Camera {
     pub fn ray_for_pixel(&self, x: u32, y: u32) -> Ray {
         // offset from edge of canvas to pixel's center
@@ -81,7 +82,7 @@ impl Camera {
         for y in 0..self.height_pixels - 1 {
             for x in 0..self.width_pixels - 1 {
                 let ray = self.ray_for_pixel(x, y);
-                let color = world.color_at(ray);
+                let color = world.color_at(ray, REFLECTION_RECURSION_DEPTH);
                 canvas.write_pixel(x as usize, y as usize, color);
             }
         }

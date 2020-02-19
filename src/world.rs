@@ -51,7 +51,7 @@ impl World {
         intersections
     }
 
-    pub fn shade_hit(&self, comps: PrecomputedValues) -> Color {
+    pub fn shade_hit(&self, comps: PrecomputedValues, remaining_recursive_steps: i16) -> Color {
         let surface_color = phong_lighting(
             comps.object,
             comps.object.material(),
@@ -61,11 +61,11 @@ impl World {
             comps.surface_normal,
             self.is_shadowed(comps.over_point),
         );
-        let reflected_color = self.reflected_color(comps);
+        let reflected_color = self.reflected_color(comps, remaining_recursive_steps);
         surface_color + reflected_color
     }
 
-    pub fn color_at(&self, r: Ray) -> Color {
+    pub fn color_at(&self, r: Ray, remaining_recursive_steps: i16) -> Color {
         let intersections = self.intersect(r);
         if intersections.is_empty() {
             color!(0, 0, 0)
@@ -73,7 +73,7 @@ impl World {
             match Intersection::hit(&intersections) {
                 Some(hit) => {
                     let comps = precompute_values(r, hit);
-                    self.shade_hit(comps)
+                    self.shade_hit(comps, remaining_recursive_steps)
                 }
                 None => color!(0, 0, 0),
             }
@@ -97,12 +97,16 @@ impl World {
         }
     }
 
-    pub fn reflected_color(&self, comps: PrecomputedValues) -> Color {
-        if comps.object.material().reflective == 0.0 {
+    pub fn reflected_color(
+        &self,
+        comps: PrecomputedValues,
+        remaining_recursive_steps: i16,
+    ) -> Color {
+        if comps.object.material().reflective == 0.0 || remaining_recursive_steps < 1 {
             color!(0, 0, 0)
         } else {
             let reflected_ray = Ray::new(comps.over_point, comps.reflection_vector);
-            let c = self.color_at(reflected_ray);
+            let c = self.color_at(reflected_ray, remaining_recursive_steps - 1);
             c * comps.object.material().reflective
         }
     }
@@ -237,7 +241,7 @@ mod tests {
         let r = Ray::new(point!(0, 0, 0), vector!(0, 0, 1));
         let i = Intersection::new(1.0, w.objects[1].as_ref());
         let comps = precompute_values(r, &i);
-        let color = w.reflected_color(comps);
+        let color = w.reflected_color(comps, 1);
         assert_eq!(color, color!(0, 0, 0));
     }
 
@@ -252,7 +256,7 @@ mod tests {
         let r = Ray::new(point!(0, 0, -3), vector!(0, -FRAC_1_SQRT_2, FRAC_1_SQRT_2));
         let i = Intersection::new(SQRT_2, w.objects.last().unwrap().as_ref());
         let comps = precompute_values(r, &i);
-        let color = w.reflected_color(comps);
+        let color = w.reflected_color(comps, 1);
         assert_abs_diff_eq!(color, color!(0.19052197, 0.23815246, 0.14289148));
     }
 
@@ -267,8 +271,39 @@ mod tests {
         let r = Ray::new(point!(0, 0, -3), vector!(0, -FRAC_1_SQRT_2, FRAC_1_SQRT_2));
         let i = Intersection::new(SQRT_2, w.objects.last().unwrap().as_ref());
         let comps = precompute_values(r, &i);
-        let color = w.shade_hit(comps);
+        let color = w.shade_hit(comps, 1);
         assert_abs_diff_eq!(color, color!(0.8769108, 0.9245413, 0.8292803));
+    }
+
+    #[test]
+    fn shade_hit_with_mutually_reflective_surfaces() {
+        let mut w = World::new();
+        w.light = Some(PointLight::new(point!(0, 0, 0), color!(0, 0, 0)));
+        let mut m = default_material();
+        m.reflective = 1.0;
+        let lower = Plane::build(translation(0.0, -1.0, 0.0), m.clone());
+        let upper = Plane::build(translation(0.0, 1.0, 0.0), m.clone());
+        w.objects.push(Box::new(lower));
+        w.objects.push(Box::new(upper));
+
+        let r = Ray::new(point!(0, 0, 0), vector!(0, 1, 0));
+        // just testing that this terminates without blowing the stack
+        w.color_at(r, 1);
+    }
+
+    #[test]
+    fn reflected_color_at_max_recursive_depth() {
+        let mut w = default_world();
+        let mut m = default_material();
+        m.reflective = 0.5;
+        let plane = Box::new(Plane::build(translation(0.0, -1.0, 0.0), m));
+        w.objects.push(plane);
+
+        let r = Ray::new(point!(0, 0, -3), vector!(0, -FRAC_1_SQRT_2, FRAC_1_SQRT_2));
+        let i = Intersection::new(SQRT_2, w.objects.last().unwrap().as_ref());
+        let comps = precompute_values(r, &i);
+        let color = w.reflected_color(comps, 0);
+        assert_abs_diff_eq!(color, color!(0, 0, 0));
     }
 
     #[test]
@@ -278,7 +313,7 @@ mod tests {
         let shape = &w.objects[0];
         let i = Intersection::new(4.0, shape.as_ref());
         let comps = precompute_values(r, &i);
-        let c = w.shade_hit(comps);
+        let c = w.shade_hit(comps, 1);
         assert_abs_diff_eq!(c, color!(0.38063288, 0.47579104, 0.28547466))
     }
 
@@ -290,7 +325,7 @@ mod tests {
         let shape = &w.objects[1];
         let i = Intersection::new(0.5, shape.as_ref());
         let comps = precompute_values(r, &i);
-        let c = w.shade_hit(comps);
+        let c = w.shade_hit(comps, 1);
         assert_abs_diff_eq!(c, color!(0.9045995, 0.9045995, 0.9045995))
     }
 
@@ -298,7 +333,7 @@ mod tests {
     fn color_when_ray_misses() {
         let w = default_world();
         let r = Ray::new(point!(0, 0, -5), vector!(0, 1, 0));
-        let c = w.color_at(r);
+        let c = w.color_at(r, 1);
         assert_eq!(c, color!(0, 0, 0));
     }
 
@@ -306,7 +341,7 @@ mod tests {
     fn color_when_ray_hits() {
         let w = default_world();
         let r = Ray::new(point!(0, 0, -5), vector!(0, 0, 1));
-        let c = w.color_at(r);
+        let c = w.color_at(r, 1);
         assert_abs_diff_eq!(c, color!(0.38063288, 0.47579104, 0.28547466))
     }
 
@@ -321,7 +356,7 @@ mod tests {
         // inner
         w.objects[1].set_material(material.clone());
         let r = Ray::new(point!(0, 0, 0.75), vector!(0, 0, -1));
-        let c = w.color_at(r);
+        let c = w.color_at(r, 1);
         assert_eq!(c, w.objects[1].material().color);
     }
 
@@ -377,7 +412,7 @@ mod tests {
         let r = Ray::new(point!(0, 0, 5), vector!(0, 0, 1));
         let i = Intersection::new(4.0, w.objects[1].as_ref());
         let comps = precompute_values(r, &i);
-        let c = w.shade_hit(comps);
+        let c = w.shade_hit(comps, 1);
         assert_eq!(c, color!(0.1, 0.1, 0.1));
     }
 }
