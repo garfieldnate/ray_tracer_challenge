@@ -1,5 +1,6 @@
 use ray_tracer_challenge::camera::Camera;
 use ray_tracer_challenge::color::Color;
+use ray_tracer_challenge::constants::white;
 use ray_tracer_challenge::light::PointLight;
 use ray_tracer_challenge::material::default_material;
 use ray_tracer_challenge::shape::plane::Plane;
@@ -64,7 +65,7 @@ fn main() {
             Box::new(right),
         ],
         // The light source is white, shining from above and to the left
-        light: Some(PointLight::new(point!(-10, 10, -10), color!(1, 1, 1))),
+        light: Some(PointLight::new(point!(-10, 10, -10), white())),
     };
 
     let camera = Camera::new(

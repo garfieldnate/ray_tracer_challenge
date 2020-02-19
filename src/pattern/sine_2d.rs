@@ -40,15 +40,9 @@ impl Pattern for Sine2D {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::constants::black;
+    use crate::constants::white;
     use core::f32::consts::PI;
-
-    fn black() -> Color {
-        color!(0, 0, 0)
-    }
-
-    fn white() -> Color {
-        color!(1, 1, 1)
-    }
 
     #[test]
     fn sine_2d_pattern_is_constant_in_y() {

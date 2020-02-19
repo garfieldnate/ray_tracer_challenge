@@ -1,4 +1,5 @@
 use crate::color::Color;
+use crate::constants::black;
 use crate::material::Material;
 use crate::ray::Ray;
 use crate::shape::shape::Shape;
@@ -52,15 +53,15 @@ pub fn phong_lighting(
 	let specular: Color;
 	// negative cosine indicates the light is behind the surface
 	if light_normal_cosine < 0.0 {
-		diffuse = color!(0, 0, 0); // black
-		specular = color!(0, 0, 0); // black
+		diffuse = black(); // black
+		specular = black(); // black
 	} else {
 		diffuse = effective_color * material.diffuse * light_normal_cosine;
 		let surface_reflection = Ray::reflect(-direction_point_to_light, surface_normal);
 		let reflection_eye_cosine = surface_reflection.dot(eye_vector);
 		// negative cosine indicates the light reflecting away from the eye
 		if reflection_eye_cosine <= 0.0 {
-			specular = color!(0, 0, 0);
+			specular = black();
 		} else {
 			// Assumes microfacet normals are approximately Gaussian
 			// https://en.wikipedia.org/wiki/Specular_highlight#Phong_distribution
@@ -77,6 +78,7 @@ pub fn phong_lighting(
 mod tests {
 	use super::*;
 	use crate::color::Color;
+	use crate::constants::white;
 	use crate::material::default_material;
 	use crate::material::Material;
 	use crate::pattern::stripes::Stripes;
@@ -90,7 +92,7 @@ mod tests {
 	#[test]
 	fn point_light_has_position_and_intensity() {
 		let position = point!(0, 0, 0);
-		let intensity = color!(1, 1, 1);
+		let intensity = white();
 		let light = PointLight::new(position, intensity);
 		assert_eq!(light.position, position);
 		assert_eq!(light.intensity, intensity);
@@ -102,7 +104,7 @@ mod tests {
 		let position = point!(0, 0, 0);
 		let eye_vector = vector!(0, 0, -1);
 		let surface_normal = vector!(0, 0, -1);
-		let light = PointLight::new(point!(0, 0, -10), color!(1, 1, 1));
+		let light = PointLight::new(point!(0, 0, -10), white());
 		let result = phong_lighting(
 			any_shape().as_ref(),
 			m,
@@ -121,7 +123,7 @@ mod tests {
 		let position = point!(0, 0, 0);
 		let eye_vector = vector!(0, FRAC_1_SQRT_2, FRAC_1_SQRT_2);
 		let surface_normal = vector!(0, 0, -1);
-		let light = PointLight::new(point!(0, 0, -10), color!(1, 1, 1));
+		let light = PointLight::new(point!(0, 0, -10), white());
 		let result = phong_lighting(
 			any_shape().as_ref(),
 			m,
@@ -131,7 +133,7 @@ mod tests {
 			surface_normal,
 			false,
 		);
-		assert_eq!(result, color!(1, 1, 1));
+		assert_eq!(result, white());
 	}
 
 	#[test]
@@ -140,7 +142,7 @@ mod tests {
 		let position = point!(0, 0, 0);
 		let eye_vector = vector!(0, 0, -1);
 		let surface_normal = vector!(0, 0, -1);
-		let light = PointLight::new(point!(0, 10, -10), color!(1, 1, 1));
+		let light = PointLight::new(point!(0, 10, -10), white());
 		let result = phong_lighting(
 			any_shape().as_ref(),
 			m,
@@ -163,7 +165,7 @@ mod tests {
 		let position = point!(0, 0, 0);
 		let eye_vector = vector!(0, -FRAC_1_SQRT_2, -FRAC_1_SQRT_2);
 		let surface_normal = vector!(0, 0, -1);
-		let light = PointLight::new(point!(0, 10, -10), color!(1, 1, 1));
+		let light = PointLight::new(point!(0, 10, -10), white());
 		let result = phong_lighting(
 			any_shape().as_ref(),
 			m,
@@ -183,7 +185,7 @@ mod tests {
 		let position = point!(0, 0, 0);
 		let eye_vector = vector!(0, 0, -1);
 		let surface_normal = vector!(0, 0, -1);
-		let light = PointLight::new(point!(0, 0, 10), color!(1, 1, 1));
+		let light = PointLight::new(point!(0, 0, 10), white());
 		let result = phong_lighting(
 			any_shape().as_ref(),
 			m,
@@ -202,7 +204,7 @@ mod tests {
 		let position = point!(0, 0, 0);
 		let eye_vector = vector!(0, 0, -1);
 		let surface_normal = vector!(0, 0, -1);
-		let light = PointLight::new(point!(0, 0, -10), color!(1, 1, 1));
+		let light = PointLight::new(point!(0, 0, -10), white());
 		let result = phong_lighting(
 			any_shape().as_ref(),
 			material,
@@ -213,13 +215,6 @@ mod tests {
 			true,
 		);
 		assert_eq!(result, color!(0.1, 0.1, 0.1));
-	}
-
-	fn black() -> Color {
-		color!(0, 0, 0)
-	}
-	fn white() -> Color {
-		color!(1, 1, 1)
 	}
 
 	#[test]
@@ -257,7 +252,7 @@ mod tests {
 			false,
 		);
 
-		assert_eq!(c1, color!(1, 1, 1));
-		assert_eq!(c2, color!(0, 0, 0));
+		assert_eq!(c1, white());
+		assert_eq!(c2, black());
 	}
 }

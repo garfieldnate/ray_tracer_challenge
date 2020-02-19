@@ -60,14 +60,6 @@ mod tests {
     use crate::transformations::scaling;
     use crate::transformations::translation;
 
-    fn black() -> Color {
-        color!(0, 0, 0)
-    }
-
-    fn white() -> Color {
-        color!(1, 1, 1)
-    }
-
     #[derive(Clone, Debug, PartialEq)]
     struct TestPattern {
         base: BasePattern,
