@@ -229,6 +229,7 @@ mod tests {
 			ambient: 1.0,
 			diffuse: 0.0,
 			specular: 0.0,
+			reflective: 0.0,
 			shininess: 200.0,
 			color: color!(0.5, 0.5, 0.5),
 			pattern: Some(Box::new(pattern)),
