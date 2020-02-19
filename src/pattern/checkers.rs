@@ -42,14 +42,8 @@ impl Pattern for Checkers {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    fn black() -> Color {
-        color!(0, 0, 0)
-    }
-
-    fn white() -> Color {
-        color!(1, 1, 1)
-    }
+    use crate::constants::black;
+    use crate::constants::white;
 
     #[test]
     fn checkers_repeat_in_x() {

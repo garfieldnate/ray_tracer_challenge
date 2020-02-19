@@ -9,6 +9,7 @@ use ray_tracer_challenge::ray::Ray;
 use ray_tracer_challenge::shape::shape::Shape;
 use ray_tracer_challenge::shape::sphere::Sphere;
 
+use ray_tracer_challenge::constants::white;
 use ray_tracer_challenge::transformations::scaling;
 use ray_tracer_challenge::transformations::shearing;
 use ray_tracer_challenge::tuple::Tuple;
@@ -22,13 +23,12 @@ fn main() {
 	let pixel_size = wall_size / canvas_pixels as f32;
 	let half = wall_size / 2.0;
 	let mut canvas = Canvas::new(canvas_pixels, canvas_pixels);
-	// red
-	// let color = color!(1, 0, 0);
+	// let color = red();
 	let mut material = default_material();
 	material.color = color!(1, 0.2, 1);
 	let mut shape = Sphere::new();
 	shape.set_material(material);
-	let light = PointLight::new(point!(-10, 10, -10), color!(1, 1, 1));
+	let light = PointLight::new(point!(-10, 10, -10), white());
 
 	shape.set_transformation(&shearing(1.0, 0.0, 0.0, 0.0, 0.0, 0.0) * &scaling(0.5, 1.0, 1.0));
 	// for each row of pixels in the canvas

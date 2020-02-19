@@ -1,4 +1,5 @@
 use crate::color::Color;
+use crate::constants::white;
 use crate::light::phong_lighting;
 use crate::light::PointLight;
 use crate::material::default_material;
@@ -36,7 +37,7 @@ pub fn default_world() -> World {
     let s2 = Sphere::build(scaling(0.5, 0.5, 0.5), default_material());
     World {
         objects: vec![Box::new(s1), Box::new(s2)],
-        light: Some(PointLight::new(point!(-10.0, 10.0, -10.0), color!(1, 1, 1))),
+        light: Some(PointLight::new(point!(-10.0, 10.0, -10.0), white())),
     }
 }
 
@@ -320,7 +321,7 @@ mod tests {
     #[test]
     fn shade_intersection_from_inside() {
         let mut w = default_world();
-        w.light = Some(PointLight::new(point!(0, 0.25, 0), color!(1, 1, 1)));
+        w.light = Some(PointLight::new(point!(0, 0.25, 0), white()));
         let r = Ray::new(point!(0, 0, 0), vector!(0, 0, 1));
         let shape = &w.objects[1];
         let i = Intersection::new(0.5, shape.as_ref());
@@ -404,7 +405,7 @@ mod tests {
     #[test]
     fn shade_hit_for_intersection_in_shadow() {
         let mut w = World::new();
-        w.light = Some(PointLight::new(point!(0, 0, -10), color!(1, 1, 1)));
+        w.light = Some(PointLight::new(point!(0, 0, -10), white()));
         let s1 = Sphere::new();
         let s2 = Sphere::build(translation(0.0, 0.0, 10.0), default_material());
         w.objects.push(Box::new(s1));

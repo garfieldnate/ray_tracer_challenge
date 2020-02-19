@@ -1,4 +1,5 @@
 use crate::color::Color;
+use crate::constants::white;
 use crate::pattern::pattern::Pattern;
 use std::fmt::Debug;
 use std::ptr;
@@ -33,7 +34,7 @@ impl PartialEq for BoxedPattern {
 
 pub fn default_material() -> Material {
 	Material {
-		color: color!(1, 1, 1),
+		color: white(),
 		ambient: 0.1,
 		diffuse: 0.9,
 		specular: 0.9,
@@ -49,7 +50,7 @@ mod tests {
 	#[test]
 	fn default_material_attributes() {
 		let m = default_material();
-		assert_eq!(m.color, color!(1, 1, 1));
+		assert_eq!(m.color, white());
 		assert_eq!(m.ambient, 0.1);
 		assert_eq!(m.diffuse, 0.9);
 		assert_eq!(m.specular, 0.9);
