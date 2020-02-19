@@ -7,6 +7,7 @@
 * need to read chapter on function pointers, closures, etc.
 * need to read chapter on advanced references (Rc, etc.)
 * root for RFC on delegation (including partial delegation)
+* root for RFC on default parameter values
 * If you Box a trait object, you have to implement PartialEq yourself: https://github.com/rust-lang/rust/issues/39128. You will also need dyn-clone for Clone. Copy will not be sorry. Clone everywhere or pass references instead.
 * Always great to auto-derive these when possible: Clone, Copy, Debug, Eq/PartialEq, Default
     - Eq will get reduced to PartialEq if you have any floats
