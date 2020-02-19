@@ -52,7 +52,7 @@ impl World {
     }
 
     pub fn shade_hit(&self, comps: PrecomputedValues) -> Color {
-        phong_lighting(
+        let surface_color = phong_lighting(
             comps.object,
             comps.object.material(),
             self.light.unwrap(),
@@ -60,7 +60,9 @@ impl World {
             comps.eye_vector,
             comps.surface_normal,
             self.is_shadowed(comps.over_point),
-        )
+        );
+        let reflected_color = self.reflected_color(comps);
+        surface_color + reflected_color
     }
 
     pub fn color_at(&self, r: Ray) -> Color {
@@ -252,6 +254,21 @@ mod tests {
         let comps = precompute_values(r, &i);
         let color = w.reflected_color(comps);
         assert_abs_diff_eq!(color, color!(0.19052197, 0.23815246, 0.14289148));
+    }
+
+    #[test]
+    fn shade_hit_with_reflective_material() {
+        let mut w = default_world();
+        let mut m = default_material();
+        m.reflective = 0.5;
+        let plane = Box::new(Plane::build(translation(0.0, -1.0, 0.0), m));
+        w.objects.push(plane);
+
+        let r = Ray::new(point!(0, 0, -3), vector!(0, -FRAC_1_SQRT_2, FRAC_1_SQRT_2));
+        let i = Intersection::new(SQRT_2, w.objects.last().unwrap().as_ref());
+        let comps = precompute_values(r, &i);
+        let color = w.shade_hit(comps);
+        assert_abs_diff_eq!(color, color!(0.8769108, 0.9245413, 0.8292803));
     }
 
     #[test]
