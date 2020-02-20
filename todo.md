@@ -17,6 +17,8 @@
 - Profile to find any bottlenecks
 - Parallelize rendering
 - (also ergonomics) new canvas implementation that displays during render
+- switch to matrix library (open BLAS or whatever)
+- can we use a GPU somehow?
 
 ### Ergonomics
 
