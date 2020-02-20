@@ -79,7 +79,6 @@ mod tests {
 	use super::*;
 	use crate::color::Color;
 	use crate::constants::white;
-	use crate::material::default_material;
 	use crate::material::Material;
 	use crate::pattern::stripes::Stripes;
 	use crate::shape::sphere::Sphere;
@@ -100,7 +99,7 @@ mod tests {
 
 	#[test]
 	fn lighting_eye_between_light_and_surface() {
-		let m = default_material();
+		let m = Material::default();
 		let position = point!(0, 0, 0);
 		let eye_vector = vector!(0, 0, -1);
 		let surface_normal = vector!(0, 0, -1);
@@ -119,7 +118,7 @@ mod tests {
 
 	#[test]
 	fn light_eye_between_light_and_surface_eye_offset_45_degrees() {
-		let m = default_material();
+		let m = Material::default();
 		let position = point!(0, 0, 0);
 		let eye_vector = vector!(0, FRAC_1_SQRT_2, FRAC_1_SQRT_2);
 		let surface_normal = vector!(0, 0, -1);
@@ -138,7 +137,7 @@ mod tests {
 
 	#[test]
 	fn light_eye_between_light_and_surface_light_offset_45_degrees() {
-		let m = default_material();
+		let m = Material::default();
 		let position = point!(0, 0, 0);
 		let eye_vector = vector!(0, 0, -1);
 		let surface_normal = vector!(0, 0, -1);
@@ -161,7 +160,7 @@ mod tests {
 
 	#[test]
 	fn light_eye_in_path_of_reflection_vector() {
-		let m = default_material();
+		let m = Material::default();
 		let position = point!(0, 0, 0);
 		let eye_vector = vector!(0, -FRAC_1_SQRT_2, -FRAC_1_SQRT_2);
 		let surface_normal = vector!(0, 0, -1);
@@ -181,7 +180,7 @@ mod tests {
 
 	#[test]
 	fn light_behind_surface() {
-		let m = default_material();
+		let m = Material::default();
 		let position = point!(0, 0, 0);
 		let eye_vector = vector!(0, 0, -1);
 		let surface_normal = vector!(0, 0, -1);
@@ -200,7 +199,7 @@ mod tests {
 
 	#[test]
 	fn lighting_shadowed_surface() {
-		let material = default_material();
+		let material = Material::default();
 		let position = point!(0, 0, 0);
 		let eye_vector = vector!(0, 0, -1);
 		let surface_normal = vector!(0, 0, -1);
