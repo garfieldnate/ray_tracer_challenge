@@ -1,5 +1,6 @@
 use approx::AbsDiffEq;
 use std::ops::{Add, Div, Mul, Sub};
+use std::str::FromStr;
 
 #[derive(Copy, Clone, Debug, Default, PartialEq)]
 pub struct Color {
@@ -103,6 +104,25 @@ impl AbsDiffEq for Color {
 	}
 }
 
+impl FromStr for Color {
+	type Err = std::num::ParseIntError;
+
+	// Parses a color hex code of the form '#rRgGbB..'
+	fn from_str(hex_code: &str) -> Result<Self, Self::Err> {
+		// u8::from_str_radix(src: &str, radix: u32) converts a string
+		// slice in a given base to u8
+		let r: u8 = u8::from_str_radix(&hex_code[1..3], 16)?;
+		let g: u8 = u8::from_str_radix(&hex_code[3..5], 16)?;
+		let b: u8 = u8::from_str_radix(&hex_code[5..7], 16)?;
+
+		Ok(Color::new(
+			r as f32 / 255.0,
+			g as f32 / 255.0,
+			b as f32 / 255.0,
+		))
+	}
+}
+
 #[cfg(test)]
 mod tests {
 	use super::*;
@@ -111,27 +131,34 @@ mod tests {
 	fn test_adding_colors() {
 		let c1 = color!(0.9, 0.6, 0.75);
 		let c2 = color!(0.7, 0.1, 0.25);
-		abs_diff_eq!(c1 + c2, color!(1.6, 0.7, 1));
+		assert_abs_diff_eq!(c1 + c2, color!(1.6, 0.7, 1));
 	}
 
 	#[test]
 	fn test_subtracting_colors() {
 		let c1 = color!(0.9, 0.6, 0.75);
 		let c2 = color!(0.7, 0.1, 0.25);
-		abs_diff_eq!(c1 - c2, color!(0.2, 0.5, 0.5));
+		assert_abs_diff_eq!(c1 - c2, color!(0.2, 0.5, 0.5));
 	}
 
 	#[test]
 	fn test_multiply_color_by_scalar() {
 		let c = color!(0.2, 0.3, 0.4);
-		abs_diff_eq!(c * 2.0, 2.0 * c);
-		abs_diff_eq!(c * 2.0, color!(0.4, 0.6, 0.8));
+		assert_abs_diff_eq!(c * 2.0, 2.0 * c);
+		assert_abs_diff_eq!(c * 2.0, color!(0.4, 0.6, 0.8));
 	}
 
 	#[test]
 	fn test_mix_colors_by_multiplication() {
 		let c1 = color!(1.0, 0.2, 0.4);
 		let c2 = color!(0.9, 1.0, 0.1);
-		abs_diff_eq!(c1 * c2, color!(0.9, 0.2, 0.04));
+		assert_abs_diff_eq!(c1 * c2, color!(0.9, 0.2, 0.04));
+	}
+
+	#[test]
+	fn test_parse_hex() {
+		let c = Color::from_str("#0ab33f").unwrap();
+		println!("{:?}", c);
+		assert_abs_diff_eq!(c, color!(0.039215688, 0.7019608, 0.24705882));
 	}
 }
