@@ -11,7 +11,6 @@
 - cleanup after [codereview.se](https://codereview.stackexchange.com/questions/236895/color-and-canvas-implementations-in-rust-for-ray-tracer-challenge) responds
 - transformation should probably all be in matrix
 - Having to use & everywhere for matrix, tuple or color multplication sucks
-- BoxedPattern type can be changed to `type BoxedPattern<'a> = &'a (dyn Pattern + 'a);`. Is that better or worse?
 
 ### Performance
 
