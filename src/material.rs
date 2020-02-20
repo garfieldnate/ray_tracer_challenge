@@ -19,7 +19,11 @@ pub struct Material {
 	pub specular: f32,
 	// higher values give smaller and tighter specular highlights [10,200] (no real upper bound)
 	pub shininess: f32,
+
 	pub reflective: f32,
+
+	pub transparency: f32,
+	pub refractive_index: f32,
 
 	pub pattern: Option<BoxedPattern>,
 }
@@ -39,8 +43,10 @@ pub fn default_material() -> Material {
 		diffuse: 0.9,
 		specular: 0.9,
 		shininess: 200.0,
-		reflective: 0.0,
 		pattern: None,
+		reflective: 0.0,
+		transparency: 0.0,
+		refractive_index: 1.0,
 	}
 }
 
@@ -55,5 +61,8 @@ mod tests {
 		assert_eq!(m.diffuse, 0.9);
 		assert_eq!(m.specular, 0.9);
 		assert_eq!(m.shininess, 200.0);
+		assert_eq!(m.reflective, 0.0);
+		assert_eq!(m.transparency, 0.0);
+		assert_eq!(m.refractive_index, 1.0);
 	}
 }
