@@ -228,6 +228,8 @@ mod tests {
 			shininess: 200.0,
 			color: color!(0.5, 0.5, 0.5),
 			pattern: Some(Box::new(pattern)),
+			transparency: 0.0,
+			refractive_index: 1.0,
 		};
 		let eye_vector = vector!(0, 0, -1);
 		let surface_normal = vector!(0, 0, -1);
