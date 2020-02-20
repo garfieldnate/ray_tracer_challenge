@@ -5,6 +5,15 @@ use std::fmt::Debug;
 use std::ptr;
 
 type BoxedPattern = Box<dyn Pattern>;
+
+// Just check that the objects are the same
+// TODO: delete after fixed in Rust: https://github.com/rust-lang/rust/issues/39128
+impl PartialEq for BoxedPattern {
+	fn eq(&self, other: &Self) -> bool {
+		ptr::eq(self as *const _, other as *const _)
+	}
+}
+
 // Represents the reflective properties of a surface
 #[derive(PartialEq, Debug, Clone)]
 pub struct Material {
@@ -28,41 +37,21 @@ pub struct Material {
 	pub pattern: Option<BoxedPattern>,
 }
 
-// Just check that the objects are the same
-// TODO: delete after fixed in Rust: https://github.com/rust-lang/rust/issues/39128
-impl PartialEq for BoxedPattern {
-	fn eq(&self, other: &Self) -> bool {
-		ptr::eq(self as *const _, other as *const _)
-	}
-}
-
-pub fn default_material() -> Material {
-	Material {
-		color: white(),
-		ambient: 0.1,
-		diffuse: 0.9,
-		specular: 0.9,
-		shininess: 200.0,
-		pattern: None,
-		reflective: 0.0,
-		transparency: 0.0,
-		refractive_index: 1.0,
+impl Default for Material {
+	fn default() -> Self {
+		Material {
+			color: white(),
+			ambient: 0.1,
+			diffuse: 0.9,
+			specular: 0.9,
+			shininess: 200.0,
+			pattern: None,
+			reflective: 0.0,
+			transparency: 0.0,
+			refractive_index: 1.0,
+		}
 	}
 }
 
 #[cfg(test)]
-mod tests {
-	use super::*;
-	#[test]
-	fn default_material_attributes() {
-		let m = default_material();
-		assert_eq!(m.color, white());
-		assert_eq!(m.ambient, 0.1);
-		assert_eq!(m.diffuse, 0.9);
-		assert_eq!(m.specular, 0.9);
-		assert_eq!(m.shininess, 200.0);
-		assert_eq!(m.reflective, 0.0);
-		assert_eq!(m.transparency, 0.0);
-		assert_eq!(m.refractive_index, 1.0);
-	}
-}
+mod tests {}
