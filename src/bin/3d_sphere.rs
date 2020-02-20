@@ -3,7 +3,7 @@ use ray_tracer_challenge::canvas::Canvas;
 use ray_tracer_challenge::color::Color;
 use ray_tracer_challenge::light::phong_lighting;
 use ray_tracer_challenge::light::PointLight;
-use ray_tracer_challenge::material::default_material;
+use ray_tracer_challenge::material::Material;
 use ray_tracer_challenge::ray::Intersection;
 use ray_tracer_challenge::ray::Ray;
 use ray_tracer_challenge::shape::shape::Shape;
@@ -24,7 +24,7 @@ fn main() {
 	let half = wall_size / 2.0;
 	let mut canvas = Canvas::new(canvas_pixels, canvas_pixels);
 	// let color = red();
-	let mut material = default_material();
+	let mut material = Material::default();
 	material.color = color!(1, 0.2, 1);
 	let mut shape = Sphere::new();
 	shape.set_material(material);
