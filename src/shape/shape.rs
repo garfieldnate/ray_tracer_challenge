@@ -5,11 +5,11 @@ use crate::ray::Ray;
 use crate::tuple::Tuple;
 use std::fmt::Debug;
 
-pub trait Shape: Debug {
+pub trait Shape<'a>: Debug {
 	fn transformation(&self) -> &Matrix;
 	fn set_transformation(&mut self, t: Matrix);
 	fn material(&self) -> Material;
-	fn set_material(&mut self, m: Material);
+	fn set_material(&mut self, m: Material<'a>);
 	fn local_intersect(&self, object_ray: Ray) -> Vec<Intersection>;
 	fn local_norm_at(&self, object_point: Tuple) -> Tuple;
 
@@ -58,20 +58,20 @@ pub trait Shape: Debug {
 // TODO: Maybe someday Rust will support delegation: https://github.com/rust-lang/rfcs/pull/2393
 // like Kotlin does. Could also use ambassador crate, if it adds partial delegation support.
 #[derive(Default, Clone, Debug, PartialEq)]
-pub struct BaseShape {
+pub struct BaseShape<'a> {
 	t: Matrix,
 	t_inverse: Matrix,
 	t_inverse_transpose: Matrix,
-	m: Material,
+	m: Material<'a>,
 }
 
-impl BaseShape {
+impl<'a> BaseShape<'a> {
 	pub fn new() -> Self {
 		Self::default()
 	}
 }
 
-impl Shape for BaseShape {
+impl<'a> Shape<'a> for BaseShape<'a> {
 	fn transformation(&self) -> &Matrix {
 		&self.t
 	}
@@ -83,7 +83,7 @@ impl Shape for BaseShape {
 	fn material(&self) -> Material {
 		self.m.clone()
 	}
-	fn set_material(&mut self, m: Material) {
+	fn set_material(&mut self, m: Material<'a>) {
 		self.m = m;
 	}
 
@@ -115,12 +115,12 @@ mod tests {
 	use std::f32::consts::PI;
 
 	#[derive(Clone, Debug, PartialEq)]
-	struct TestShape {
-		base: BaseShape,
+	struct TestShape<'a> {
+		base: BaseShape<'a>,
 		saved_ray: RefCell<Option<Ray>>,
 	}
 
-	impl TestShape {
+	impl TestShape<'_> {
 		fn new() -> Self {
 			TestShape {
 				base: BaseShape::new(),
@@ -129,7 +129,7 @@ mod tests {
 		}
 	}
 
-	impl Shape for TestShape {
+	impl<'a> Shape<'a> for TestShape<'a> {
 		fn transformation(&self) -> &Matrix {
 			&self.base.transformation()
 		}
@@ -139,7 +139,7 @@ mod tests {
 		fn material(&self) -> Material {
 			self.base.material()
 		}
-		fn set_material(&mut self, m: Material) {
+		fn set_material(&mut self, m: Material<'a>) {
 			self.base.set_material(m)
 		}
 		fn local_intersect(&self, _object_ray: Ray) -> Vec<Intersection> {

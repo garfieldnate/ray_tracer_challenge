@@ -40,20 +40,21 @@ impl Ray {
 	}
 }
 
+type BoxedShape<'a> = &'a dyn Shape<'a>;
 #[derive(Copy, Clone, Debug)]
 pub struct Intersection<'a> {
 	pub distance: f32,
-	pub object: &'a dyn Shape,
+	pub object: BoxedShape<'a>,
 }
 
-impl PartialEq for Intersection<'_> {
-	fn eq(&self, other: &Intersection) -> bool {
+impl<'a, 'b> PartialEq<Intersection<'b>> for Intersection<'a> {
+	fn eq(&self, other: &Intersection<'b>) -> bool {
 		self.distance.eq(&other.distance) && ptr::eq(self.object, other.object)
 	}
 }
 
 impl Intersection<'_> {
-	pub fn new<'a>(distance: f32, object: &'a dyn Shape) -> Intersection<'a> {
+	pub fn new<'a>(distance: f32, object: BoxedShape<'a>) -> Intersection<'a> {
 		Intersection { distance, object }
 	}
 	// returns the a reference to the intersection with the lowest non-negative distance (or None if all are negative)

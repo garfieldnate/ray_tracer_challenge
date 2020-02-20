@@ -8,15 +8,15 @@ use crate::tuple::Tuple;
 use std::f32;
 
 #[derive(Clone, Debug, PartialEq)]
-pub struct Plane {
-	base: BaseShape,
+pub struct Plane<'a> {
+	base: BaseShape<'a>,
 }
-impl Plane {
+impl<'a> Plane<'a> {
 	pub fn new() -> Self {
 		Self::default()
 	}
 
-	pub fn build(transform: Matrix, material: Material) -> Self {
+	pub fn build(transform: Matrix, material: Material<'a>) -> Self {
 		let mut s = Plane::new();
 		s.set_transformation(transform);
 		s.set_material(material);
@@ -24,7 +24,7 @@ impl Plane {
 	}
 }
 
-impl Default for Plane {
+impl<'a> Default for Plane<'a> {
 	fn default() -> Self {
 		Plane {
 			base: BaseShape::new(),
@@ -32,7 +32,7 @@ impl Default for Plane {
 	}
 }
 
-impl Shape for Plane {
+impl<'a> Shape<'a> for Plane<'a> {
 	fn local_intersect(&self, object_ray: Ray) -> Vec<Intersection> {
 		// the plane is in the xz plane, so it's y is 0.
 		// if the ray is roughly coplanar or parallel with the plane,
@@ -59,7 +59,7 @@ impl Shape for Plane {
 	fn material(&self) -> Material {
 		self.base.material()
 	}
-	fn set_material(&mut self, m: Material) {
+	fn set_material(&mut self, m: Material<'a>) {
 		self.base.set_material(m);
 	}
 	fn transformation_inverse(&self) -> &Matrix {

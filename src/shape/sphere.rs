@@ -7,25 +7,25 @@ use crate::shape::shape::Shape;
 use crate::tuple::Tuple;
 
 #[derive(Clone, Debug, PartialEq)]
-pub struct Sphere {
-	base: BaseShape,
+pub struct Sphere<'a> {
+	base: BaseShape<'a>,
 	center: Tuple,
 }
 
-impl Sphere {
+impl<'a> Sphere<'a> {
 	pub fn new() -> Self {
 		Self::default()
 	}
 
-	pub fn build(transform: Matrix, material: Material) -> Self {
-		let mut s = Sphere::new();
+	pub fn build(transform: Matrix, material: Material<'a>) -> Self {
+		let mut s: Sphere<'a> = Sphere::new();
 		s.set_transformation(transform);
 		s.set_material(material);
 		s
 	}
 }
 
-impl Default for Sphere {
+impl<'a> Default for Sphere<'a> {
 	fn default() -> Self {
 		Sphere {
 			center: point!(0, 0, 0),
@@ -34,7 +34,7 @@ impl Default for Sphere {
 	}
 }
 
-impl Shape for Sphere {
+impl<'a> Shape<'a> for Sphere<'a> {
 	fn local_intersect(&self, object_ray: Ray) -> Vec<Intersection> {
 		// ​# the vector from the sphere's center to the ray origin​
 		let sphere_to_ray = object_ray.origin - self.center;
@@ -71,7 +71,7 @@ impl Shape for Sphere {
 	fn material(&self) -> Material {
 		self.base.material()
 	}
-	fn set_material(&mut self, m: Material) {
+	fn set_material(&mut self, m: Material<'a>) {
 		self.base.set_material(m);
 	}
 	fn transformation_inverse(&self) -> &Matrix {

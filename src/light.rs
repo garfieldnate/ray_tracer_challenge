@@ -84,9 +84,9 @@ mod tests {
 	use crate::shape::sphere::Sphere;
 	use std::f32::consts::FRAC_1_SQRT_2;
 
-	fn any_shape() -> Box<dyn Shape> {
-		Box::new(Sphere::new())
-	}
+	// fn any_shape() -> &'a (dyn Shape<'a> + 'a) {
+	// 	Sphere::new()
+	// }
 
 	#[test]
 	fn point_light_has_position_and_intensity() {
@@ -105,7 +105,7 @@ mod tests {
 		let surface_normal = vector!(0, 0, -1);
 		let light = PointLight::new(point!(0, 0, -10), white());
 		let result = phong_lighting(
-			any_shape().as_ref(),
+			&Sphere::new(),
 			m,
 			light,
 			position,
@@ -124,7 +124,7 @@ mod tests {
 		let surface_normal = vector!(0, 0, -1);
 		let light = PointLight::new(point!(0, 0, -10), white());
 		let result = phong_lighting(
-			any_shape().as_ref(),
+			&Sphere::new(),
 			m,
 			light,
 			position,
@@ -143,7 +143,7 @@ mod tests {
 		let surface_normal = vector!(0, 0, -1);
 		let light = PointLight::new(point!(0, 10, -10), white());
 		let result = phong_lighting(
-			any_shape().as_ref(),
+			&Sphere::new(),
 			m,
 			light,
 			position,
@@ -166,7 +166,7 @@ mod tests {
 		let surface_normal = vector!(0, 0, -1);
 		let light = PointLight::new(point!(0, 10, -10), white());
 		let result = phong_lighting(
-			any_shape().as_ref(),
+			&Sphere::new(),
 			m,
 			light,
 			position,
@@ -186,7 +186,7 @@ mod tests {
 		let surface_normal = vector!(0, 0, -1);
 		let light = PointLight::new(point!(0, 0, 10), white());
 		let result = phong_lighting(
-			any_shape().as_ref(),
+			&Sphere::new(),
 			m,
 			light,
 			position,
@@ -205,7 +205,7 @@ mod tests {
 		let surface_normal = vector!(0, 0, -1);
 		let light = PointLight::new(point!(0, 0, -10), white());
 		let result = phong_lighting(
-			any_shape().as_ref(),
+			&Sphere::new(),
 			material,
 			light,
 			position,
@@ -226,7 +226,7 @@ mod tests {
 			reflective: 0.0,
 			shininess: 200.0,
 			color: color!(0.5, 0.5, 0.5),
-			pattern: Some(Box::new(pattern)),
+			pattern: Some(&pattern),
 			transparency: 0.0,
 			refractive_index: 1.0,
 		};
@@ -235,7 +235,7 @@ mod tests {
 		let light = PointLight::new(point!(0, 0, -10), white());
 
 		let c1 = phong_lighting(
-			any_shape().as_ref(),
+			&Sphere::new(),
 			m.clone(),
 			light,
 			point!(0.9, 0, 0),
@@ -244,7 +244,7 @@ mod tests {
 			false,
 		);
 		let c2 = phong_lighting(
-			any_shape().as_ref(),
+			&Sphere::new(),
 			m.clone(),
 			light,
 			point!(1.1, 0, 0),

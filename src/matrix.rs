@@ -17,6 +17,12 @@ impl Matrix {
 	}
 }
 
+impl Default for Matrix {
+	fn default() -> Self {
+		identity_4x4()
+	}
+}
+
 // Use like this: matrix!([0, 1], [1.5, 2])
 #[macro_export]
 macro_rules! matrix {
@@ -32,12 +38,6 @@ macro_rules! matrix {
             data
         }
     }};
-}
-
-impl Default for Matrix {
-	fn default() -> Self {
-		identity_4x4()
-	}
 }
 
 // TODO: if done as a macro, could handle different sizes
