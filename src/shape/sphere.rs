@@ -1,6 +1,6 @@
+use crate::intersection::Intersection;
 use crate::material::Material;
 use crate::matrix::Matrix;
-use crate::ray::Intersection;
 use crate::ray::Ray;
 use crate::shape::shape::BaseShape;
 use crate::shape::shape::Shape;

@@ -1,8 +1,8 @@
 // Produce image of (squished) sphere's silhouette
 use ray_tracer_challenge::canvas::Canvas;
 use ray_tracer_challenge::constants::red;
+use ray_tracer_challenge::intersection::Intersection;
 use ray_tracer_challenge::point;
-use ray_tracer_challenge::ray::Intersection;
 use ray_tracer_challenge::ray::Ray;
 use ray_tracer_challenge::shape::shape::Shape;
 use ray_tracer_challenge::shape::sphere::Sphere;

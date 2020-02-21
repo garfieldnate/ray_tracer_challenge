@@ -1,6 +1,6 @@
+use crate::intersection::Intersection;
 use crate::material::Material;
 use crate::matrix::Matrix;
-use crate::ray::Intersection;
 use crate::ray::Ray;
 use crate::tuple::Tuple;
 use std::fmt::Debug;
