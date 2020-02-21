@@ -1,10 +1,10 @@
 use crate::color::Color;
 use crate::constants::white;
+use crate::intersection::Intersection;
 use crate::light::phong_lighting;
 use crate::light::PointLight;
 use crate::material::Material;
 use crate::matrix::identity_4x4;
-use crate::ray::Intersection;
 use crate::ray::Ray;
 use crate::shape::shape::Shape;
 use crate::shape::sphere::Sphere;
