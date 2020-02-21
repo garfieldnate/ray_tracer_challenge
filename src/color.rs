@@ -109,8 +109,6 @@ impl FromStr for Color {
 
 	// Parses a color hex code of the form '#rRgGbB..'
 	fn from_str(hex_code: &str) -> Result<Self, Self::Err> {
-		// u8::from_str_radix(src: &str, radix: u32) converts a string
-		// slice in a given base to u8
 		let r: u8 = u8::from_str_radix(&hex_code[1..3], 16)?;
 		let g: u8 = u8::from_str_radix(&hex_code[3..5], 16)?;
 		let b: u8 = u8::from_str_radix(&hex_code[5..7], 16)?;
