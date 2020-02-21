@@ -31,7 +31,7 @@
 
 - Better model of point vs. vector: typing should reflect difference
 - Reorganize as [workspace](https://doc.rust-lang.org/cargo/reference/manifest.html#the-workspace-section)
-- reimplement everything using geometric algebra for funsies
+- reimplement everything using geometric algebra for funsies (https://crypto.stanford.edu/~blynn/haskell/ga.html)
 - lines
 - electricity
 

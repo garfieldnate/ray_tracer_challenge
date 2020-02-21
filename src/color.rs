@@ -1,3 +1,4 @@
+use crate::parse_error::ParseError;
 use approx::AbsDiffEq;
 use std::ops::{Add, Div, Mul, Sub};
 use std::str::FromStr;
@@ -105,12 +106,13 @@ impl AbsDiffEq for Color {
 }
 
 impl FromStr for Color {
-	type Err = std::num::ParseIntError;
+	type Err = ParseError;
 
 	// Parses a color hex code of the form '#rRgGbB..'
 	fn from_str(hex_code: &str) -> Result<Self, Self::Err> {
-		// u8::from_str_radix(src: &str, radix: u32) converts a string
-		// slice in a given base to u8
+		if !hex_code.starts_with('#') {
+			return Err(ParseError::new("Color code must start with #"));
+		}
 		let r: u8 = u8::from_str_radix(&hex_code[1..3], 16)?;
 		let g: u8 = u8::from_str_radix(&hex_code[3..5], 16)?;
 		let b: u8 = u8::from_str_radix(&hex_code[5..7], 16)?;
@@ -158,7 +160,6 @@ mod tests {
 	#[test]
 	fn test_parse_hex() {
 		let c = Color::from_str("#0ab33f").unwrap();
-		println!("{:?}", c);
 		assert_abs_diff_eq!(c, color!(0.039215688, 0.7019608, 0.24705882));
 	}
 }
