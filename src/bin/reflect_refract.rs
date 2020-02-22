@@ -40,10 +40,12 @@ fn main() {
 	// The large sphere in the middle is a unit sphere, translated upward slightly and colored green.
 
 	let mut middle_sphere_material = Material::default();
-	middle_sphere_material.color = color!(0.1, 1, 0.5);
-	middle_sphere_material.pattern = Some(Box::new(stripes.clone()));
-	middle_sphere_material.diffuse = 0.7;
+	middle_sphere_material.color = color!(0, 0, 0);
+	// middle_sphere_material.pattern = Some(Box::new(stripes.clone()));
+	// middle_sphere_material.diffuse = 0.7;
 	middle_sphere_material.specular = 0.3;
+	middle_sphere_material.transparency = 1.0;
+	middle_sphere_material.refractive_index = 1.5;
 	let middle = Sphere::build(translation(-0.5, 1.0, 0.5), middle_sphere_material);
 
 	// The smaller green sphere on the right is scaled in half
