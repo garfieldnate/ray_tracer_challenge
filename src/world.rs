@@ -75,7 +75,7 @@ impl World {
 		} else {
 			match Intersection::hit(&intersections) {
 				Some(hit) => {
-					let comps = precompute_values(r, hit);
+					let comps = precompute_values(r, hit, &intersections);
 					self.shade_hit(comps, remaining_recursive_steps)
 				}
 				None => color!(0, 0, 0),
@@ -126,12 +126,19 @@ pub struct PrecomputedValues<'a> {
 	// a point a tiny distance above the surface to avoid self-shadowing/salt-and-pepper noise, caused
 	// by finite precision in floating point calculations
 	over_point: Tuple,
+
+	pub n1: f32,
+	pub n2: f32,
 }
 const SELF_SHADOW_AVOIDANCE_EPSILON: f32 = f32::EPSILON * 10000.0;
 
-pub fn precompute_values<'a>(r: Ray, i: &Intersection<'a>) -> PrecomputedValues<'a> {
-	let point = r.position(i.distance);
-	let mut surface_normal = i.object.normal_at(point);
+pub fn precompute_values<'a>(
+	r: Ray,
+	hit: &Intersection<'a>,
+	intersections: &Vec<Intersection<'a>>,
+) -> PrecomputedValues<'a> {
+	let point = r.position(hit.distance);
+	let mut surface_normal = hit.object.normal_at(point);
 	let eye_vector = -r.direction;
 	let reflection_vector = Ray::reflect(r.direction, surface_normal);
 
@@ -149,8 +156,8 @@ pub fn precompute_values<'a>(r: Ray, i: &Intersection<'a>) -> PrecomputedValues<
 
 	PrecomputedValues {
 		// copy the intersection's properties, for convenience
-		distance: i.distance,
-		object: i.object,
+		distance: hit.distance,
+		object: hit.object,
 		// precompute some useful values
 		point,
 		eye_vector,
@@ -158,6 +165,9 @@ pub fn precompute_values<'a>(r: Ray, i: &Intersection<'a>) -> PrecomputedValues<
 		surface_normal,
 		inside,
 		over_point,
+
+		n1: f32::NAN,
+		n2: f32::NAN,
 	}
 }
 
@@ -193,7 +203,7 @@ mod tests {
 		let r = Ray::new(point!(0, 0, -5), vector!(0, 0, 1));
 		let shape = Sphere::new();
 		let i = Intersection::new(4.0, &shape);
-		let comps = precompute_values(r, &i);
+		let comps = precompute_values(r, &i, &vec![i]);
 		assert_eq!(comps.distance, i.distance);
 		assert_eq!(comps.point, point!(0, 0, -1));
 		assert_eq!(comps.eye_vector, vector!(0, 0, -1));
@@ -205,7 +215,7 @@ mod tests {
 		let r = Ray::new(point!(0, 0, -5), vector!(0, 0, 1));
 		let shape = Sphere::new();
 		let i = Intersection::new(4.0, &shape);
-		let comps = precompute_values(r, &i);
+		let comps = precompute_values(r, &i, &vec![i]);
 		assert!(!comps.inside);
 	}
 
@@ -214,7 +224,7 @@ mod tests {
 		let r = Ray::new(point!(0, 0, 0), vector!(0, 0, 1));
 		let shape = Sphere::new();
 		let i = Intersection::new(1.0, &shape);
-		let comps = precompute_values(r, &i);
+		let comps = precompute_values(r, &i, &vec![i]);
 		assert_eq!(comps.point, point!(0, 0, 1));
 		assert_eq!(comps.eye_vector, vector!(0, 0, -1));
 		assert_eq!(comps.inside, true);
@@ -230,7 +240,7 @@ mod tests {
 		let shape = Plane::new();
 		let r = Ray::new(point!(0, 1, -1), vector!(0, -FRAC_1_SQRT_2, FRAC_1_SQRT_2));
 		let i = Intersection::new(SQRT_2, &shape);
-		let comps = precompute_values(r, &i);
+		let comps = precompute_values(r, &i, &vec![i]);
 		assert_eq!(
 			comps.reflection_vector,
 			vector!(0, FRAC_1_SQRT_2, FRAC_1_SQRT_2)
@@ -243,7 +253,7 @@ mod tests {
 		w.objects[1].material().ambient = 1.0;
 		let r = Ray::new(point!(0, 0, 0), vector!(0, 0, 1));
 		let i = Intersection::new(1.0, w.objects[1].as_ref());
-		let comps = precompute_values(r, &i);
+		let comps = precompute_values(r, &i, &vec![i]);
 		let color = w.reflected_color(comps, 1);
 		assert_eq!(color, color!(0, 0, 0));
 	}
@@ -258,7 +268,7 @@ mod tests {
 
 		let r = Ray::new(point!(0, 0, -3), vector!(0, -FRAC_1_SQRT_2, FRAC_1_SQRT_2));
 		let i = Intersection::new(SQRT_2, w.objects.last().unwrap().as_ref());
-		let comps = precompute_values(r, &i);
+		let comps = precompute_values(r, &i, &vec![i]);
 		let color = w.reflected_color(comps, 1);
 		assert_abs_diff_eq!(color, color!(0.19052197, 0.23815246, 0.14289148));
 	}
@@ -273,7 +283,7 @@ mod tests {
 
 		let r = Ray::new(point!(0, 0, -3), vector!(0, -FRAC_1_SQRT_2, FRAC_1_SQRT_2));
 		let i = Intersection::new(SQRT_2, w.objects.last().unwrap().as_ref());
-		let comps = precompute_values(r, &i);
+		let comps = precompute_values(r, &i, &vec![i]);
 		let color = w.shade_hit(comps, 1);
 		assert_abs_diff_eq!(color, color!(0.8769108, 0.9245413, 0.8292803));
 	}
@@ -304,7 +314,7 @@ mod tests {
 
 		let r = Ray::new(point!(0, 0, -3), vector!(0, -FRAC_1_SQRT_2, FRAC_1_SQRT_2));
 		let i = Intersection::new(SQRT_2, w.objects.last().unwrap().as_ref());
-		let comps = precompute_values(r, &i);
+		let comps = precompute_values(r, &i, &vec![i]);
 		let color = w.reflected_color(comps, 0);
 		assert_abs_diff_eq!(color, color!(0, 0, 0));
 	}
@@ -315,7 +325,7 @@ mod tests {
 		let r = Ray::new(point!(0, 0, -5), vector!(0, 0, 1));
 		let shape = &w.objects[0];
 		let i = Intersection::new(4.0, shape.as_ref());
-		let comps = precompute_values(r, &i);
+		let comps = precompute_values(r, &i, &vec![i]);
 		let c = w.shade_hit(comps, 1);
 		assert_abs_diff_eq!(c, color!(0.38063288, 0.47579104, 0.28547466))
 	}
@@ -327,7 +337,7 @@ mod tests {
 		let r = Ray::new(point!(0, 0, 0), vector!(0, 0, 1));
 		let shape = &w.objects[1];
 		let i = Intersection::new(0.5, shape.as_ref());
-		let comps = precompute_values(r, &i);
+		let comps = precompute_values(r, &i, &vec![i]);
 		let c = w.shade_hit(comps, 1);
 		assert_abs_diff_eq!(c, color!(0.9045995, 0.9045995, 0.9045995))
 	}
@@ -396,7 +406,7 @@ mod tests {
 		let r = Ray::new(point!(0, 0, -5), vector!(0, 0, 1));
 		let shape = Sphere::build(translation(0.0, 0.0, 1.0), Material::default());
 		let intersection = Intersection::new(5.0, &shape);
-		let comps = precompute_values(r, &intersection);
+		let comps = precompute_values(r, &intersection, &vec![intersection]);
 		// println!("{:?}", comps.point);
 		// println!("{:?}", comps.over_point);
 		assert!(comps.over_point.z < -SELF_SHADOW_AVOIDANCE_EPSILON / 2.0);
@@ -414,7 +424,7 @@ mod tests {
 		w.objects.push(Box::new(s2));
 		let r = Ray::new(point!(0, 0, 5), vector!(0, 0, 1));
 		let i = Intersection::new(4.0, w.objects[1].as_ref());
-		let comps = precompute_values(r, &i);
+		let comps = precompute_values(r, &i, &vec![i]);
 		let c = w.shade_hit(comps, 1);
 		assert_eq!(c, color!(0.1, 0.1, 0.1));
 	}
