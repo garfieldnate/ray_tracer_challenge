@@ -45,7 +45,7 @@ impl Shape for Sphere {
 		// println!("b: {}", b);
 		let c = sphere_to_ray.dot(sphere_to_ray) - 1.0;
 		// println!("c: {}", c);
-		let discriminant = b.powf(2.0) - 4.0 * a * c;
+		let discriminant = b.powi(2) - 4.0 * a * c;
 		// println!("discriminant: {}", discriminant);
 		if discriminant < 0.0 {
 			return vec![];
