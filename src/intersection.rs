@@ -29,8 +29,16 @@ impl Intersection<'_> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::constants::glass;
+    use crate::material::Material;
+    use crate::matrix::identity_4x4;
+    use crate::ray::Ray;
     use crate::shape::shape::Shape;
     use crate::shape::sphere::Sphere;
+    use crate::transformations::scaling;
+    use crate::transformations::translation;
+    use crate::tuple::Tuple;
+    use crate::world::precompute_values;
 
     #[test]
     fn basic_intersection_creation() {
@@ -119,5 +127,72 @@ mod tests {
         let interactions = vec![i1, i2, i3, i4];
         let i = Intersection::hit(&interactions).unwrap();
         assert_eq!(&i4, i);
+    }
+
+    fn glass_sphere() -> Sphere {
+        Sphere::build(
+            identity_4x4(),
+            Material {
+                transparency: 1.0,
+                refractive_index: 1.5, // TODO: glass should actually be 1.52. Then we could use the glass() method from constants!
+                // TODO: use this syntax everywhere instead of mutable variables
+                ..Default::default()
+            },
+        )
+    }
+
+    #[test]
+    fn find_n1_and_n2() {
+        // TODO: use this syntax everywhere instead of mutable variables
+        let a = {
+            let mut a = glass_sphere();
+            a.set_transformation(scaling(2.0, 2.0, 2.0));
+            a
+        };
+        let b = {
+            let mut b = glass_sphere();
+            b.set_transformation(translation(0.0, 0.0, -0.25));
+            // TODO: these tests won't work because material() returns a defensive clone; should return a reference
+            b.material().refractive_index = 2.0;
+            b
+        };
+        let c = {
+            let mut c = glass_sphere();
+            c.set_transformation(translation(0.0, 0.0, 0.25));
+            c.material().refractive_index = 2.5;
+            c
+        };
+        let r = Ray::new(point!(0, 0, -4), vector!(0, 0, 1));
+        let intersections = vec![
+            Intersection::new(2.0, &a),
+            Intersection::new(2.75, &b),
+            Intersection::new(3.25, &c),
+            Intersection::new(4.75, &b),
+            Intersection::new(5.25, &c),
+            Intersection::new(6.0, &a),
+        ];
+        let test_data = vec![
+            ("a", 1.0, 1.5),
+            ("b", 1.5, 2.0),
+            ("c", 2.0, 2.5),
+            ("b", 2.5, 2.5),
+            ("c", 2.5, 1.5),
+            ("a", 1.5, 1.0),
+        ];
+        for (i, (shape_name, expected_n1, expected_n2)) in
+            intersections.iter().zip(test_data.iter())
+        {
+            let comps = precompute_values(r, &i, &intersections);
+            assert_eq!(
+                *expected_n1, comps.n1,
+                "precomute intersection[{},{}].n1",
+                i.distance, shape_name
+            );
+            assert_eq!(
+                *expected_n2, comps.n2,
+                "precomute intersection[{},{}].n2",
+                i.distance, shape_name
+            );
+        }
     }
 }

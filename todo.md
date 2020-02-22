@@ -1,5 +1,6 @@
 # TODO
 
+- reduce mutability everywhere possible, including tests, using scoped mutability and also ..Default::default() syntax
 - Patterns
   - Make pattern compound, so that stripes can contain stripes, etc.
   - Additive and subtractive pattern compounds
