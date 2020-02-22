@@ -30,15 +30,8 @@ impl Intersection<'_> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::material::Material;
-    use crate::matrix::identity_4x4;
-    use crate::ray::Ray;
     use crate::shape::shape::Shape;
     use crate::shape::sphere::Sphere;
-    use crate::transformations::scaling;
-    use crate::transformations::translation;
-    use crate::tuple::Tuple;
-    use crate::world::precompute_values;
 
     #[test]
     fn basic_intersection_creation() {

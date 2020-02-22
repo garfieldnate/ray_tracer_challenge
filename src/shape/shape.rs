@@ -11,7 +11,7 @@ use std::ptr;
 pub trait Shape: Debug {
 	fn transformation(&self) -> &Matrix;
 	fn set_transformation(&mut self, t: Matrix);
-	fn material(&self) -> Material;
+	fn material(&self) -> &Material;
 	fn set_material(&mut self, m: Material);
 	fn local_intersect(&self, object_ray: Ray) -> Vec<Intersection>;
 	fn local_norm_at(&self, object_point: Tuple) -> Tuple;
@@ -101,8 +101,8 @@ impl Shape for BaseShape {
 		self.t_inverse = self.t.inverse();
 		self.t_inverse_transpose = self.t.inverse().transpose();
 	}
-	fn material(&self) -> Material {
-		self.m.clone()
+	fn material(&self) -> &Material {
+		&self.m
 	}
 	fn set_material(&mut self, m: Material) {
 		self.m = m;
@@ -157,7 +157,7 @@ mod tests {
 		fn set_transformation(&mut self, t: Matrix) {
 			self.base.set_transformation(t);
 		}
-		fn material(&self) -> Material {
+		fn material(&self) -> &Material {
 			self.base.material()
 		}
 		fn set_material(&mut self, m: Material) {
@@ -204,14 +204,14 @@ mod tests {
 	#[test]
 	fn shape_material() {
 		let mut shape = BaseShape::new();
-		assert_eq!(shape.material(), Material::default(), "Default material");
+		assert_eq!(shape.material(), &Material::default(), "Default material");
 
 		let mut override_material = Material::default();
 		override_material.ambient = 1.0;
 		shape.set_material(override_material.clone());
 		assert_eq!(
 			shape.material(),
-			override_material,
+			&override_material,
 			"material should be settable"
 		);
 	}

@@ -159,24 +159,29 @@ pub fn precompute_values<'a>(
 	// computing n1 and n2
 	let mut n1 = f32::NAN;
 	let mut n2 = f32::NAN;
-	let mut containers: LinkedHashSet<&'a dyn Shape> = LinkedHashSet::new();
+
+	// objects containing the current hit, ordered outermost to innermost
+	let mut containing_objects: LinkedHashSet<&'a dyn Shape> = LinkedHashSet::new();
+
+	// the book uses REFRACTION_VACCUM; should probably be REFRACTION_AIR (though the difference is small)
+	let default_refraction_index = REFRACTION_VACCUM;
 	for i in intersections {
 		if i == hit {
-			n1 = match containers.back() {
+			n1 = match containing_objects.back() {
 				Some(o) => o.material().refractive_index,
-				// the book uses this; should probably actually be value for air, but the difference is small
-				None => REFRACTION_VACCUM,
+				None => default_refraction_index,
 			};
 		}
-		if !containers.remove(&i.object) {
-			containers.insert(i.object);
+		// if the object is in containing_objects, then we are exiting it;
+		// otherwise, we are entering it. Update accordingly.
+		if !containing_objects.remove(&i.object) {
+			containing_objects.insert(i.object);
 		}
 
 		if i == hit {
-			n2 = match containers.back() {
+			n2 = match containing_objects.back() {
 				Some(o) => o.material().refractive_index,
-				// the book uses this; should probably actually be value for air, but the difference is small
-				None => REFRACTION_VACCUM,
+				None => default_refraction_index,
 			};
 			break;
 		}
@@ -300,14 +305,17 @@ mod tests {
 		let b = {
 			let mut b = glass_sphere();
 			b.set_transformation(translation(0.0, 0.0, -0.25));
-			// TODO: these tests won't work because material() returns a defensive clone; should return a reference
-			b.material().refractive_index = 2.0;
+			let mut m = b.material().clone();
+			m.refractive_index = 2.0;
+			b.set_material(m);
 			b
 		};
 		let c = {
 			let mut c = glass_sphere();
 			c.set_transformation(translation(0.0, 0.0, 0.25));
-			c.material().refractive_index = 2.5;
+			let mut m = c.material().clone();
+			m.refractive_index = 2.5;
+			c.set_material(m);
 			c
 		};
 		let r = Ray::new(point!(0, 0, -4), vector!(0, 0, 1));
@@ -347,7 +355,11 @@ mod tests {
 	#[test]
 	fn reflected_color_for_nonreflective_material() {
 		let mut w = World::default();
-		w.objects[1].material().ambient = 1.0;
+
+		let mut m = w.objects[1].material().clone();
+		m.ambient = 1.0;
+		w.objects[1].set_material(m);
+
 		let r = Ray::new(point!(0, 0, 0), vector!(0, 0, 1));
 		let i = Intersection::new(1.0, w.objects[1].as_ref());
 		let comps = precompute_values(r, &i, &vec![i]);
