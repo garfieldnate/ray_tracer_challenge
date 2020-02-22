@@ -49,6 +49,32 @@ impl Pattern for BasePattern {
 	}
 }
 
+#[derive(Clone, Debug, PartialEq)]
+pub struct TestPattern {
+	base: BasePattern,
+}
+
+impl TestPattern {
+	pub fn new() -> Self {
+		TestPattern {
+			base: BasePattern::new(),
+		}
+	}
+}
+
+impl Pattern for TestPattern {
+	fn set_transformation(&mut self, t: Matrix) {
+		self.base.set_transformation(t);
+	}
+	fn transformation_inverse(&self) -> &Matrix {
+		self.base.transformation_inverse()
+	}
+	// color value will allow client to test that world_point was transformed
+	fn color_at_world(&self, world_point: Tuple) -> Color {
+		color!(world_point.x, world_point.y, world_point.z)
+	}
+}
+
 #[cfg(test)]
 mod tests {
 	use super::*;
@@ -56,32 +82,6 @@ mod tests {
 	use crate::shape::sphere::Sphere;
 	use crate::transformations::scaling;
 	use crate::transformations::translation;
-
-	#[derive(Clone, Debug, PartialEq)]
-	struct TestPattern {
-		base: BasePattern,
-	}
-
-	impl TestPattern {
-		fn new() -> Self {
-			TestPattern {
-				base: BasePattern::new(),
-			}
-		}
-	}
-
-	impl Pattern for TestPattern {
-		fn set_transformation(&mut self, t: Matrix) {
-			self.base.set_transformation(t);
-		}
-		fn transformation_inverse(&self) -> &Matrix {
-			self.base.transformation_inverse()
-		}
-		// color value will allow client to test that world_point was transformed
-		fn color_at_world(&self, world_point: Tuple) -> Color {
-			color!(world_point.x, world_point.y, world_point.z)
-		}
-	}
 
 	#[test]
 	fn pattern_with_object_transformation() {

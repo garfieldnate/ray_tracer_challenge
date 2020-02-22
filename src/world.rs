@@ -121,13 +121,27 @@ impl World {
 		comps: PrecomputedValues,
 		remaining_recursive_steps: i16,
 	) -> Color {
-		if comps.object.material().transparency == 0.0
-			|| remaining_recursive_steps == 0
-			|| comps.is_totally_internally_reflected()
-		{
-			color!(0, 0, 0)
+		if comps.object.material().transparency == 0.0 || remaining_recursive_steps == 0 {
+			println!(
+				"transparency: {}, remaining: {}",
+				comps.object.material().transparency,
+				remaining_recursive_steps
+			);
+			return color!(0, 0, 0);
+		}
+		let refracted = comps.refracted_angle_values();
+		if refracted.sin2 > 1.0 {
+			println!("Total internal refraction!");
+			return color!(0, 0, 0);
 		} else {
-			color!(1, 1, 1)
+			// use trig formula to get cosine(refracted)
+			let cos_refracted = (1.0 - refracted.sin2).sqrt();
+			let direction_refracted = comps.surface_normal
+				* (refracted.n_ratio * refracted.cos_incoming - cos_refracted)
+				- (comps.eye_vector * refracted.n_ratio);
+			let ray_refracted = Ray::new(comps.under_point, direction_refracted);
+			self.color_at(ray_refracted, remaining_recursive_steps - 1)
+				* comps.object.material().transparency
 		}
 	}
 }
@@ -149,17 +163,30 @@ pub struct PrecomputedValues<'a> {
 	pub n2: f32,
 	under_point: Tuple,
 }
+pub struct RefractedAngleValues {
+	n_ratio: f32,
+	cos_incoming: f32,
+	// sine^2
+	sin2: f32,
+	is_total_internal_reflection: bool,
+}
 
 impl PrecomputedValues<'_> {
+	// calculate sin^2 of the refracted ray's angle
 	// Snell's law states that sin(incoming) / sin(refracted) = refraction index of
 	// material 2 / refraction index of material 1.
 	// Implementing as a method instead of a field because it is not always needed.
-	fn is_totally_internally_reflected(&self) -> bool {
+	fn refracted_angle_values(&self) -> RefractedAngleValues {
 		let n_ratio = self.n1 / self.n2;
 		let cos_incoming = self.eye_vector.dot(self.surface_normal);
 		// sin^2(refracted angle) via trig identity
-		let sin2_refracted = n_ratio.powi(2) * (1.0 - cos_incoming.powi(2));
-		return sin2_refracted > 1.0;
+		let sin2 = n_ratio.powi(2) * (1.0 - cos_incoming.powi(2));
+		RefractedAngleValues {
+			n_ratio,
+			cos_incoming,
+			sin2,
+			is_total_internal_reflection: sin2 > 1.0,
+		}
 	}
 }
 
@@ -242,6 +269,7 @@ pub fn precompute_values<'a>(
 mod tests {
 	use super::*;
 	use crate::constants::black;
+	use crate::pattern::pattern::TestPattern;
 	use crate::shape::plane::Plane;
 	use crate::transformations::translation;
 	use std::f32::consts::FRAC_1_SQRT_2;
@@ -638,5 +666,36 @@ mod tests {
 		let comps = precompute_values(r, &xs[1], &xs);
 		let c = w.refracted_color(comps, 5);
 		assert_abs_diff_eq!(c, black());
+	}
+
+	#[test]
+	fn refracted_color_with_refracted_ray() {
+		let mut w = World::default();
+		{
+			let mut m = w.objects[0].material().clone();
+			m.ambient = 1.0;
+			m.pattern = Some(Box::new(TestPattern::new()));
+			w.objects[0].set_material(m.clone());
+		}
+		{
+			let mut m = w.objects[1].material().clone();
+			m.transparency = 1.0;
+			m.refractive_index = 1.5;
+			w.objects[1].set_material(m.clone());
+		}
+		let shape_a = &w.objects[0];
+		let shape_b = &w.objects[1];
+
+		let r = Ray::new(point!(0, 0, 0.1), vector!(0, 1, 0));
+
+		let xs = vec![
+			Intersection::new(-0.9899, shape_a.as_ref()),
+			Intersection::new(-0.4899, shape_b.as_ref()),
+			Intersection::new(0.4899, shape_b.as_ref()),
+			Intersection::new(0.9899, shape_a.as_ref()),
+		];
+		let comps = precompute_values(r, &xs[2], &xs);
+		let c = w.refracted_color(comps, 5);
+		assert_abs_diff_eq!(c, color!(0, 0.9976768, 0.047521036));
 	}
 }
