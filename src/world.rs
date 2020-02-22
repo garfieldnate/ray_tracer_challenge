@@ -115,6 +115,18 @@ impl World {
 			c * comps.object.material().reflective
 		}
 	}
+
+	pub fn refracted_color(
+		&self,
+		comps: PrecomputedValues,
+		remaining_recursive_steps: i16,
+	) -> Color {
+		if comps.object.material().transparency == 0.0 {
+			color!(0, 0, 0)
+		} else {
+			color!(1, 1, 1)
+		}
+	}
 }
 
 pub struct PrecomputedValues<'a> {
@@ -132,8 +144,9 @@ pub struct PrecomputedValues<'a> {
 	// used for calculating rays crossing material boundaries
 	pub n1: f32,
 	pub n2: f32,
+	under_point: Tuple,
 }
-const SELF_SHADOW_AVOIDANCE_EPSILON: f32 = f32::EPSILON * 10000.0;
+const SELF_INTERSECTION_AVOIDANCE_EPSILON: f32 = f32::EPSILON * 10000.0;
 
 pub fn precompute_values<'a>(
 	r: Ray,
@@ -154,7 +167,8 @@ pub fn precompute_values<'a>(
 		inside = false;
 	}
 
-	let over_point = point + surface_normal * SELF_SHADOW_AVOIDANCE_EPSILON;
+	let over_point = point + surface_normal * SELF_INTERSECTION_AVOIDANCE_EPSILON;
+	let under_point = point - surface_normal * SELF_INTERSECTION_AVOIDANCE_EPSILON;
 
 	// computing n1 and n2
 	let mut n1 = f32::NAN;
@@ -200,6 +214,7 @@ pub fn precompute_values<'a>(
 		surface_normal,
 		inside,
 		over_point,
+		under_point,
 
 		n1,
 		n2,
@@ -209,6 +224,7 @@ pub fn precompute_values<'a>(
 #[cfg(test)]
 mod tests {
 	use super::*;
+	use crate::constants::black;
 	use crate::shape::plane::Plane;
 	use crate::transformations::translation;
 	use std::f32::consts::FRAC_1_SQRT_2;
@@ -351,6 +367,29 @@ mod tests {
 			);
 		}
 	}
+	#[test]
+	fn under_point_is_offset_below_suface() {
+		let r = Ray::new(point!(0, 0, -5), vector!(0, 0, 1));
+		let shape = {
+			let mut sphere = glass_sphere();
+			sphere.set_transformation(translation(0.0, 0.0, 1.0));
+			sphere
+		};
+		let hit = Intersection::new(5.0, &shape);
+		let xs = vec![hit];
+		let comps = precompute_values(r, &hit, &xs);
+		assert!(comps.under_point.z > SELF_INTERSECTION_AVOIDANCE_EPSILON / 2.0);
+		assert!(comps.point.z < comps.under_point.z);
+	}
+	// 	​ 	​Scenario​: The under point is offset below the surface
+	// ​ 	  ​Given​ r ← ray(point(0, 0, -5), vector(0, 0, 1))
+	// ​ 	    ​And​ shape ← glass_sphere() with:
+	// ​ 	      | transform | translation(0, 0, 1) |
+	// ​ 	    ​And​ i ← intersection(5, shape)
+	// ​ 	    ​And​ xs ← intersections(i)
+	// ​ 	  ​When​ comps ← prepare_computations(i, r, xs)
+	// ​ 	  ​Then​ comps.under_point.z > EPSILON/2
+	// ​ 	    ​And​ comps.point.z < comps.under_point.z
 
 	#[test]
 	fn reflected_color_for_nonreflective_material() {
@@ -518,8 +557,8 @@ mod tests {
 		let comps = precompute_values(r, &intersection, &vec![intersection]);
 		// println!("{:?}", comps.point);
 		// println!("{:?}", comps.over_point);
-		assert!(comps.over_point.z < -SELF_SHADOW_AVOIDANCE_EPSILON / 2.0);
-		assert!(comps.over_point.z > -SELF_SHADOW_AVOIDANCE_EPSILON * 2.0);
+		assert!(comps.over_point.z < -SELF_INTERSECTION_AVOIDANCE_EPSILON / 2.0);
+		assert!(comps.over_point.z > -SELF_INTERSECTION_AVOIDANCE_EPSILON * 2.0);
 		assert!(comps.point.z > comps.over_point.z);
 	}
 
@@ -536,5 +575,19 @@ mod tests {
 		let comps = precompute_values(r, &i, &vec![i]);
 		let c = w.shade_hit(comps, 1);
 		assert_eq!(c, color!(0.1, 0.1, 0.1));
+	}
+
+	#[test]
+	fn refracted_color_of_opaque_surface() {
+		let w = World::default();
+		let shape = &w.objects[0];
+		let r = Ray::new(point!(0, 0, -5), vector!(0, 0, 1));
+		let xs = vec![
+			Intersection::new(4.0, shape.as_ref()),
+			Intersection::new(6.0, shape.as_ref()),
+		];
+		let comps = precompute_values(r, &xs[0], &xs);
+		let c = w.refracted_color(comps, 5);
+		assert_abs_diff_eq!(c, black());
 	}
 }
