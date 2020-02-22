@@ -68,7 +68,15 @@ impl World {
 		);
 		let reflected_color = self.reflected_color(&comps, remaining_recursive_steps);
 		let refracted_color = self.refracted_color(&comps, remaining_recursive_steps);
-		surface_color + reflected_color + refracted_color
+		let material = comps.object.material();
+		if material.reflective > 0.0 && material.transparency > 0.0 {
+			let reflectance = schlick_reflectance(&comps);
+			return surface_color
+				+ reflected_color * reflectance
+				+ refracted_color * (1.0 - reflectance);
+		} else {
+			return surface_color + reflected_color + refracted_color;
+		}
 	}
 
 	pub fn color_at(&self, r: Ray, remaining_recursive_steps: i16) -> Color {
@@ -269,16 +277,21 @@ pub fn precompute_values<'a>(
 fn schlick_reflectance(comps: &PrecomputedValues) -> f32 {
 	// TODO: this work may have already been done for refraction computations
 	// first check if there is total internal reflectance
-	let cosine_eye_normal = comps.eye_vector.dot(comps.surface_normal);
+	// this value is replace if n1 > n2
+	let mut cosine = comps.eye_vector.dot(comps.surface_normal);
 	// total internal reflection can only occur if n1 > n2
 	if comps.n1 > comps.n2 {
 		let n = comps.n1 / comps.n2;
-		let sin2_refracted = n.powi(2) * (1.0 - cosine_eye_normal.powi(2));
+		let sin2_refracted = n.powi(2) * (1.0 - cosine.powi(2));
 		if sin2_refracted > 1.0 {
 			return 1.0;
 		}
+		// cosine via trig identity
+		let cosine_refracted = (1.0 - sin2_refracted).sqrt();
+		cosine = cosine_refracted;
 	}
-	0.0
+	let r0 = ((comps.n1 - comps.n2) / (comps.n1 + comps.n2)).powi(2);
+	return r0 + (1.0 - r0) * (1.0 - cosine).powi(5);
 }
 
 #[cfg(test)]
@@ -758,11 +771,56 @@ mod tests {
 		let reflectance = schlick_reflectance(&comps);
 		assert_eq!(reflectance, 1.0);
 	}
-	// 	​Scenario​: The Schlick approximation under total internal reflection
-	// ​ 	  ​Given​ shape ← glass_sphere()
-	// ​ 	    ​And​ r ← ray(point(0, 0, √2/2), vector(0, 1, 0))
-	// ​ 	    ​And​ xs ← intersections(-√2/2:shape, √2/2:shape)
-	// ​ 	  ​When​ comps ← prepare_computations(xs[1], r, xs)
-	// ​ 	    ​And​ reflectance ← schlick(comps)
-	// ​ 	  ​Then​ reflectance = 1.0
+	#[test]
+	fn schlick_reflectance_with_perpendicular_viewing_angle() {
+		let shape = glass_sphere();
+		let r = Ray::new(point!(0, 0, 0), vector!(0, 1, 0));
+		let xs = vec![
+			Intersection::new(-1.0, &shape),
+			Intersection::new(1.0, &shape),
+		];
+		let comps = precompute_values(r, &xs[1], &xs);
+		let reflectance = schlick_reflectance(&comps);
+		assert_abs_diff_eq!(reflectance, 0.04);
+	}
+
+	#[test]
+	fn schlick_reflectance_with_small_angle_and_n2_gt_n1() {
+		let shape = glass_sphere();
+		let r = Ray::new(point!(0, 0.99, -2.0), vector!(0, 0, 1));
+		let xs = vec![Intersection::new(1.8589, &shape)];
+		let comps = precompute_values(r, &xs[0], &xs);
+		let reflectance = schlick_reflectance(&comps);
+		assert_abs_diff_eq!(reflectance, 0.48873067);
+	}
+
+	#[test]
+	fn shade_hit_with_reflective_transparent_material() {
+		let mut w = World::default();
+		let floor = {
+			let mut m = Material::default();
+			m.reflective = 0.5;
+			m.transparency = 0.5;
+			m.refractive_index = 1.5;
+			Plane::build(translation(0.0, -1.0, 0.0), m)
+		};
+		w.objects.push(Box::new(floor));
+		let ball = {
+			let mut m = Material::default();
+			m.color = color!(1, 0, 0);
+			m.ambient = 0.5;
+			Sphere::build(translation(0.0, -3.5, -0.5), m)
+		};
+		w.objects.push(Box::new(ball));
+		let r = Ray::new(point!(0, 0, -3), vector!(0, -FRAC_1_SQRT_2, FRAC_1_SQRT_2));
+		// intersection with floor
+		let xs = vec![Intersection::new(
+			SQRT_2,
+			w.objects[w.objects.len() - 2].as_ref(),
+		)];
+		let comps = precompute_values(r, &xs[0], &xs);
+		let c = w.shade_hit(comps, 5);
+
+		assert_abs_diff_eq!(c, color!(0.93388665, 0.69640774, 0.6924002));
+	}
 }
