@@ -266,6 +266,21 @@ pub fn precompute_values<'a>(
 	}
 }
 
+fn schlick_reflectance(comps: &PrecomputedValues) -> f32 {
+	// TODO: this work may have already been done for refraction computations
+	// first check if there is total internal reflectance
+	let cosine_eye_normal = comps.eye_vector.dot(comps.surface_normal);
+	// total internal reflection can only occur if n1 > n2
+	if comps.n1 > comps.n2 {
+		let n = comps.n1 / comps.n2;
+		let sin2_refracted = n.powi(2) * (1.0 - cosine_eye_normal.powi(2));
+		if sin2_refracted > 1.0 {
+			return 1.0;
+		}
+	}
+	0.0
+}
+
 #[cfg(test)]
 mod tests {
 	use super::*;
@@ -730,4 +745,24 @@ mod tests {
 		// Is ours really close enough to be correct, or did we something wrong here?
 		assert_abs_diff_eq!(c, color!(0.93638885, 0.68638885, 0.68638885));
 	}
+
+	#[test]
+	fn schlick_reflectance_under_total_internal_reflection() {
+		let shape = glass_sphere();
+		let r = Ray::new(point!(0, 0, FRAC_1_SQRT_2), vector!(0, 1, 0));
+		let xs = vec![
+			Intersection::new(-FRAC_1_SQRT_2, &shape),
+			Intersection::new(FRAC_1_SQRT_2, &shape),
+		];
+		let comps = precompute_values(r, &xs[1], &xs);
+		let reflectance = schlick_reflectance(&comps);
+		assert_eq!(reflectance, 1.0);
+	}
+	// 	​Scenario​: The Schlick approximation under total internal reflection
+	// ​ 	  ​Given​ shape ← glass_sphere()
+	// ​ 	    ​And​ r ← ray(point(0, 0, √2/2), vector(0, 1, 0))
+	// ​ 	    ​And​ xs ← intersections(-√2/2:shape, √2/2:shape)
+	// ​ 	  ​When​ comps ← prepare_computations(xs[1], r, xs)
+	// ​ 	    ​And​ reflectance ← schlick(comps)
+	// ​ 	  ​Then​ reflectance = 1.0
 }
