@@ -1,6 +1,7 @@
 # TODO
 
 - reduce mutability everywhere possible, including tests, using scoped mutability and also ..Default::default() syntax
+  - getset or rust-derive-builder would probably simplify material or other creations, too
 - Patterns
   - Make pattern compound, so that stripes can contain stripes, etc.
   - Additive and subtractive pattern compounds

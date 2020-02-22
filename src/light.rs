@@ -26,7 +26,7 @@ impl PointLight {
 // by modeling ambient, diffuse and specular lighting.
 pub fn phong_lighting(
 	object: &dyn Shape,
-	material: Material,
+	material: &Material,
 	light: PointLight,
 	point: Tuple,
 	eye_vector: Tuple,
@@ -34,7 +34,7 @@ pub fn phong_lighting(
 	in_shadow: bool,
 ) -> Color {
 	// mix the surface color with the light's color
-	let material_color = match material.pattern {
+	let material_color = match &material.pattern {
 		Some(p) => p.color_at_object(point, object),
 		None => material.color,
 	};
@@ -106,7 +106,7 @@ mod tests {
 		let light = PointLight::new(point!(0, 0, -10), white());
 		let result = phong_lighting(
 			any_shape().as_ref(),
-			m,
+			&m,
 			light,
 			position,
 			eye_vector,
@@ -125,7 +125,7 @@ mod tests {
 		let light = PointLight::new(point!(0, 0, -10), white());
 		let result = phong_lighting(
 			any_shape().as_ref(),
-			m,
+			&m,
 			light,
 			position,
 			eye_vector,
@@ -144,7 +144,7 @@ mod tests {
 		let light = PointLight::new(point!(0, 10, -10), white());
 		let result = phong_lighting(
 			any_shape().as_ref(),
-			m,
+			&m,
 			light,
 			position,
 			eye_vector,
@@ -167,7 +167,7 @@ mod tests {
 		let light = PointLight::new(point!(0, 10, -10), white());
 		let result = phong_lighting(
 			any_shape().as_ref(),
-			m,
+			&m,
 			light,
 			position,
 			eye_vector,
@@ -187,7 +187,7 @@ mod tests {
 		let light = PointLight::new(point!(0, 0, 10), white());
 		let result = phong_lighting(
 			any_shape().as_ref(),
-			m,
+			&m,
 			light,
 			position,
 			eye_vector,
@@ -206,7 +206,7 @@ mod tests {
 		let light = PointLight::new(point!(0, 0, -10), white());
 		let result = phong_lighting(
 			any_shape().as_ref(),
-			material,
+			&material,
 			light,
 			position,
 			eye_vector,
@@ -236,7 +236,7 @@ mod tests {
 
 		let c1 = phong_lighting(
 			any_shape().as_ref(),
-			m.clone(),
+			&m,
 			light,
 			point!(0.9, 0, 0),
 			eye_vector,
@@ -245,7 +245,7 @@ mod tests {
 		);
 		let c2 = phong_lighting(
 			any_shape().as_ref(),
-			m.clone(),
+			&m,
 			light,
 			point!(1.1, 0, 0),
 			eye_vector,

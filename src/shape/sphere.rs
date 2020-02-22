@@ -68,7 +68,7 @@ impl Shape for Sphere {
 	fn set_transformation(&mut self, t: Matrix) {
 		self.base.set_transformation(t);
 	}
-	fn material(&self) -> Material {
+	fn material(&self) -> &Material {
 		self.base.material()
 	}
 	fn set_material(&mut self, m: Material) {
