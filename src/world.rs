@@ -121,7 +121,7 @@ impl World {
 		comps: PrecomputedValues,
 		remaining_recursive_steps: i16,
 	) -> Color {
-		if comps.object.material().transparency == 0.0 {
+		if comps.object.material().transparency == 0.0 || remaining_recursive_steps == 0 {
 			color!(0, 0, 0)
 		} else {
 			color!(1, 1, 1)
@@ -381,15 +381,6 @@ mod tests {
 		assert!(comps.under_point.z > SELF_INTERSECTION_AVOIDANCE_EPSILON / 2.0);
 		assert!(comps.point.z < comps.under_point.z);
 	}
-	// 	​ 	​Scenario​: The under point is offset below the surface
-	// ​ 	  ​Given​ r ← ray(point(0, 0, -5), vector(0, 0, 1))
-	// ​ 	    ​And​ shape ← glass_sphere() with:
-	// ​ 	      | transform | translation(0, 0, 1) |
-	// ​ 	    ​And​ i ← intersection(5, shape)
-	// ​ 	    ​And​ xs ← intersections(i)
-	// ​ 	  ​When​ comps ← prepare_computations(i, r, xs)
-	// ​ 	  ​Then​ comps.under_point.z > EPSILON/2
-	// ​ 	    ​And​ comps.point.z < comps.under_point.z
 
 	#[test]
 	fn reflected_color_for_nonreflective_material() {
@@ -588,6 +579,26 @@ mod tests {
 		];
 		let comps = precompute_values(r, &xs[0], &xs);
 		let c = w.refracted_color(comps, 5);
+		assert_abs_diff_eq!(c, black());
+	}
+
+	#[test]
+	fn refracted_color_at_maximum_recursive_depth() {
+		let mut w = World::default();
+		let shape = {
+			let mut m = w.objects[0].material().clone();
+			m.transparency = 1.0;
+			m.refractive_index = 1.5;
+			w.objects[0].set_material(m.clone());
+			&w.objects[0]
+		};
+		let r = Ray::new(point!(0, 0, -5), vector!(0, 0, 1));
+		let xs = vec![
+			Intersection::new(4.0, shape.as_ref()),
+			Intersection::new(6.0, shape.as_ref()),
+		];
+		let comps = precompute_values(r, &xs[0], &xs);
+		let c = w.refracted_color(comps, 0);
 		assert_abs_diff_eq!(c, black());
 	}
 }
