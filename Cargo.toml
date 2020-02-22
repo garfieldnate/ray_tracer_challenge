@@ -6,9 +6,8 @@ edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-# TODO: just used for testing, but has to be non-dev because of macro import
 [dependencies]
 
-# [dev-dependencies]
 approx = "0.3.2"
 dyn-clone = "1.0.1"
+linked_hash_set = "0.1.3"

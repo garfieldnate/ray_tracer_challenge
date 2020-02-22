@@ -12,6 +12,7 @@
 - cleanup after [codereview.se](https://codereview.stackexchange.com/questions/236895/color-and-canvas-implementations-in-rust-for-ray-tracer-challenge) responds
 - transformation should probably all be in matrix
 - Having to use & everywhere for matrix, tuple or color multplication sucks
+- Integrate error-chain if needed (http://brson.github.io/2016/11/30/starting-with-error-chain)
 
 ### Performance
 

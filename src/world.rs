@@ -1,5 +1,6 @@
 use crate::color::Color;
 use crate::constants::white;
+use crate::constants::REFRACTION_VACCUM;
 use crate::intersection::Intersection;
 use crate::light::phong_lighting;
 use crate::light::PointLight;
@@ -10,6 +11,7 @@ use crate::shape::shape::Shape;
 use crate::shape::sphere::Sphere;
 use crate::transformations::scaling;
 use crate::tuple::Tuple;
+use linked_hash_set::LinkedHashSet;
 use std::cmp::Ordering::Equal;
 use std::f32;
 
@@ -127,6 +129,7 @@ pub struct PrecomputedValues<'a> {
 	// by finite precision in floating point calculations
 	over_point: Tuple,
 
+	// used for calculating rays crossing material boundaries
 	pub n1: f32,
 	pub n2: f32,
 }
@@ -152,7 +155,34 @@ pub fn precompute_values<'a>(
 	}
 
 	let over_point = point + surface_normal * SELF_SHADOW_AVOIDANCE_EPSILON;
-	// println!("point: {:?}, over_point:{:?}", point, over_point);
+
+	// computing n1 and n2
+	let mut n1 = f32::NAN;
+	let mut n2 = f32::NAN;
+	let mut containers: LinkedHashSet<&'a dyn Shape> = LinkedHashSet::new();
+	for i in intersections {
+		if i == hit {
+			n1 = match containers.back() {
+				Some(o) => o.material().refractive_index,
+				// the book uses this; should probably actually be value for air, but the difference is small
+				None => REFRACTION_VACCUM,
+			};
+		}
+		if !containers.remove(&i.object) {
+			containers.insert(i.object);
+		}
+
+		if i == hit {
+			n2 = match containers.back() {
+				Some(o) => o.material().refractive_index,
+				// the book uses this; should probably actually be value for air, but the difference is small
+				None => REFRACTION_VACCUM,
+			};
+			break;
+		}
+	}
+	debug_assert!(!n1.is_nan());
+	debug_assert!(!n2.is_nan());
 
 	PrecomputedValues {
 		// copy the intersection's properties, for convenience
@@ -166,8 +196,8 @@ pub fn precompute_values<'a>(
 		inside,
 		over_point,
 
-		n1: f32::NAN,
-		n2: f32::NAN,
+		n1,
+		n2,
 	}
 }
 
@@ -245,6 +275,73 @@ mod tests {
 			comps.reflection_vector,
 			vector!(0, FRAC_1_SQRT_2, FRAC_1_SQRT_2)
 		);
+	}
+
+	fn glass_sphere() -> Sphere {
+		Sphere::build(
+			identity_4x4(),
+			Material {
+				transparency: 1.0,
+				refractive_index: 1.5, // TODO: glass should actually be 1.52. Then we could use the glass() method from constants!
+				// TODO: use this syntax everywhere instead of mutable variables
+				..Default::default()
+			},
+		)
+	}
+
+	#[test]
+	fn find_n1_and_n2() {
+		// TODO: use this syntax everywhere instead of mutable variables
+		let a = {
+			let mut a = glass_sphere();
+			a.set_transformation(scaling(2.0, 2.0, 2.0));
+			a
+		};
+		let b = {
+			let mut b = glass_sphere();
+			b.set_transformation(translation(0.0, 0.0, -0.25));
+			// TODO: these tests won't work because material() returns a defensive clone; should return a reference
+			b.material().refractive_index = 2.0;
+			b
+		};
+		let c = {
+			let mut c = glass_sphere();
+			c.set_transformation(translation(0.0, 0.0, 0.25));
+			c.material().refractive_index = 2.5;
+			c
+		};
+		let r = Ray::new(point!(0, 0, -4), vector!(0, 0, 1));
+		let intersections = vec![
+			Intersection::new(2.0, &a),
+			Intersection::new(2.75, &b),
+			Intersection::new(3.25, &c),
+			Intersection::new(4.75, &b),
+			Intersection::new(5.25, &c),
+			Intersection::new(6.0, &a),
+		];
+		let test_data = vec![
+			("a", 1.0, 1.5),
+			("b", 1.5, 2.0),
+			("c", 2.0, 2.5),
+			("b", 2.5, 2.5),
+			("c", 2.5, 1.5),
+			("a", 1.5, 1.0),
+		];
+		for (i, (shape_name, expected_n1, expected_n2)) in
+			intersections.iter().zip(test_data.iter())
+		{
+			let comps = precompute_values(r, &i, &intersections);
+			assert_eq!(
+				*expected_n1, comps.n1,
+				"precomute intersection[{},{}].n1",
+				i.distance, shape_name
+			);
+			assert_eq!(
+				*expected_n2, comps.n2,
+				"precomute intersection[{},{}].n2",
+				i.distance, shape_name
+			);
+		}
 	}
 
 	#[test]
