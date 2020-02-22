@@ -121,7 +121,10 @@ impl World {
 		comps: PrecomputedValues,
 		remaining_recursive_steps: i16,
 	) -> Color {
-		if comps.object.material().transparency == 0.0 || remaining_recursive_steps == 0 {
+		if comps.object.material().transparency == 0.0
+			|| remaining_recursive_steps == 0
+			|| comps.is_totally_internally_reflected()
+		{
 			color!(0, 0, 0)
 		} else {
 			color!(1, 1, 1)
@@ -146,6 +149,20 @@ pub struct PrecomputedValues<'a> {
 	pub n2: f32,
 	under_point: Tuple,
 }
+
+impl PrecomputedValues<'_> {
+	// Snell's law states that sin(incoming) / sin(refracted) = refraction index of
+	// material 2 / refraction index of material 1.
+	// Implementing as a method instead of a field because it is not always needed.
+	fn is_totally_internally_reflected(&self) -> bool {
+		let n_ratio = self.n1 / self.n2;
+		let cos_incoming = self.eye_vector.dot(self.surface_normal);
+		// sin^2(refracted angle) via trig identity
+		let sin2_refracted = n_ratio.powi(2) * (1.0 - cos_incoming.powi(2));
+		return sin2_refracted > 1.0;
+	}
+}
+
 const SELF_INTERSECTION_AVOIDANCE_EPSILON: f32 = f32::EPSILON * 10000.0;
 
 pub fn precompute_values<'a>(
@@ -599,6 +616,27 @@ mod tests {
 		];
 		let comps = precompute_values(r, &xs[0], &xs);
 		let c = w.refracted_color(comps, 0);
+		assert_abs_diff_eq!(c, black());
+	}
+
+	#[test]
+	fn refracted_color_under_total_internal_reflection() {
+		let mut w = World::default();
+		let shape = {
+			let mut m = w.objects[0].material().clone();
+			m.transparency = 1.0;
+			m.refractive_index = 1.5;
+			w.objects[0].set_material(m.clone());
+			&w.objects[0]
+		};
+		let r = Ray::new(point!(0, 0, FRAC_1_SQRT_2), vector!(0, 1, 0));
+		let xs = vec![
+			Intersection::new(-FRAC_1_SQRT_2, shape.as_ref()),
+			Intersection::new(FRAC_1_SQRT_2, shape.as_ref()),
+		];
+		// we're inside the sphere, so we look at the second intersection
+		let comps = precompute_values(r, &xs[1], &xs);
+		let c = w.refracted_color(comps, 5);
 		assert_abs_diff_eq!(c, black());
 	}
 }
