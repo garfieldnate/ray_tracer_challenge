@@ -9,7 +9,7 @@
 - Switch to f64 for geometric calculations everywhere (leave f32 for colors).
   - From _Fundamentals of Computer Graphics_:
     > I suggest using doubles for geometric computation and floats for color computation. For data that occupies a lot of memory, such as triangle meshes, I suggest storing float data, but converting to double when data is accessed through member functions.
-- do realistic shadow effect for transparent things
+- do realistic shadow effect for transparent things (first step would be opting out of shadows for some objects as book suggests)
 - Canvas write_pixel: fail properly for out of bounds
 - cleanup after [codereview.se](https://codereview.stackexchange.com/questions/236895/color-and-canvas-implementations-in-rust-for-ray-tracer-challenge) responds
 - transformation should probably all be in matrix
@@ -43,3 +43,10 @@
 
 - Maze on sphere with glass on top, like those toys, or like super mario galaxy
 - Bowl of glass M&M's
+
+Notes from book about reflection/refraction:
+
+* When rendering glass or any similar material, set both transparency and reflectivity to high values, 0.9 or even 1. This allows the Fresnel effect to kick in, and gives your material an added touch of realism!
+* Because the reflected and refracted colors are added to the surface color, they’ll tend to make such objects brighter. You can tone down the material’s diffuse and ambient properties to compensate. The more transparent or reflective the surface, the smaller the diffuse property should be. This way, more of the color comes from the secondary rays, and less from the object’s surface.
+* If you’d like a subtly colored mirror, or slightly tinted glass, use a very dark color, instead of a very light one. Red glass, for instance, should use a very dark red, almost black, instead of a very bright red. In general, the more reflective or transparent the surface, the darker its surface color should be. Note that if you add color, make sure that you have some diffuse and possibly ambient contribution, too; otherwise, your surface will render as black regardless of what color you give to it.
+* Reflective and transparent surfaces pair nicely with tight specular highlights. Set specular to 1 and bump shininess to 300 or more to get a highlight that really shines.
