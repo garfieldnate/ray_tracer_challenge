@@ -4,6 +4,9 @@ use crate::matrix::Matrix;
 use crate::ray::Ray;
 use crate::tuple::Tuple;
 use std::fmt::Debug;
+use std::hash::Hash;
+use std::hash::Hasher;
+use std::ptr;
 
 pub trait Shape: Debug {
 	fn transformation(&self) -> &Matrix;
@@ -53,6 +56,24 @@ pub trait Shape: Debug {
 	fn transformation_inverse(&self) -> &Matrix;
 	fn transformation_inverse_transpose(&self) -> &Matrix;
 }
+
+// I don't entirely understand why the lifetime params are required, but the compiler will not let us
+// put shapes with lifetime params into a collection of Borrow values without them.
+
+// Shapes are always globally unique. They are only equal if they are the same object
+impl<'a> PartialEq for dyn Shape + 'a {
+	fn eq(&self, other: &dyn Shape) -> bool {
+		ptr::eq(self, other)
+	}
+}
+impl<'a> Hash for dyn Shape + 'a {
+	fn hash<H: Hasher>(&self, hasher: &mut H) {
+		ptr::hash(self, hasher);
+	}
+}
+
+// Shapes are always globally unique. They are only equal if they are the same object
+impl<'a> Eq for dyn Shape + 'a {}
 
 // Other shape implementations are meant to delegate to this one where these defaults are acceptable.
 // TODO: Maybe someday Rust will support delegation: https://github.com/rust-lang/rfcs/pull/2393

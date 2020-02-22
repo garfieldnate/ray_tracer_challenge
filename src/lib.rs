@@ -3,6 +3,7 @@
 
 #[cfg_attr(test, macro_use)]
 extern crate approx;
+extern crate linked_hash_set;
 
 // It's important that mods with macros come first so that they are available in other mods.
 // The macros will automatically be available in all following mods. However, for binaries in
