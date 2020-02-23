@@ -35,6 +35,8 @@ impl Default for Cube {
 
 impl Shape for Cube {
     fn local_intersect(&self, object_ray: Ray) -> Vec<Intersection> {
+        // TODO: book says it's possible to return early sometimes
+        // TODO: make it faster by replacing with this implementation: https://tavianator.com/fast-branchless-raybounding-box-intersections/
         let (min_x_distance, max_x_distance) =
             check_axis(object_ray.origin.x, object_ray.direction.x);
         let (min_y_distance, max_y_distance) =
@@ -58,8 +60,21 @@ impl Shape for Cube {
         }
     }
 
-    fn local_norm_at(&self, _object_point: Tuple) -> Tuple {
-        vector!(0, 0, 0)
+    // norms at the corners are the norms of one of the adjacent sides
+    fn local_norm_at(&self, object_point: Tuple) -> Tuple {
+        let (x_abs, y_abs, z_abs) = (
+            object_point.x.abs(),
+            object_point.y.abs(),
+            object_point.z.abs(),
+        );
+        let max_c = x_abs.max(y_abs.max(z_abs));
+        if x_abs == max_c {
+            vector!(object_point.x, 0, 0)
+        } else if y_abs == max_c {
+            vector!(0, object_point.y, 0)
+        } else {
+            vector!(0, 0, object_point.z)
+        }
     }
 
     // forward these to BaseShape (TODO: need delegation RFC to be accepted!)
@@ -170,6 +185,28 @@ mod tests {
                 xs.len(),
                 xs
             );
+        }
+    }
+
+    #[test]
+    fn cube_surface_normal() {
+        let c = Cube::new();
+        let test_data = vec![
+            ("right side", point!(1, 0.5, -0.8), vector!(1, 0, 0)),
+            ("left side", point!(-1, -0.2, 0.9), vector!(-1, 0, 0)),
+            ("top side", point!(-0.4, 1, -0.1), vector!(0, 1, 0)),
+            ("bottom side", point!(0.3, -1, -0.7), vector!(0, -1, 0)),
+            ("front side", point!(-0.6, 0.3, 1), vector!(0, 0, 1)),
+            ("back side", point!(0.4, 0.4, -1), vector!(0, 0, -1)),
+            ("Top right front corner", point!(1, 1, 1), vector!(1, 0, 0)),
+            (
+                "Bottom back left corner",
+                point!(-1, -1, -1),
+                vector!(-1, 0, 0),
+            ),
+        ];
+        for (name, point, expected_normal) in test_data {
+            assert_eq!(c.local_norm_at(point), expected_normal, "{}", name);
         }
     }
 }
