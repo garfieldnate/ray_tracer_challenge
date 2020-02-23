@@ -53,6 +53,14 @@ impl Shape for Cylinder {
 
     // norms at the corners are the norms of one of the adjacent sides
     fn local_norm_at(&self, object_point: Tuple) -> Tuple {
+        let dist_square = object_point.x.powi(2) + object_point.z.powi(2);
+        if dist_square < 1.0 {
+            if object_point.y >= self.maximum_y - CLOSE_TO_ZERO {
+                return vector!(0, 1, 0);
+            } else if object_point.y <= self.minimum_y + CLOSE_TO_ZERO {
+                return vector!(0, -1, 0);
+            }
+        }
         vector!(object_point.x, 0, object_point.z)
     }
 
@@ -339,13 +347,36 @@ mod tests {
     }
 
     #[test]
-    fn cylinder_normal_vector() {
+    fn cylinder_sides_normal_vector() {
         let c = Cylinder::new();
         let test_data = vec![
             ("+x", point!(1, 0, 0), vector!(1, 0, 0)),
             ("-z", point!(0, 5, -1), vector!(0, 0, -1)),
             ("+z", point!(0, -2, 1), vector!(0, 0, 1)),
             ("-x", point!(-1, 1, 0), vector!(-1, 0, 0)),
+        ];
+        for (name, point, expected_normal) in test_data {
+            let normal = c.local_norm_at(point);
+            assert_eq!(normal, expected_normal, "{}", name);
+        }
+    }
+
+    #[test]
+    fn cylinder_caps_normal_vector() {
+        let c = {
+            let mut c = Cylinder::new();
+            c.minimum_y = 1.0;
+            c.maximum_y = 2.0;
+            c.closed = true;
+            c
+        };
+        let test_data = vec![
+            ("-y at bottom center", point!(0, 1, 0), vector!(0, -1, 0)),
+            ("-y at bottom right", point!(0.5, 1, 0), vector!(0, -1, 0)),
+            ("-y at bottom front", point!(0, 1, 0.5), vector!(0, -1, 0)),
+            ("+y at top center", point!(0, 2, 0), vector!(0, 1, 0)),
+            ("+y at top right", point!(0.5, 2, 0), vector!(0, 1, 0)),
+            ("+y at top front", point!(0, 2, 0.5), vector!(0, 1, 0)),
         ];
         for (name, point, expected_normal) in test_data {
             let normal = c.local_norm_at(point);
