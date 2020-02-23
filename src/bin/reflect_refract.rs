@@ -1,13 +1,14 @@
 use ray_tracer_challenge::camera::Camera;
 use ray_tracer_challenge::color::Color;
 use ray_tracer_challenge::constants::metal;
-use ray_tracer_challenge::constants::{white, yellow};
+use ray_tracer_challenge::constants::{black, white, yellow};
 use ray_tracer_challenge::light::PointLight;
 use ray_tracer_challenge::material::Material;
 use ray_tracer_challenge::pattern::pattern::Pattern;
 use ray_tracer_challenge::pattern::rings::Rings;
 use ray_tracer_challenge::pattern::sine_2d::Sine2D;
 use ray_tracer_challenge::pattern::stripes::Stripes;
+use ray_tracer_challenge::shape::cylinder::Cylinder;
 use ray_tracer_challenge::shape::plane::Plane;
 use ray_tracer_challenge::shape::shape::Shape;
 use ray_tracer_challenge::shape::sphere::Sphere;
@@ -90,12 +91,27 @@ fn main() {
 		left_sphere_material,
 	);
 
+	let cylinder = {
+		let mut c = Cylinder::new();
+		c.maximum_y = 1.5;
+		c.minimum_y = 0.0;
+		let mut m = Material::default();
+		m.reflective = 1.0;
+		m.color = color!(0.5, 0.5, 0.5);
+		m.shininess = 300.0;
+		m.specular = 0.8;
+		c.set_material(m);
+		c.set_transformation(&translation(3.7, 0.0, 4.0) * &scaling(0.33, 1.8, 0.33));
+		c
+	};
+
 	let world = World {
 		objects: vec![
 			Box::new(floor),
 			Box::new(left),
 			Box::new(middle),
 			Box::new(right),
+			Box::new(cylinder),
 		],
 		// The light source is white, shining from above and to the left
 		light: Some(PointLight::new(point!(-10, 10, -10), white())),
