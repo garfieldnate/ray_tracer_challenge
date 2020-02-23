@@ -1,7 +1,7 @@
 # Rust learning notes
 
 * Use Option<Box<dyn Trait>>, not Box<Option<dyn Trait>> which gives some unknown runtime size failure.
-* floats are only partially comparable
+* floats are only partially comparable. This is super annoying! There's no min/max function for floats, for example. If the Rust designers care about catching this type of error, then they should have also provided a floating point type that is gauranteed not to be NaN or infinity. Of course, they apparently know this, and redoing numbers has been on their todo for a while. float-ord crate sort of solves it.
 * use `approx` crate to support equality testing of anything containing a float
 * for whatever reason Rust will not accept `1` or `2` whenever a float is required. Shouldn't it be safe to cast these to the more detailed type automatically?
 * need to read chapter on function pointers, closures, etc.
@@ -12,7 +12,7 @@
 * Always great to auto-derive these when possible: Clone, Copy, Debug, Eq/PartialEq, Default
     - Eq will get reduced to PartialEq if you have any floats
     - Copy will stop being available with any pointers (Box, etc.)
-* When should I use a plain &dyn Thing and when should I use a Box<dyn Thing>
+* Use a plain &dyn Thing when the lifetime parameter requirement won't mess up the whole codebase and ownership is totally clear. Otherwise use Box<dyn Thing>.
 
 ### VS Code Wishes
 * I wish that VSCode could auto-format macros. Doesn't seem to do indenting automatically.
