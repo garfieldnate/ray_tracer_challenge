@@ -6,6 +6,7 @@ use crate::shape::shape::BaseShape;
 use crate::shape::shape::Shape;
 use crate::tuple::Tuple;
 
+// Base shape has radius of 1 and straddles world origin
 #[derive(Clone, Debug, PartialEq)]
 pub struct Sphere {
 	base: BaseShape,
@@ -51,10 +52,12 @@ impl Shape for Sphere {
 			return vec![];
 		}
 
+		let two_a = 2.0 * a;
+		let discriminant_sqrt = discriminant.sqrt();
 		// Jingle bells!
 		vec![
-			Intersection::new((-b - discriminant.sqrt()) / (2.0 * a), self),
-			Intersection::new((-b + discriminant.sqrt()) / (2.0 * a), self),
+			Intersection::new((-b - discriminant_sqrt) / two_a, self),
+			Intersection::new((-b + discriminant_sqrt) / two_a, self),
 		]
 	}
 	fn local_norm_at(&self, object_point: Tuple) -> Tuple {

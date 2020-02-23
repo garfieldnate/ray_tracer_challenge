@@ -13,6 +13,7 @@
     - Eq will get reduced to PartialEq if you have any floats
     - Copy will stop being available with any pointers (Box, etc.)
 * Use a plain &dyn Thing when the lifetime parameter requirement won't mess up the whole codebase and ownership is totally clear. Otherwise use Box<dyn Thing>.
+* Rust is very careful to distinguish between mutable and immutable variables, but you can declare the same immutable variable twice to override the first declaration with the second.
 
 ### VS Code Wishes
 * I wish that VSCode could auto-format macros. Doesn't seem to do indenting automatically.

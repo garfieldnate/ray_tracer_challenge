@@ -17,6 +17,8 @@
 - transformation should probably all be in matrix
 - Having to use & everywhere for matrix, tuple or color multplication sucks
 - Integrate error-chain if needed (http://brson.github.io/2016/11/30/starting-with-error-chain)
+- make cube intersection more performant
+  - apparently divides in general are expensive and caching the inverses of ray direction components is worthwhile
 
 ### Performance
 

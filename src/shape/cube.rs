@@ -7,6 +7,8 @@ use crate::shape::shape::Shape;
 use crate::tuple::Tuple;
 use std::f32;
 
+// Base shape has a dimension of two and straddles the world origin
+
 #[derive(Clone, Debug, PartialEq)]
 pub struct Cube {
     base: BaseShape,
@@ -34,6 +36,7 @@ impl Default for Cube {
 }
 
 impl Shape for Cube {
+    // uses AABB. TODO: more documentation
     fn local_intersect(&self, object_ray: Ray) -> Vec<Intersection> {
         // TODO: book says it's possible to return early sometimes
         // TODO: make it faster by replacing with this implementation: https://tavianator.com/fast-branchless-raybounding-box-intersections/
