@@ -7,6 +7,7 @@ use crate::shape::shape::Shape;
 use crate::tuple::Tuple;
 use std::f32;
 
+// Base shape is y=0 (so an xz plane, extending into the screen as a floor)
 #[derive(Clone, Debug, PartialEq)]
 pub struct Plane {
 	base: BaseShape,
@@ -34,7 +35,7 @@ impl Default for Plane {
 
 impl Shape for Plane {
 	fn local_intersect(&self, object_ray: Ray) -> Vec<Intersection> {
-		// the plane is in the xz plane, so it's y is 0.
+		// the plane is in the xz plane, so its y is 0.
 		// if the ray is roughly coplanar or parallel with the plane,
 		// we won't be able to see it
 		if object_ray.direction.y.abs() < f32::EPSILON * 10000.0 {
