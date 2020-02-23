@@ -126,6 +126,8 @@ impl Shape for Cylinder {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use approx::AbsDiffEq;
+
     #[test]
     fn ray_misses_cylinder() {
         let c = Cylinder::new();
@@ -135,7 +137,7 @@ mod tests {
             ("Skew", point!(0, 0, -5), vector!(1, 1, 1)),
         ];
         for (name, origin, direction) in test_data {
-            let r = Ray::new(origin, direction);
+            let r = Ray::new(origin, direction.norm());
             let xs = c.local_intersect(r);
             assert!(
                 xs.is_empty(),
@@ -159,29 +161,35 @@ mod tests {
                 4.0,
                 6.0,
             ),
-            // TODO: this one doesn't pass and I don't know why. Driving me a little nuts. I'll come back once I have a visual.
-            // The actual values that are currently found are 4.801988 and 4.999992
-            // (
-            //     "angle",
-            //     point!(0.5, 0, -5),
-            //     vector!(0.1, 1, 1),
-            //     6.80798,
-            //     7.08872,
-            // ),
+            (
+                "angle",
+                point!(0.5, 0, -5),
+                vector!(0.1, 1, 1),
+                6.808006,
+                7.0886984,
+            ),
         ];
         for (name, origin, direction, distance1, distance2) in test_data {
-            let r = Ray::new(origin, direction);
+            let r = Ray::new(origin, direction.norm());
             let xs = c.local_intersect(r);
             assert_eq!(xs.len(), 2, "{}: should find 2 intersections", name);
-            assert_eq!(
-                xs[0].distance, distance1,
-                "{}: distance to first intersection",
-                name
+            debug_assert!(
+                xs[0]
+                    .distance
+                    .abs_diff_eq(&distance1, f32::default_epsilon()),
+                "{}: distance to first intersection (expected {}, got {})",
+                name,
+                distance1,
+                xs[0].distance
             );
-            assert_eq!(
-                xs[1].distance, distance2,
-                "{}: distance to second intersection",
-                name
+            debug_assert!(
+                xs[1]
+                    .distance
+                    .abs_diff_eq(&distance2, f32::default_epsilon()),
+                "{}: distance to second intersection (expected {}, got {})",
+                name,
+                distance2,
+                xs[1].distance
             );
         }
     }
@@ -233,7 +241,7 @@ mod tests {
             ),
         ];
         for (name, origin, direction, expected_num_intersections) in test_data {
-            let r = Ray::new(origin, direction);
+            let r = Ray::new(origin, direction.norm());
             let xs = c.local_intersect(r);
             assert_eq!(xs.len(), expected_num_intersections, "{}", name);
         }
