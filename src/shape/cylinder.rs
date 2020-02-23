@@ -41,53 +41,8 @@ impl Default for Cylinder {
 
 impl Shape for Cylinder {
     fn local_intersect(&self, object_ray: Ray) -> Vec<Intersection> {
-        // println!("ray: {:?}", object_ray);
-        let two_a = 2.0 * (object_ray.direction.x.powi(2) + object_ray.direction.z.powi(2));
-        // println!("two_a: {:?}", two_a);
-        // TODO: turn this into shared constant somewhere?
-        if two_a < 0.00000001 {
-            // ray is parallel to y axis, so it won't intersect the cyllinder
-            return vec![];
-        }
-        let b = 2.0
-            * (object_ray.origin.x * object_ray.direction.x
-                + object_ray.origin.z * object_ray.direction.z);
-        // println!("b: {:?}", b);
-        let c = object_ray.origin.x.powi(2) + object_ray.origin.z.powi(2) - 1.0;
-        // println!("c: {:?}", c);
-        let discriminant = b.powi(2) - 2.0 * two_a * c;
-        // println!("discriminant: {:?}", discriminant);
-
-        if discriminant < 0.0 {
-            //ray does not intersect cylinder
-            return vec![];
-        }
-
-        // Jingle all the way!
-        let discriminant_sqrt = discriminant.sqrt();
-        // println!("disc sqrt: {:?}", discriminant_sqrt);
-        let distance1 = (-b - discriminant_sqrt) / two_a;
-        // println!("d1: {:?}", distance1);
-        let distance2 = (-b + discriminant_sqrt) / two_a;
-        // println!("d2: {:?}", distance2);
-
-        let (distance1, distance2) = if distance1 > distance2 {
-            (distance2, distance1)
-        } else {
-            (distance1, distance2)
-        };
-
         let mut intersections: Vec<Intersection> = Vec::with_capacity(2);
-
-        let y1 = object_ray.origin.y + distance1 * object_ray.direction.y;
-        if self.minimum_y < y1 && y1 < self.maximum_y {
-            intersections.push(Intersection::new(distance1, self));
-        }
-        let y2 = object_ray.origin.y + distance2 * object_ray.direction.y;
-        if self.minimum_y < y2 && y2 < self.maximum_y {
-            intersections.push(Intersection::new(distance2, self));
-        }
-
+        self.intersect_sides(&object_ray, &mut intersections);
         intersections
     }
 
@@ -120,6 +75,55 @@ impl Shape for Cylinder {
     }
     fn transformation_inverse_transpose(&self) -> &Matrix {
         self.base.transformation_inverse_transpose()
+    }
+}
+
+impl Cylinder {
+    fn intersect_sides<'a>(&'a self, object_ray: &Ray, intersections: &mut Vec<Intersection<'a>>) {
+        // println!("ray: {:?}", object_ray);
+        let two_a = 2.0 * (object_ray.direction.x.powi(2) + object_ray.direction.z.powi(2));
+        // println!("two_a: {:?}", two_a);
+        // TODO: turn this into shared constant somewhere?
+        if two_a < 0.00000001 {
+            // ray is parallel to y axis, so it won't intersect the cyllinder
+            return;
+        }
+        let b = 2.0
+            * (object_ray.origin.x * object_ray.direction.x
+                + object_ray.origin.z * object_ray.direction.z);
+        // println!("b: {:?}", b);
+        let c = object_ray.origin.x.powi(2) + object_ray.origin.z.powi(2) - 1.0;
+        // println!("c: {:?}", c);
+        let discriminant = b.powi(2) - 2.0 * two_a * c;
+        // println!("discriminant: {:?}", discriminant);
+
+        if discriminant < 0.0 {
+            //ray does not intersect cylinder
+            return;
+        }
+
+        // Jingle all the way!
+        let discriminant_sqrt = discriminant.sqrt();
+        // println!("disc sqrt: {:?}", discriminant_sqrt);
+        let distance1 = (-b - discriminant_sqrt) / two_a;
+        // println!("d1: {:?}", distance1);
+        let distance2 = (-b + discriminant_sqrt) / two_a;
+        // println!("d2: {:?}", distance2);
+
+        let (distance1, distance2) = if distance1 > distance2 {
+            (distance2, distance1)
+        } else {
+            (distance1, distance2)
+        };
+
+        let y1 = object_ray.origin.y + distance1 * object_ray.direction.y;
+        if self.minimum_y < y1 && y1 < self.maximum_y {
+            intersections.push(Intersection::new(distance1, self));
+        }
+        let y2 = object_ray.origin.y + distance2 * object_ray.direction.y;
+        if self.minimum_y < y2 && y2 < self.maximum_y {
+            intersections.push(Intersection::new(distance2, self));
+        }
     }
 }
 
