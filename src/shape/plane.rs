@@ -62,6 +62,12 @@ impl Shape for Plane {
 	fn set_material(&mut self, m: Material) {
 		self.base.set_material(m);
 	}
+	fn casts_shadow(&self) -> bool {
+		self.base.casts_shadow()
+	}
+	fn set_casts_shadow(&mut self, casts_shadow: bool) {
+		self.base.set_casts_shadow(casts_shadow)
+	}
 	fn transformation_inverse(&self) -> &Matrix {
 		self.base.transformation_inverse()
 	}
