@@ -29,3 +29,23 @@ pub fn green() -> Color {
 pub fn blue() -> Color {
     color!(0, 0, 1)
 }
+pub fn yellow() -> Color {
+    color!(1, 1, 0)
+}
+pub fn gray() -> Color {
+    color!(0.5, 0.5, 0.5)
+}
+
+pub fn metal() -> Material {
+    Material {
+        color: gray(),
+        ambient: 1.0,
+        diffuse: 0.6,
+        reflective: 0.1,
+        specular: 0.4,
+        shininess: 10.0,
+        transparency: 0.0,
+        refractive_index: 1.0,
+        pattern: None,
+    }
+}
