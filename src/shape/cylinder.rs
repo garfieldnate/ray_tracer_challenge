@@ -14,6 +14,7 @@ pub struct Cylinder {
     base: BaseShape,
     pub minimum_y: f32,
     pub maximum_y: f32,
+    pub closed: bool,
 }
 
 impl Cylinder {
@@ -35,6 +36,7 @@ impl Default for Cylinder {
             base: BaseShape::new(),
             minimum_y: f32::NEG_INFINITY,
             maximum_y: f32::INFINITY,
+            closed: false,
         }
     }
 }
@@ -43,6 +45,9 @@ impl Shape for Cylinder {
     fn local_intersect(&self, object_ray: Ray) -> Vec<Intersection> {
         let mut intersections: Vec<Intersection> = Vec::with_capacity(2);
         self.intersect_sides(&object_ray, &mut intersections);
+        if intersections.len() < 2 {
+            self.intersect_caps(&object_ray, &mut intersections);
+        }
         intersections
     }
 
@@ -78,13 +83,14 @@ impl Shape for Cylinder {
     }
 }
 
+const CLOSE_TO_ZERO: f32 = 0.000001;
 impl Cylinder {
     fn intersect_sides<'a>(&'a self, object_ray: &Ray, intersections: &mut Vec<Intersection<'a>>) {
         // println!("ray: {:?}", object_ray);
         let two_a = 2.0 * (object_ray.direction.x.powi(2) + object_ray.direction.z.powi(2));
         // println!("two_a: {:?}", two_a);
         // TODO: turn this into shared constant somewhere?
-        if two_a < 0.00000001 {
+        if two_a < CLOSE_TO_ZERO {
             // ray is parallel to y axis, so it won't intersect the cyllinder
             return;
         }
@@ -123,6 +129,39 @@ impl Cylinder {
         let y2 = object_ray.origin.y + distance2 * object_ray.direction.y;
         if self.minimum_y < y2 && y2 < self.maximum_y {
             intersections.push(Intersection::new(distance2, self));
+        }
+    }
+
+    // check if the intersection at distance is within the radius (1) from the y axis
+    fn check_cap(ray: &Ray, distance: f32) -> bool {
+        let x = ray.origin.x + distance * ray.direction.x;
+        let z = ray.origin.z + distance * ray.direction.z;
+        // TODO: the book didn't use an epsilon. Maybe switching to f64 everywhere would fix this?
+        (x.powi(2) + z.powi(2)) <= 1.0 + CLOSE_TO_ZERO
+    }
+
+    // add intersections with the end caps of the cylinder to intersections
+    fn intersect_caps<'a>(&'a self, object_ray: &Ray, intersections: &mut Vec<Intersection<'a>>) {
+        // don't bother checking for intersection if the cylinder isn't close
+        // TODO: book says we should also have `|| object_ray.direction.y <= CLOSE_TO_ZERO ` here.
+        // That makes no sense, though, right? A vertical ray can intersect both caps. Maybe report as
+        // error?
+        if !self.closed {
+            return;
+        }
+
+        // TODO: cache ray direction inverses
+        let distance = (self.minimum_y - object_ray.origin.y) / object_ray.direction.y;
+        if Cylinder::check_cap(&object_ray, distance) {
+            intersections.push(Intersection::new(distance, self));
+        } else {
+            println!("Check cap 1 failed");
+        }
+        let distance = (self.maximum_y - object_ray.origin.y) / object_ray.direction.y;
+        if Cylinder::check_cap(&object_ray, distance) {
+            intersections.push(Intersection::new(distance, self));
+        } else {
+            println!("Check cap 2 failed");
         }
     }
 }
@@ -243,6 +282,54 @@ mod tests {
                 vector!(0, 0, 1),
                 2,
             ),
+        ];
+        for (name, origin, direction, expected_num_intersections) in test_data {
+            let r = Ray::new(origin, direction.norm());
+            let xs = c.local_intersect(r);
+            assert_eq!(xs.len(), expected_num_intersections, "{}", name);
+        }
+    }
+
+    #[test]
+    fn ray_intersects_caps_of_closed_cylinder() {
+        let c = {
+            let mut c = Cylinder::new();
+            c.minimum_y = 1.0;
+            c.maximum_y = 2.0;
+            c.closed = true;
+            c
+        };
+        let test_data = vec![
+            (
+                "Ray pointing down center",
+                point!(0, 3, 0),
+                vector!(0, -1, 0),
+                2,
+            ),
+            (
+                "Diagonal from above through center",
+                point!(0, 3, -2),
+                vector!(0, -1, 2),
+                2,
+            ),
+            (
+                "Diagonal from above through center, exit at border between side and cap",
+                point!(0, 4, -2),
+                vector!(0, -1, 1),
+                2,
+            ), // corner case
+            (
+                "Diagonal from below through center",
+                point!(0, 0, -2),
+                vector!(0, 1, 2),
+                2,
+            ),
+            (
+                "Diagonal from below through center, exit at border between side and cap",
+                point!(0, -1, -2),
+                vector!(0, 1, 1),
+                2,
+            ), // corner case
         ];
         for (name, origin, direction, expected_num_intersections) in test_data {
             let r = Ray::new(origin, direction.norm());
