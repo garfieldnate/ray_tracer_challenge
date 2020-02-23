@@ -1,9 +1,11 @@
 use ray_tracer_challenge::camera::Camera;
 use ray_tracer_challenge::color::Color;
-use ray_tracer_challenge::constants::white;
+use ray_tracer_challenge::constants::metal;
+use ray_tracer_challenge::constants::{white, yellow};
 use ray_tracer_challenge::light::PointLight;
 use ray_tracer_challenge::material::Material;
 use ray_tracer_challenge::pattern::pattern::Pattern;
+use ray_tracer_challenge::pattern::rings::Rings;
 use ray_tracer_challenge::pattern::sine_2d::Sine2D;
 use ray_tracer_challenge::pattern::stripes::Stripes;
 use ray_tracer_challenge::shape::plane::Plane;
@@ -61,10 +63,14 @@ fn main() {
 	right_sphere_material.pattern = Some(Box::new(stripes.clone()));
 	right_sphere_material.diffuse = 0.7;
 	right_sphere_material.specular = 0.3;
+	let mut metal_rings = metal();
+	let mut ring_pattern = Rings::new(yellow() / 2.0, white() / 2.0);
+	ring_pattern.set_transformation(scaling(0.1, 0.1, 0.1));
+	metal_rings.pattern = Some(Box::new(ring_pattern));
 	let right = Sphere::build(
 		&shearing(0.0, 1.0, 0.0, 0.0, 0.0, 1.0)
 			* &(&translation(1.5, 0.5, -0.5) * &scaling(0.5, 0.5, 0.5)),
-		right_sphere_material,
+		metal_rings,
 	);
 
 	// The smallest sphere is scaled by a third before being translated
