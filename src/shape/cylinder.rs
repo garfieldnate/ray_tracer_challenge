@@ -37,9 +37,9 @@ impl Default for Cylinder {
 
 impl Shape for Cylinder {
     fn local_intersect(&self, object_ray: Ray) -> Vec<Intersection> {
-        println!("ray: {:?}", object_ray);
+        // println!("ray: {:?}", object_ray);
         let two_a = 2.0 * (object_ray.direction.x.powi(2) + object_ray.direction.z.powi(2));
-        println!("two_a: {:?}", two_a);
+        // println!("two_a: {:?}", two_a);
         // TODO: turn this into shared constant somewhere?
         if two_a < 0.00000001 {
             // ray is parallel to y axis, so it won't intersect the cyllinder
@@ -48,11 +48,11 @@ impl Shape for Cylinder {
         let b = 2.0
             * (object_ray.origin.x * object_ray.direction.x
                 + object_ray.origin.z * object_ray.direction.z);
-        println!("b: {:?}", b);
+        // println!("b: {:?}", b);
         let c = object_ray.origin.x.powi(2) + object_ray.origin.z.powi(2) - 1.0;
-        println!("c: {:?}", c);
+        // println!("c: {:?}", c);
         let discriminant = b.powi(2) - 2.0 * two_a * c;
-        println!("discriminant: {:?}", discriminant);
+        // println!("discriminant: {:?}", discriminant);
 
         if discriminant < 0.0 {
             //ray does not intersect cylinder
@@ -61,11 +61,11 @@ impl Shape for Cylinder {
 
         // Jingle all the way!
         let discriminant_sqrt = discriminant.sqrt();
-        println!("disc sqrt: {:?}", discriminant_sqrt);
+        // println!("disc sqrt: {:?}", discriminant_sqrt);
         let distance1 = (-b - discriminant_sqrt) / two_a;
-        println!("d1: {:?}", distance1);
+        // println!("d1: {:?}", distance1);
         let distance2 = (-b + discriminant_sqrt) / two_a;
-        println!("d2: {:?}", distance2);
+        // println!("d2: {:?}", distance2);
         vec![
             Intersection::new(distance1, self),
             Intersection::new(distance2, self),
@@ -74,7 +74,7 @@ impl Shape for Cylinder {
 
     // norms at the corners are the norms of one of the adjacent sides
     fn local_norm_at(&self, object_point: Tuple) -> Tuple {
-        vector!(0, 0, 0)
+        vector!(object_point.x, 0, object_point.z)
     }
 
     // forward these to BaseShape (TODO: need delegation RFC to be accepted!)
@@ -163,6 +163,21 @@ mod tests {
                 "{}: distance to second intersection",
                 name
             );
+        }
+    }
+
+    #[test]
+    fn cylinder_normal_vector() {
+        let c = Cylinder::new();
+        let test_data = vec![
+            ("+x", point!(1, 0, 0), vector!(1, 0, 0)),
+            ("-z", point!(0, 5, -1), vector!(0, 0, -1)),
+            ("+z", point!(0, -2, 1), vector!(0, 0, 1)),
+            ("-x", point!(-1, 1, 0), vector!(-1, 0, 0)),
+        ];
+        for (name, point, expected_normal) in test_data {
+            let normal = c.local_norm_at(point);
+            assert_eq!(normal, expected_normal, "{}", name);
         }
     }
 }
