@@ -7,6 +7,7 @@ use ray_tracer_challenge::pattern::pattern::Pattern;
 use ray_tracer_challenge::pattern::sine_2d::Sine2D;
 use ray_tracer_challenge::pattern::stripes::Stripes;
 use ray_tracer_challenge::shape::plane::Plane;
+use ray_tracer_challenge::shape::shape::Shape;
 use ray_tracer_challenge::shape::sphere::Sphere;
 use ray_tracer_challenge::transformations::rotation_z;
 use ray_tracer_challenge::transformations::scaling;
@@ -41,12 +42,17 @@ fn main() {
 
 	let mut middle_sphere_material = Material::default();
 	middle_sphere_material.color = color!(0, 0, 0);
-	// middle_sphere_material.pattern = Some(Box::new(stripes.clone()));
-	// middle_sphere_material.diffuse = 0.7;
-	middle_sphere_material.specular = 0.3;
+	middle_sphere_material.specular = 1.0;
+	middle_sphere_material.shininess = 300.0;
 	middle_sphere_material.transparency = 1.0;
 	middle_sphere_material.refractive_index = 1.5;
-	let middle = Sphere::build(translation(-0.5, 1.0, 0.5), middle_sphere_material);
+	middle_sphere_material.reflective = 1.0;
+
+	let middle = {
+		let mut sphere = Sphere::build(translation(-0.5, 1.0, 0.5), middle_sphere_material);
+		sphere.set_casts_shadow(false);
+		sphere
+	};
 
 	// The smaller green sphere on the right is scaled in half
 
@@ -63,11 +69,16 @@ fn main() {
 
 	// The smallest sphere is scaled by a third before being translated
 	let mut left_sphere_material = Material::default();
-	left_sphere_material.color = color!(1, 0.8, 0.1);
-	left_sphere_material.pattern = Some(Box::new(stripes.clone()));
+
+	let mut stripes2 = stripes.clone();
+	// have to make this thing much darker since it will also be reflective
+	stripes2.a = stripes2.a / 4.0;
+	stripes2.b = stripes2.b / 4.0;
+	left_sphere_material.pattern = Some(Box::new(stripes2));
 	left_sphere_material.diffuse = 0.7;
-	left_sphere_material.specular = 0.3;
+	left_sphere_material.specular = 1.0;
 	left_sphere_material.reflective = 0.8;
+	left_sphere_material.shininess = 300.0;
 	let left = Sphere::build(
 		&translation(-1.5, 0.33, -0.75) * &scaling(0.33, 0.33, 0.33),
 		left_sphere_material,

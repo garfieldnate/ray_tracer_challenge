@@ -9,8 +9,8 @@ use std::fmt::Debug;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Stripes {
-	a: Color,
-	b: Color,
+	pub a: Color,
+	pub b: Color,
 	base: BasePattern,
 }
 

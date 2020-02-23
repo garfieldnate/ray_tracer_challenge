@@ -106,7 +106,7 @@ impl World {
 
 		let hit = Intersection::hit(&intersections);
 		match hit {
-			Some(i) => i.distance < distance,
+			Some(i) => i.object.casts_shadow() && i.distance < distance,
 			None => false,
 		}
 	}
@@ -590,28 +590,37 @@ mod tests {
 	fn no_shadow_when_nothing_is_colinear_with_point_and_light() {
 		let w = World::default();
 		let p = point!(0, 10, 0);
-		assert_eq!(w.is_shadowed(p), false);
+		assert!(!w.is_shadowed(p));
 	}
 
 	#[test]
-	fn no_shadow_when_object_is_between_point_and_light() {
+	fn shadowed_when_object_is_between_point_and_light() {
 		let w = World::default();
 		let p = point!(10, -10, 10);
-		assert_eq!(w.is_shadowed(p), true);
+		assert!(w.is_shadowed(p));
+	}
+
+	#[test]
+	fn no_shadow_when_object_does_not_cast_shadow() {
+		let mut w = World::default();
+		w.objects[0].set_casts_shadow(false);
+		w.objects[1].set_casts_shadow(false);
+		let p = point!(10, -10, 10);
+		assert!(!w.is_shadowed(p));
 	}
 
 	#[test]
 	fn no_shadow_when_object_is_behind_light() {
 		let w = World::default();
 		let p = point!(-20, 20, -20);
-		assert_eq!(w.is_shadowed(p), false);
+		assert!(!w.is_shadowed(p));
 	}
 
 	#[test]
 	fn no_shadow_when_object_is_behind_point() {
 		let w = World::default();
 		let p = point!(-2, 2, -2);
-		assert_eq!(w.is_shadowed(p), false);
+		assert!(!w.is_shadowed(p));
 	}
 
 	#[test]

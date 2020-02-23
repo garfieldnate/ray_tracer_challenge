@@ -13,6 +13,9 @@ pub trait Shape: Debug {
 	fn set_transformation(&mut self, t: Matrix);
 	fn material(&self) -> &Material;
 	fn set_material(&mut self, m: Material);
+	fn casts_shadow(&self) -> bool;
+	fn set_casts_shadow(&mut self, casts_shadow: bool);
+
 	fn local_intersect(&self, object_ray: Ray) -> Vec<Intersection>;
 	fn local_norm_at(&self, object_point: Tuple) -> Tuple;
 
@@ -84,11 +87,15 @@ pub struct BaseShape {
 	t_inverse: Matrix,
 	t_inverse_transpose: Matrix,
 	m: Material,
+	casts_shadow: bool,
 }
 
 impl BaseShape {
 	pub fn new() -> Self {
-		Self::default()
+		Self {
+			casts_shadow: true,
+			..Default::default()
+		}
 	}
 }
 
@@ -106,6 +113,12 @@ impl Shape for BaseShape {
 	}
 	fn set_material(&mut self, m: Material) {
 		self.m = m;
+	}
+	fn casts_shadow(&self) -> bool {
+		self.casts_shadow
+	}
+	fn set_casts_shadow(&mut self, casts_shadow: bool) {
+		self.casts_shadow = casts_shadow;
 	}
 
 	fn transformation_inverse(&self) -> &Matrix {
@@ -163,6 +176,12 @@ mod tests {
 		fn set_material(&mut self, m: Material) {
 			self.base.set_material(m)
 		}
+		fn casts_shadow(&self) -> bool {
+			self.base.casts_shadow()
+		}
+		fn set_casts_shadow(&mut self, casts_shadow: bool) {
+			self.base.set_casts_shadow(casts_shadow)
+		}
 		fn local_intersect(&self, _object_ray: Ray) -> Vec<Intersection> {
 			// save the incoming ray for a comparison test
 			self.saved_ray.borrow_mut().replace(_object_ray);
@@ -214,6 +233,15 @@ mod tests {
 			&override_material,
 			"material should be settable"
 		);
+	}
+
+	#[test]
+	fn shape_casts_shadow() {
+		let mut shape = BaseShape::new();
+		assert_eq!(shape.casts_shadow(), true, "casts shadow by default");
+
+		shape.set_casts_shadow(false);
+		assert!(!shape.casts_shadow(), "casts_shadow should be settable");
 	}
 
 	#[test]

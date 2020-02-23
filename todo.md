@@ -9,7 +9,8 @@
 - Switch to f64 for geometric calculations everywhere (leave f32 for colors).
   - From _Fundamentals of Computer Graphics_:
     > I suggest using doubles for geometric computation and floats for color computation. For data that occupies a lot of memory, such as triangle meshes, I suggest storing float data, but converting to double when data is accessed through member functions.
-- do realistic shadow effect for transparent things (first step would be opting out of shadows for some objects as book suggests)
+- do realistic shadow effect for transparent things
+  - curently objects can opt out of having a shadow, but that's not really realistic
 - Canvas write_pixel: fail properly for out of bounds
 - cleanup after [codereview.se](https://codereview.stackexchange.com/questions/236895/color-and-canvas-implementations-in-rust-for-ray-tracer-challenge) responds
 - transformation should probably all be in matrix
