@@ -94,9 +94,7 @@ impl Shape for Cylinder {
 const CLOSE_TO_ZERO: f32 = 0.000001;
 impl Cylinder {
     fn intersect_sides<'a>(&'a self, object_ray: &Ray, intersections: &mut Vec<Intersection<'a>>) {
-        // println!("ray: {:?}", object_ray);
         let two_a = 2.0 * (object_ray.direction.x.powi(2) + object_ray.direction.z.powi(2));
-        // println!("two_a: {:?}", two_a);
         // TODO: turn this into shared constant somewhere?
         // TODO: add test for negative small two_a value (forgot abs() before since book doesn't use this epsilon thingy)
         if two_a.abs() < CLOSE_TO_ZERO {
@@ -106,11 +104,8 @@ impl Cylinder {
         let b = 2.0
             * (object_ray.origin.x * object_ray.direction.x
                 + object_ray.origin.z * object_ray.direction.z);
-        // println!("b: {:?}", b);
         let c = object_ray.origin.x.powi(2) + object_ray.origin.z.powi(2) - 1.0;
-        // println!("c: {:?}", c);
         let discriminant = b.powi(2) - 2.0 * two_a * c;
-        // println!("discriminant: {:?}", discriminant);
 
         if discriminant < 0.0 {
             //ray does not intersect cylinder
@@ -119,11 +114,8 @@ impl Cylinder {
 
         // Jingle all the way!
         let discriminant_sqrt = discriminant.sqrt();
-        // println!("disc sqrt: {:?}", discriminant_sqrt);
         let distance1 = (-b - discriminant_sqrt) / two_a;
-        // println!("d1: {:?}", distance1);
         let distance2 = (-b + discriminant_sqrt) / two_a;
-        // println!("d2: {:?}", distance2);
 
         let (distance1, distance2) = if distance1 > distance2 {
             (distance2, distance1)
@@ -163,14 +155,10 @@ impl Cylinder {
         let distance = (self.minimum_y - object_ray.origin.y) / object_ray.direction.y;
         if Cylinder::check_cap(&object_ray, distance) {
             intersections.push(Intersection::new(distance, self));
-        } else {
-            println!("Check cap 1 failed");
         }
         let distance = (self.maximum_y - object_ray.origin.y) / object_ray.direction.y;
         if Cylinder::check_cap(&object_ray, distance) {
             intersections.push(Intersection::new(distance, self));
-        } else {
-            println!("Check cap 2 failed");
         }
     }
 }
