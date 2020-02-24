@@ -5,17 +5,28 @@ use crate::ray::Ray;
 use crate::shape::base_shape::BaseShape;
 use crate::shape::shape::Shape;
 use crate::tuple::Tuple;
-use std::rc::Rc;
+use std::rc::{Rc, Weak};
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug)]
 pub struct GroupShape {
     base: BaseShape,
     pub children: Vec<Box<dyn Shape>>,
+    self_rc: Option<Weak<GroupShape>>,
 }
 
 impl GroupShape {
     pub fn new() -> Self {
         Self::default()
+    }
+    pub fn is_empty(&self) -> bool {
+        self.children.is_empty()
+    }
+    pub fn add_child(&mut self, mut child: Box<dyn Shape>) {
+        child.as_mut().set_parent(Some(Rc::new(*self)));
+        if self.self_rc.is_none() {
+            self.self_rc = Some(Rc::downgrade(&Rc::new(*self)));
+        }
+        self.children.push(child);
     }
 }
 
@@ -24,6 +35,7 @@ impl Default for GroupShape {
         GroupShape {
             base: BaseShape::new(),
             children: vec![],
+            self_rc: None,
         }
     }
 }
@@ -71,6 +83,17 @@ impl Shape for GroupShape {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+    use crate::shape::test_shape::TestShape;
     #[test]
-    fn default_group_parent() {}
+    fn add_child_to_group() {
+        let mut g = GroupShape::new();
+        let s = TestShape::new();
+        g.add_child(Box::new(s));
+        assert!(!g.is_empty());
+        // assert!(ptr::eq(g.children[0].as_ref(), &s));
+        // assert_eq!(g.children[0].get_parent().as_ref().unwrap().as_ref(), &g);
+    }
+    // ​ 	    ​And​ g includes s
+    // ​ 	    ​And​ s.parent = g
 }

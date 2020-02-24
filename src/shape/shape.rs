@@ -85,8 +85,6 @@ impl<'a> Eq for dyn Shape + 'a {}
 #[cfg(test)]
 mod tests {
 	use super::*;
-	use crate::matrix::identity_4x4;
-	use crate::shape::base_shape::BaseShape;
 	use crate::shape::test_shape::TestShape;
 	use crate::transformations::rotation_z;
 	use crate::transformations::scaling;
