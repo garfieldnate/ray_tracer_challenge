@@ -59,7 +59,6 @@ impl Camera {
 	}
 }
 
-const REFLECTION_RECURSION_DEPTH: i16 = 5;
 impl Camera {
 	pub fn ray_for_pixel(&self, x: u32, y: u32) -> Ray {
 		// offset from edge of canvas to pixel's center
@@ -77,12 +76,12 @@ impl Camera {
 		Ray::new(origin, direction)
 	}
 
-	pub fn render(&self, world: World) -> Canvas {
+	pub fn render(&self, world: World, reflection_recursion_depth: i16) -> Canvas {
 		let mut canvas = Canvas::new(self.width_pixels as usize, self.height_pixels as usize);
 		for y in 0..self.height_pixels - 1 {
 			for x in 0..self.width_pixels - 1 {
 				let ray = self.ray_for_pixel(x, y);
-				let color = world.color_at(ray, REFLECTION_RECURSION_DEPTH);
+				let color = world.color_at(ray, reflection_recursion_depth);
 				canvas.write_pixel(x as usize, y as usize, color);
 			}
 		}
@@ -94,6 +93,7 @@ impl Camera {
 mod tests {
 	use super::*;
 	use crate::color::Color;
+	use crate::constants::DEFAULT_RAY_RECURSION_DEPTH;
 	use crate::matrix::identity_4x4;
 	use crate::transformations::rotation_y;
 	use crate::transformations::translation;
@@ -154,7 +154,7 @@ mod tests {
 		let to = point!(0, 0, 0);
 		let up = vector!(0, 1, 0);
 		let c = Camera::new(11, 11, PI / 2.0, view_transform(from, to, up));
-		let image = c.render(w);
+		let image = c.render(w, DEFAULT_RAY_RECURSION_DEPTH);
 		assert_abs_diff_eq!(
 			image.pixel_at(5, 5),
 			color!(0.38063288, 0.47579104, 0.28547466)

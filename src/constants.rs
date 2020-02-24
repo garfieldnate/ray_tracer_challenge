@@ -1,6 +1,8 @@
 use crate::color::Color;
 use crate::material::Material;
 
+pub const DEFAULT_RAY_RECURSION_DEPTH: i16 = 5;
+
 pub const REFRACTION_VACCUM: f32 = 1.0;
 pub const REFRACTION_AIR: f32 = 1.00029;
 pub const REFRACTION_WATER: f32 = 1.333;

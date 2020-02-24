@@ -1,6 +1,7 @@
 use ray_tracer_challenge::camera::Camera;
 use ray_tracer_challenge::color::Color;
 use ray_tracer_challenge::constants::white;
+use ray_tracer_challenge::constants::DEFAULT_RAY_RECURSION_DEPTH;
 use ray_tracer_challenge::light::PointLight;
 use ray_tracer_challenge::material::Material;
 use ray_tracer_challenge::shape::plane::Plane;
@@ -75,6 +76,6 @@ fn main() {
 		view_transform(point!(0, 1.5, -5), point!(0, 1, 0), vector!(0, 1, 0)),
 	);
 
-	let canvas = camera.render(world);
+	let canvas = camera.render(world, DEFAULT_RAY_RECURSION_DEPTH);
 	println!("{}", canvas.to_ppm());
 }
