@@ -1,7 +1,6 @@
 # TODO
 
 - reduce mutability everywhere possible, including tests, using scoped mutability and also ..Default::default() syntax
-  - getset or rust-derive-builder would probably simplify material or other creations, too
 - Patterns
   - Make pattern compound, so that stripes can contain stripes, etc.
   - Additive and subtractive pattern compounds
@@ -27,11 +26,12 @@
 - (also ergonomics) new canvas implementation that displays during render
 - switch to matrix library (open BLAS or whatever)
 - can we use a GPU somehow?
+- Refraction uses a hash map with the default hasher (siphash), which is apparently a tad slow. Replace it with the dumbest, fastest practical thing. We don't need cryptographic-level hashing.
 
 ### Ergonomics
 
 - YAML scene file parsing
-- Color constructor that takes hex string
+- getset or rust-derive-builder would probably simplify material or other creations, too
 - display a grid
 - Switch to IntelliJ
 
