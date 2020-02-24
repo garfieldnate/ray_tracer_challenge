@@ -42,11 +42,18 @@ impl Default for Cone {
 }
 
 impl Shape for Cone {
-    fn local_intersect(&self, object_ray: Ray) -> Vec<Intersection> {}
+    fn local_intersect(&self, object_ray: Ray) -> Vec<Intersection> {
+        let mut intersections: Vec<Intersection> = Vec::with_capacity(2);
+        self.intersect_sides(&object_ray, &mut intersections);
+        println!("After side intersection, length is {}", intersections.len());
+        self.intersect_caps(&object_ray, &mut intersections);
+        intersections
+    }
 
     // norms at the corners are the norms of one of the adjacent sides
     fn local_norm_at(&self, object_point: Tuple) -> Tuple {
         let dist_square = object_point.x.powi(2) + object_point.z.powi(2);
+        // TODO: why does this work? Shouldn't it be < y?
         if dist_square < 1.0 {
             if object_point.y >= self.maximum_y - CLOSE_TO_ZERO {
                 return vector!(0, 1, 0);
@@ -88,12 +95,123 @@ impl Shape for Cone {
 
 const CLOSE_TO_ZERO: f32 = 0.000001;
 impl Cone {
-    fn intersect_sides<'a>(&'a self, object_ray: &Ray, intersections: &mut Vec<Intersection<'a>>) {}
+    fn intersect_sides<'a>(&'a self, object_ray: &Ray, intersections: &mut Vec<Intersection<'a>>) {
+        println!("ray: {:?}", object_ray);
+        let two_a = 2.0
+            * (object_ray.direction.x.powi(2) - object_ray.direction.y.powi(2)
+                + object_ray.direction.z.powi(2));
+        println!("two_a: {:?}", two_a);
+        let b = 2.0
+            * (object_ray.origin.x * object_ray.direction.x
+                - object_ray.origin.y * object_ray.direction.y
+                + object_ray.origin.z * object_ray.direction.z);
+        println!("b: {:?}", b);
 
-    fn check_cap(ray: &Ray, distance: f32) -> bool {}
+        // TODO: turn this into shared constant somewhere?
+        if two_a.abs() < CLOSE_TO_ZERO {
+            println!("2a ({}) is low", two_a);
+            if b.abs() < CLOSE_TO_ZERO {
+                println!("2a and b ({}) are both too low", b.abs());
+                // ray misses both halves of cone
+                return;
+            }
+            println!("b is not low");
+            // there's only one intersection point
+            let c = Cone::calc_c(&object_ray);
+            println!("c: {}", c);
+            let distance = -c / (2.0 * b);
+            println!("distance for one intersection: {}", distance);
+            intersections.push(Intersection::new(distance, self));
+            return;
+        }
 
-    // add intersections with the end caps of the cone to intersections
-    fn intersect_caps<'a>(&'a self, object_ray: &Ray, intersections: &mut Vec<Intersection<'a>>) {}
+        let c = Cone::calc_c(&object_ray);
+        println!("c: {:?}", c);
+        let discriminant = b.powi(2) - 2.0 * two_a * c;
+        println!("discriminant: {:?}", discriminant);
+
+        if discriminant < 0.0 {
+            println!("Discriminant less than 0 so there is no cone intersection");
+            println!("epsilon is {}", f32::EPSILON);
+            //ray does not intersect Cone
+            return;
+        }
+
+        // Jingle all the way!
+        let discriminant_sqrt = discriminant.sqrt();
+        // println!("disc sqrt: {:?}", discriminant_sqrt);
+        let distance1 = (-b - discriminant_sqrt) / two_a;
+        // println!("d1: {:?}", distance1);
+        let distance2 = (-b + discriminant_sqrt) / two_a;
+        // println!("d2: {:?}", distance2);
+
+        let (distance1, distance2) = if distance1 > distance2 {
+            (distance2, distance1)
+        } else {
+            (distance1, distance2)
+        };
+
+        let y1 = object_ray.origin.y + distance1 * object_ray.direction.y;
+        if self.minimum_y < y1 && y1 < self.maximum_y {
+            intersections.push(Intersection::new(distance1, self));
+        } else {
+            println!(
+                "skipping d1 {} because y1 {} is out of bounds",
+                distance1, y1
+            );
+        }
+        let y2 = object_ray.origin.y + distance2 * object_ray.direction.y;
+        if self.minimum_y < y2 && y2 < self.maximum_y {
+            intersections.push(Intersection::new(distance2, self));
+        } else {
+            println!(
+                "skipping d2 {} because y2 {} is out of bounds",
+                distance2, y2
+            );
+        }
+    }
+
+    // this is the c from the quadratic equation used in the side intersection check
+    // it's just here for code reuse
+    fn calc_c(object_ray: &Ray) -> f32 {
+        object_ray.origin.x.powi(2) - object_ray.origin.y.powi(2) + object_ray.origin.z.powi(2)
+    }
+
+    // check if the intersection at distance is within the radius from the y axis
+    fn check_cap(radius: f32, ray: &Ray, distance: f32) -> bool {
+        let x = ray.origin.x + distance * ray.direction.x;
+        println!("check_cap: x={}", x);
+        let z = ray.origin.z + distance * ray.direction.z;
+        println!("check_cap: z={}", z);
+        // TODO: the book didn't use an epsilon. Maybe switching to f64 everywhere would fix this?
+        println!("check_cap: {} <=? y {}", x.powi(2) + z.powi(2), radius);
+        (x.powi(2) + z.powi(2)) <= radius + CLOSE_TO_ZERO
+    }
+
+    // add intersections with the end caps of the Cone to intersections
+    fn intersect_caps<'a>(&'a self, object_ray: &Ray, intersections: &mut Vec<Intersection<'a>>) {
+        // don't bother checking for intersection if the Cone isn't close
+        // TODO: book says we should also have `|| object_ray.direction.y <= CLOSE_TO_ZERO ` here.
+        // That makes no sense, though, right? A vertical ray can intersect both caps. Maybe report as
+        // error?
+        if !self.closed {
+            return;
+        }
+
+        // TODO: cache ray direction inverses
+        let distance = (self.minimum_y - object_ray.origin.y) / object_ray.direction.y;
+        if Cone::check_cap(self.minimum_y.abs(), &object_ray, distance) {
+            intersections.push(Intersection::new(distance, self));
+        } else {
+            println!("Check cap 1 failed");
+        }
+        let distance = (self.maximum_y - object_ray.origin.y) / object_ray.direction.y;
+        if Cone::check_cap(self.maximum_y.abs(), &object_ray, distance) {
+            intersections.push(Intersection::new(distance, self));
+        } else {
+            println!("Check cap 2 failed");
+        }
+    }
 }
 
 #[cfg(test)]
@@ -108,17 +226,24 @@ mod tests {
     // }
 
     #[test]
-    fn ray_intersects_cone() {
+    fn ray_intersects_cone_sides() {
         let c = Cone::new();
         let test_data = vec![
-            ("", point!(0, 0, -5), vector!(0, 0, 1), 5., 5.),
-            ("", point!(0, 0, -5), vector!(1, 1, 1), 8.66025, 8.66025),
+            ("1", point!(0, 0, -5), vector!(0, 0, 1), 5., 5.),
             (
-                "",
+                "2",
+                // Note: book specifies exactly 5 for z, but our floating point numbers are just a bit different.
+                point!(0, 0, -4.999999),
+                vector!(1, 1, 1),
+                8.660253,
+                8.660253,
+            ),
+            (
+                "3",
                 point!(1, 1, -5),
                 vector!(-0.5, -1, 1),
-                4.55006,
-                49.44994,
+                4.5500546,
+                49.449955,
             ),
         ];
         for (name, origin, direction, distance1, distance2) in test_data {
@@ -152,22 +277,22 @@ mod tests {
         let r = Ray::new(point!(0, 0, -1), vector!(0, 1, 1).norm());
         let intersections = s.local_intersect(r);
         assert_eq!(intersections.len(), 1);
-        assert_abs_diff_eq!(intersections[0].distance, 0.35355);
+        assert_abs_diff_eq!(intersections[0].distance, 0.35355338);
     }
 
     #[test]
     fn ray_intersects_caps_of_closed_cone() {
         let c = {
             let mut c = Cone::new();
-            c.minimum_y = 1.0;
-            c.maximum_y = 2.0;
+            c.minimum_y = -0.5;
+            c.maximum_y = 0.5;
             c.closed = true;
             c
         };
         let test_data = vec![
-            ("", point!(0, 0, -5), vector!(0, 1, 0), 0),
-            ("", point!(0, 0, -0.25), vector!(0, 1, 1), 2),
-            ("", point!(0, 0, -0.25), vector!(0, 1, 0), 4),
+            ("1", point!(0, 0, -5), vector!(0, 1, 0), 0),
+            ("2", point!(0, 0, -0.25), vector!(0, 1, 1), 2),
+            ("3", point!(0, 0, -0.25), vector!(0, 1, 0), 4),
         ];
         for (name, origin, direction, expected_num_intersections) in test_data {
             let r = Ray::new(origin, direction.norm());

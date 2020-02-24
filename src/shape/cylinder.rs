@@ -98,7 +98,8 @@ impl Cylinder {
         let two_a = 2.0 * (object_ray.direction.x.powi(2) + object_ray.direction.z.powi(2));
         // println!("two_a: {:?}", two_a);
         // TODO: turn this into shared constant somewhere?
-        if two_a < CLOSE_TO_ZERO {
+        // TODO: add test for negative small two_a value (forgot abs() before since book doesn't use this epsilon thingy)
+        if two_a.abs() < CLOSE_TO_ZERO {
             // ray is parallel to y axis, so it won't intersect the cyllinder
             return;
         }
@@ -151,7 +152,7 @@ impl Cylinder {
     // add intersections with the end caps of the cylinder to intersections
     fn intersect_caps<'a>(&'a self, object_ray: &Ray, intersections: &mut Vec<Intersection<'a>>) {
         // don't bother checking for intersection if the cylinder isn't close
-        // TODO: book says we should also have `|| object_ray.direction.y <= CLOSE_TO_ZERO ` here.
+        // TODO: book says we should also have `|| object_ray.direction.y <= CLOSE_TO_ZERO` here.
         // That makes no sense, though, right? A vertical ray can intersect both caps. Maybe report as
         // error?
         if !self.closed {
@@ -201,7 +202,7 @@ mod tests {
     }
 
     #[test]
-    fn ray_intersects_cylinder() {
+    fn ray_intersects_cylinder_sides() {
         let c = Cylinder::new();
         let test_data = vec![
             ("tangent", point!(1, 0, -5), vector!(0, 0, 1), 5.0, 5.0),
@@ -347,7 +348,7 @@ mod tests {
     }
 
     #[test]
-    fn cylinder_sides_normal_vector() {
+    fn normal_vector_cylinder_sides() {
         let c = Cylinder::new();
         let test_data = vec![
             ("+x", point!(1, 0, 0), vector!(1, 0, 0)),
@@ -362,7 +363,7 @@ mod tests {
     }
 
     #[test]
-    fn cylinder_caps_normal_vector() {
+    fn normal_vector_cylinder_caps() {
         let c = {
             let mut c = Cylinder::new();
             c.minimum_y = 1.0;

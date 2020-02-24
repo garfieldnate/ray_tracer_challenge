@@ -1,7 +1,7 @@
 use ray_tracer_challenge::camera::Camera;
 use ray_tracer_challenge::color::Color;
 use ray_tracer_challenge::constants::metal;
-use ray_tracer_challenge::constants::{black, white, yellow};
+use ray_tracer_challenge::constants::{white, yellow};
 use ray_tracer_challenge::light::PointLight;
 use ray_tracer_challenge::material::Material;
 use ray_tracer_challenge::pattern::pattern::Pattern;

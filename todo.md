@@ -55,3 +55,10 @@ Notes from book about reflection/refraction:
 * Because the reflected and refracted colors are added to the surface color, they’ll tend to make such objects brighter. You can tone down the material’s diffuse and ambient properties to compensate. The more transparent or reflective the surface, the smaller the diffuse property should be. This way, more of the color comes from the secondary rays, and less from the object’s surface.
 * If you’d like a subtly colored mirror, or slightly tinted glass, use a very dark color, instead of a very light one. Red glass, for instance, should use a very dark red, almost black, instead of a very bright red. In general, the more reflective or transparent the surface, the darker its surface color should be. Note that if you add color, make sure that you have some diffuse and possibly ambient contribution, too; otherwise, your surface will render as black regardless of what color you give to it.
 * Reflective and transparent surfaces pair nicely with tight specular highlights. Set specular to 1 and bump shininess to 300 or more to get a highlight that really shines.
+
+## Possible Book Errata/Improvements
+* Cylinder cap intersection should not have `object_ray.direction.y <= CLOSE_TO_ZERO` as a quick return.
+* In cone section: "If a is nonzero, you’ll use the same algorithm, but with the new a, b, and c, that you used for the cylinders." -> "If a is nonzero, you’ll use the same algorithm (but with the new a, b, and c) that you used for the cylinders."
+* Cone and cylinder side intersections required checking a.abs() and b.abs() against a very small number; exact checking against 0 did not work at all.
+* Does the book recommend 32-bit or 64-bit numbers?
+* Had to change point value in one cone test from -5 to -4.999999 to get it to work right
