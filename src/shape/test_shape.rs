@@ -3,10 +3,12 @@ use crate::material::Material;
 use crate::matrix::Matrix;
 use crate::ray::Ray;
 use crate::shape::base_shape::BaseShape;
+use crate::shape::group::GroupShape;
 use crate::shape::shape::Shape;
 use crate::tuple::Tuple;
 use std::cell::RefCell;
 use std::fmt::Debug;
+use std::rc::Rc;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct TestShape {
@@ -35,6 +37,12 @@ impl Shape for TestShape {
     }
     fn set_material(&mut self, m: Material) {
         self.base.set_material(m)
+    }
+    fn get_parent(&self) -> &Option<Rc<GroupShape>> {
+        self.base.get_parent()
+    }
+    fn set_parent(&mut self, shape: Option<Rc<GroupShape>>) {
+        self.base.set_parent(shape)
     }
     fn casts_shadow(&self) -> bool {
         self.base.casts_shadow()

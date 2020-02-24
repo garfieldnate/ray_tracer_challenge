@@ -2,11 +2,13 @@ use crate::intersection::Intersection;
 use crate::material::Material;
 use crate::matrix::Matrix;
 use crate::ray::Ray;
+use crate::shape::group::GroupShape;
 use crate::tuple::Tuple;
 use std::fmt::Debug;
 use std::hash::Hash;
 use std::hash::Hasher;
 use std::ptr;
+use std::rc::Rc;
 
 pub trait Shape: Debug {
 	fn transformation(&self) -> &Matrix;
@@ -15,6 +17,8 @@ pub trait Shape: Debug {
 	fn set_material(&mut self, m: Material);
 	fn casts_shadow(&self) -> bool;
 	fn set_casts_shadow(&mut self, casts_shadow: bool);
+	fn set_parent(&mut self, shape: Option<Rc<GroupShape>>);
+	fn get_parent(&self) -> &Option<Rc<GroupShape>>;
 
 	fn local_intersect(&self, object_ray: Ray) -> Vec<Intersection>;
 	fn local_norm_at(&self, object_point: Tuple) -> Tuple;
@@ -89,48 +93,6 @@ mod tests {
 	use crate::transformations::translation;
 	use std::f32::consts::FRAC_1_SQRT_2;
 	use std::f32::consts::PI;
-
-	#[test]
-	fn shape_transformation() {
-		let mut shape = BaseShape::new();
-		assert_eq!(
-			shape.transformation(),
-			&identity_4x4(),
-			"Default transform should be identity"
-		);
-
-		shape.set_transformation(translation(2.0, 3.0, 4.0));
-		assert_eq!(
-			shape.transformation(),
-			&translation(2.0, 3.0, 4.0),
-			"transformation should be settable"
-		);
-	}
-
-	#[test]
-	fn shape_material() {
-		let mut shape = BaseShape::new();
-		assert_eq!(shape.material(), &Material::default(), "Default material");
-
-		let mut override_material = Material::default();
-		override_material.ambient = 1.0;
-		shape.set_material(override_material.clone());
-		assert_eq!(
-			shape.material(),
-			&override_material,
-			"material should be settable"
-		);
-	}
-
-	#[test]
-	fn shape_casts_shadow() {
-		let mut shape = BaseShape::new();
-		assert_eq!(shape.casts_shadow(), true, "casts shadow by default");
-
-		shape.set_casts_shadow(false);
-		assert!(!shape.casts_shadow(), "casts_shadow should be settable");
-	}
-
 	#[test]
 	fn intersect_scaled_shape_with_ray() {
 		let r = Ray::new(point!(0, 0, -5), vector!(0, 0, 1));

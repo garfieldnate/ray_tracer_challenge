@@ -5,15 +5,16 @@ use crate::ray::Ray;
 use crate::shape::base_shape::BaseShape;
 use crate::shape::shape::Shape;
 use crate::tuple::Tuple;
+use std::rc::Rc;
 
 #[derive(Debug, PartialEq)]
-struct GroupShape {
+pub struct GroupShape {
     base: BaseShape,
     pub children: Vec<Box<dyn Shape>>,
 }
 
 impl GroupShape {
-    fn new() -> Self {
+    pub fn new() -> Self {
         Self::default()
     }
 }
@@ -34,12 +35,6 @@ impl Shape for GroupShape {
     fn local_norm_at(&self, _object_point: Tuple) -> Tuple {
         vector!(0, 0, 0)
     }
-    fn transformation_inverse(&self) -> &Matrix {
-        self.base.transformation_inverse()
-    }
-    fn transformation_inverse_transpose(&self) -> &Matrix {
-        self.base.transformation_inverse_transpose()
-    }
 
     // Forward these to the wrapped BaseShape instance
     fn transformation(&self) -> &Matrix {
@@ -48,11 +43,23 @@ impl Shape for GroupShape {
     fn set_transformation(&mut self, t: Matrix) {
         self.base.set_transformation(t);
     }
+    fn transformation_inverse(&self) -> &Matrix {
+        self.base.transformation_inverse()
+    }
+    fn transformation_inverse_transpose(&self) -> &Matrix {
+        self.base.transformation_inverse_transpose()
+    }
     fn material(&self) -> &Material {
         self.base.material()
     }
     fn set_material(&mut self, m: Material) {
         self.base.set_material(m)
+    }
+    fn get_parent(&self) -> &Option<Rc<GroupShape>> {
+        self.base.get_parent()
+    }
+    fn set_parent(&mut self, shape: Option<Rc<GroupShape>>) {
+        self.base.set_parent(shape)
     }
     fn casts_shadow(&self) -> bool {
         self.base.casts_shadow()
