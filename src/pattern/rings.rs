@@ -1,7 +1,6 @@
 use crate::color::Color;
 use crate::constants::black;
 use crate::constants::white;
-use crate::matrix::Matrix;
 use crate::pattern::pattern::BasePattern;
 use crate::pattern::pattern::Pattern;
 use crate::tuple::Tuple;
@@ -30,6 +29,12 @@ impl Default for Rings {
 }
 
 impl Pattern for Rings {
+	fn get_base(&self) -> &BasePattern {
+		&self.base
+	}
+	fn get_base_mut(&mut self) -> &mut BasePattern {
+		&mut self.base
+	}
 	fn color_at_world(&self, world_point: Tuple) -> Color {
 		// TODO: is any kind of overflow possible here?
 		if (world_point.x.powi(2) + world_point.z.powi(2))
@@ -41,12 +46,6 @@ impl Pattern for Rings {
 		} else {
 			self.b
 		}
-	}
-	fn set_transformation(&mut self, t: Matrix) {
-		self.base.set_transformation(t)
-	}
-	fn transformation_inverse(&self) -> &Matrix {
-		self.base.transformation_inverse()
 	}
 }
 

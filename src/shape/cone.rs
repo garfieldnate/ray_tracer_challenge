@@ -42,6 +42,12 @@ impl Default for Cone {
 }
 
 impl Shape for Cone {
+    fn get_base(&self) -> &BaseShape {
+        &self.base
+    }
+    fn get_base_mut(&mut self) -> &mut BaseShape {
+        &mut self.base
+    }
     fn local_intersect(&self, object_ray: Ray) -> Vec<Intersection> {
         let mut intersections: Vec<Intersection> = Vec::with_capacity(2);
         self.intersect_sides(&object_ray, &mut intersections);
@@ -63,32 +69,6 @@ impl Shape for Cone {
         let y = (object_point.x.powi(2) + object_point.z.powi(2)).sqrt();
         let y = if object_point.y > 0.0 { -y } else { y };
         vector!(object_point.x, y, object_point.z)
-    }
-
-    // forward these to BaseShape (TODO: need delegation RFC to be accepted!)
-    fn transformation(&self) -> &Matrix {
-        &self.base.transformation()
-    }
-    fn set_transformation(&mut self, t: Matrix) {
-        self.base.set_transformation(t);
-    }
-    fn material(&self) -> &Material {
-        self.base.material()
-    }
-    fn set_material(&mut self, m: Material) {
-        self.base.set_material(m);
-    }
-    fn casts_shadow(&self) -> bool {
-        self.base.casts_shadow()
-    }
-    fn set_casts_shadow(&mut self, casts_shadow: bool) {
-        self.base.set_casts_shadow(casts_shadow)
-    }
-    fn transformation_inverse(&self) -> &Matrix {
-        self.base.transformation_inverse()
-    }
-    fn transformation_inverse_transpose(&self) -> &Matrix {
-        self.base.transformation_inverse_transpose()
     }
 }
 

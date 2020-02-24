@@ -1,5 +1,4 @@
 use crate::intersection::Intersection;
-use crate::material::Material;
 use crate::matrix::Matrix;
 use crate::ray::Ray;
 use crate::shape::base_shape::BaseShape;
@@ -28,6 +27,12 @@ impl Default for GroupShape {
 }
 
 impl Shape for GroupShape {
+    fn get_base(&self) -> &BaseShape {
+        &self.base
+    }
+    fn get_base_mut(&mut self) -> &mut BaseShape {
+        &mut self.base
+    }
     fn local_intersect(&self, _object_ray: Ray) -> Vec<Intersection> {
         vec![]
     }
@@ -39,26 +44,6 @@ impl Shape for GroupShape {
     }
     fn transformation_inverse_transpose(&self) -> &Matrix {
         self.base.transformation_inverse_transpose()
-    }
-
-    // Forward these to the wrapped BaseShape instance
-    fn transformation(&self) -> &Matrix {
-        &self.base.transformation()
-    }
-    fn set_transformation(&mut self, t: Matrix) {
-        self.base.set_transformation(t);
-    }
-    fn material(&self) -> &Material {
-        self.base.material()
-    }
-    fn set_material(&mut self, m: Material) {
-        self.base.set_material(m)
-    }
-    fn casts_shadow(&self) -> bool {
-        self.base.casts_shadow()
-    }
-    fn set_casts_shadow(&mut self, casts_shadow: bool) {
-        self.base.set_casts_shadow(casts_shadow)
     }
 }
 

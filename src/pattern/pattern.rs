@@ -6,23 +6,28 @@ use dyn_clone::DynClone;
 use std::fmt::Debug;
 
 pub trait Pattern: Debug + DynClone {
-	// don't override this one
+	// tthe BasePattern that the wrapping instance is delegating to
+	fn get_base(&self) -> &BasePattern;
+	fn get_base_mut(&mut self) -> &mut BasePattern;
+	fn color_at_world(&self, object_point: Tuple) -> Color;
+
+	// don't override these
 	fn color_at_object(&self, world_point: Tuple, object: &dyn Shape) -> Color {
 		let object_point = object.transformation_inverse() * &world_point;
 		let pattern_point = self.transformation_inverse() * &object_point;
 		self.color_at_world(pattern_point)
 	}
-	fn color_at_world(&self, world_point: Tuple) -> Color;
-	// fn transformation(&self) -> &Matrix;
-	fn set_transformation(&mut self, t: Matrix);
-	fn transformation_inverse(&self) -> &Matrix;
+	fn set_transformation(&mut self, t: Matrix) {
+		self.get_base_mut().set_transformation(t)
+	}
+	fn transformation_inverse(&self) -> &Matrix {
+		self.get_base().transformation_inverse()
+	}
 }
 
 dyn_clone::clone_trait_object!(Pattern);
 
-// Other pattern implementations are meant to delegate to this one where these defaults are acceptable.
-// TODO: Maybe someday Rust will support delegation: https://github.com/rust-lang/rfcs/pull/2393
-// like Kotlin does. Could also use ambassador crate, if it adds partial delegation support.
+// Other pattern implementations should delegate to this one where these defaults are acceptable.
 #[derive(Default, Clone, Debug, PartialEq)]
 pub struct BasePattern {
 	t_inverse: Matrix,
@@ -35,6 +40,15 @@ impl BasePattern {
 }
 
 impl Pattern for BasePattern {
+	// these two are unimplemented because BasePattern is not meant to be instantiated by itself
+	fn get_base(&self) -> &BasePattern {
+		unimplemented!()
+	}
+
+	fn get_base_mut(&mut self) -> &mut BasePattern {
+		unimplemented!()
+	}
+
 	fn set_transformation(&mut self, t: Matrix) {
 		self.t_inverse = t.inverse();
 	}
@@ -44,7 +58,7 @@ impl Pattern for BasePattern {
 	}
 
 	// These methods cannot be delegated to
-	fn color_at_world(&self, _world_point: Tuple) -> Color {
+	fn color_at_world(&self, _object_point: Tuple) -> Color {
 		unimplemented!()
 	}
 }
@@ -63,11 +77,11 @@ impl TestPattern {
 }
 
 impl Pattern for TestPattern {
-	fn set_transformation(&mut self, t: Matrix) {
-		self.base.set_transformation(t);
+	fn get_base(&self) -> &BasePattern {
+		&self.base
 	}
-	fn transformation_inverse(&self) -> &Matrix {
-		self.base.transformation_inverse()
+	fn get_base_mut(&mut self) -> &mut BasePattern {
+		&mut self.base
 	}
 	// color value will allow client to test that world_point was transformed
 	fn color_at_world(&self, world_point: Tuple) -> Color {

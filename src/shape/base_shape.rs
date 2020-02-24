@@ -6,9 +6,7 @@ use crate::shape::shape::Shape;
 use crate::tuple::Tuple;
 use std::fmt::Debug;
 
-// Other shape implementations are meant to delegate to this one where these defaults are acceptable.
-// TODO: Maybe someday Rust will support delegation: https://github.com/rust-lang/rfcs/pull/2393
-// like Kotlin does. Could also use ambassador crate, if it adds partial delegation support.
+// Other shape implementations should delegate to this one where these defaults are acceptable.
 #[derive(Default, Clone, Debug, PartialEq)]
 pub struct BaseShape {
     t: Matrix,
@@ -28,6 +26,13 @@ impl BaseShape {
 }
 
 impl Shape for BaseShape {
+    // these two are unimplemented because BaseShape is not meant to be instantiated by itself
+    fn get_base(&self) -> &BaseShape {
+        unimplemented!()
+    }
+    fn get_base_mut(&mut self) -> &mut BaseShape {
+        unimplemented!()
+    }
     fn transformation(&self) -> &Matrix {
         &self.t
     }
@@ -56,7 +61,7 @@ impl Shape for BaseShape {
         &self.t_inverse_transpose
     }
 
-    // These two methods cannot be delegated to
+    // These two methods *must* be implemented by wrapping implementations
     fn local_intersect(&self, _object_ray: Ray) -> Vec<Intersection> {
         unimplemented!()
     }
