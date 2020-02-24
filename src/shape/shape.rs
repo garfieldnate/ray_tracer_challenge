@@ -78,130 +78,17 @@ impl<'a> Hash for dyn Shape + 'a {
 // Shapes are always globally unique. They are only equal if they are the same object
 impl<'a> Eq for dyn Shape + 'a {}
 
-// Other shape implementations are meant to delegate to this one where these defaults are acceptable.
-// TODO: Maybe someday Rust will support delegation: https://github.com/rust-lang/rfcs/pull/2393
-// like Kotlin does. Could also use ambassador crate, if it adds partial delegation support.
-#[derive(Default, Clone, Debug, PartialEq)]
-pub struct BaseShape {
-	t: Matrix,
-	t_inverse: Matrix,
-	t_inverse_transpose: Matrix,
-	m: Material,
-	casts_shadow: bool,
-}
-
-impl BaseShape {
-	pub fn new() -> Self {
-		Self {
-			casts_shadow: true,
-			..Default::default()
-		}
-	}
-}
-
-impl Shape for BaseShape {
-	fn transformation(&self) -> &Matrix {
-		&self.t
-	}
-	fn set_transformation(&mut self, t: Matrix) {
-		self.t = t;
-		self.t_inverse = self.t.inverse();
-		self.t_inverse_transpose = self.t.inverse().transpose();
-	}
-	fn material(&self) -> &Material {
-		&self.m
-	}
-	fn set_material(&mut self, m: Material) {
-		self.m = m;
-	}
-	fn casts_shadow(&self) -> bool {
-		self.casts_shadow
-	}
-	fn set_casts_shadow(&mut self, casts_shadow: bool) {
-		self.casts_shadow = casts_shadow;
-	}
-
-	fn transformation_inverse(&self) -> &Matrix {
-		&self.t_inverse
-	}
-	fn transformation_inverse_transpose(&self) -> &Matrix {
-		&self.t_inverse_transpose
-	}
-
-	// These two methods cannot be delegated to
-	fn local_intersect(&self, _object_ray: Ray) -> Vec<Intersection> {
-		unimplemented!()
-	}
-	fn local_norm_at(&self, _object_point: Tuple) -> Tuple {
-		unimplemented!()
-	}
-}
-
 #[cfg(test)]
 mod tests {
 	use super::*;
 	use crate::matrix::identity_4x4;
+	use crate::shape::base_shape::BaseShape;
+	use crate::shape::test_shape::TestShape;
 	use crate::transformations::rotation_z;
 	use crate::transformations::scaling;
 	use crate::transformations::translation;
-	use std::cell::RefCell;
 	use std::f32::consts::FRAC_1_SQRT_2;
 	use std::f32::consts::PI;
-
-	#[derive(Clone, Debug, PartialEq)]
-	struct TestShape {
-		base: BaseShape,
-		saved_ray: RefCell<Option<Ray>>,
-	}
-
-	impl TestShape {
-		fn new() -> Self {
-			TestShape {
-				base: BaseShape::new(),
-				saved_ray: RefCell::new(None),
-			}
-		}
-	}
-
-	impl Shape for TestShape {
-		fn transformation(&self) -> &Matrix {
-			&self.base.transformation()
-		}
-		fn set_transformation(&mut self, t: Matrix) {
-			self.base.set_transformation(t);
-		}
-		fn material(&self) -> &Material {
-			self.base.material()
-		}
-		fn set_material(&mut self, m: Material) {
-			self.base.set_material(m)
-		}
-		fn casts_shadow(&self) -> bool {
-			self.base.casts_shadow()
-		}
-		fn set_casts_shadow(&mut self, casts_shadow: bool) {
-			self.base.set_casts_shadow(casts_shadow)
-		}
-		fn local_intersect(&self, _object_ray: Ray) -> Vec<Intersection> {
-			// save the incoming ray for a comparison test
-			self.saved_ray.borrow_mut().replace(_object_ray);
-			vec![]
-		}
-		fn local_norm_at(&self, _object_point: Tuple) -> Tuple {
-			// return something that will let us test both the input and output calculations
-			vector!(
-				2.0 * _object_point.x,
-				3.0 * _object_point.y,
-				4.0 * _object_point.z
-			)
-		}
-		fn transformation_inverse(&self) -> &Matrix {
-			self.base.transformation_inverse()
-		}
-		fn transformation_inverse_transpose(&self) -> &Matrix {
-			self.base.transformation_inverse_transpose()
-		}
-	}
 
 	#[test]
 	fn shape_transformation() {
