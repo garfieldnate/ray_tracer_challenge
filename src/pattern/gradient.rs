@@ -1,7 +1,6 @@
 use crate::color::Color;
 use crate::constants::black;
 use crate::constants::white;
-use crate::matrix::Matrix;
 use crate::pattern::pattern::BasePattern;
 use crate::pattern::pattern::Pattern;
 use crate::tuple::Tuple;
@@ -25,15 +24,15 @@ impl Gradient {
 }
 
 impl Pattern for Gradient {
+	fn get_base(&self) -> &BasePattern {
+		&self.base
+	}
+	fn get_base_mut(&mut self) -> &mut BasePattern {
+		&mut self.base
+	}
 	fn color_at_world(&self, world_point: Tuple) -> Color {
 		let fraction = world_point.x - world_point.x.floor();
 		self.a + (self.distance * fraction)
-	}
-	fn set_transformation(&mut self, t: Matrix) {
-		self.base.set_transformation(t)
-	}
-	fn transformation_inverse(&self) -> &Matrix {
-		self.base.transformation_inverse()
 	}
 }
 

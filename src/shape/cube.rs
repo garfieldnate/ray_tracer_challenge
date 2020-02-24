@@ -36,6 +36,12 @@ impl Default for Cube {
 }
 
 impl Shape for Cube {
+    fn get_base(&self) -> &BaseShape {
+        &self.base
+    }
+    fn get_base_mut(&mut self) -> &mut BaseShape {
+        &mut self.base
+    }
     // uses AABB. TODO: more documentation
     fn local_intersect(&self, object_ray: Ray) -> Vec<Intersection> {
         // TODO: book says it's possible to return early sometimes
@@ -78,32 +84,6 @@ impl Shape for Cube {
         } else {
             vector!(0, 0, object_point.z)
         }
-    }
-
-    // forward these to BaseShape (TODO: need delegation RFC to be accepted!)
-    fn transformation(&self) -> &Matrix {
-        &self.base.transformation()
-    }
-    fn set_transformation(&mut self, t: Matrix) {
-        self.base.set_transformation(t);
-    }
-    fn material(&self) -> &Material {
-        self.base.material()
-    }
-    fn set_material(&mut self, m: Material) {
-        self.base.set_material(m);
-    }
-    fn casts_shadow(&self) -> bool {
-        self.base.casts_shadow()
-    }
-    fn set_casts_shadow(&mut self, casts_shadow: bool) {
-        self.base.set_casts_shadow(casts_shadow)
-    }
-    fn transformation_inverse(&self) -> &Matrix {
-        self.base.transformation_inverse()
-    }
-    fn transformation_inverse_transpose(&self) -> &Matrix {
-        self.base.transformation_inverse_transpose()
     }
 }
 

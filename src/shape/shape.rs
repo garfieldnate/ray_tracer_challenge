@@ -2,6 +2,7 @@ use crate::intersection::Intersection;
 use crate::material::Material;
 use crate::matrix::Matrix;
 use crate::ray::Ray;
+use crate::shape::base_shape::BaseShape;
 use crate::tuple::Tuple;
 use std::fmt::Debug;
 use std::hash::Hash;
@@ -9,17 +10,40 @@ use std::hash::Hasher;
 use std::ptr;
 
 pub trait Shape: Debug {
-	fn transformation(&self) -> &Matrix;
-	fn set_transformation(&mut self, t: Matrix);
-	fn material(&self) -> &Material;
-	fn set_material(&mut self, m: Material);
-	fn casts_shadow(&self) -> bool;
-	fn set_casts_shadow(&mut self, casts_shadow: bool);
+	// tthe BaseShape that the wrapping instance is delegating to
+	fn get_base(&self) -> &BaseShape;
+	fn get_base_mut(&mut self) -> &mut BaseShape;
 
 	fn local_intersect(&self, object_ray: Ray) -> Vec<Intersection>;
 	fn local_norm_at(&self, object_point: Tuple) -> Tuple;
 
-	// These should not be overridden by Shape implementers
+	// The rest of these should not be overridden by Shape implementers
+
+	fn transformation(&self) -> &Matrix {
+		self.get_base().transformation()
+	}
+	fn set_transformation(&mut self, t: Matrix) {
+		self.get_base_mut().set_transformation(t)
+	}
+	fn material(&self) -> &Material {
+		self.get_base().material()
+	}
+	fn set_material(&mut self, m: Material) {
+		self.get_base_mut().set_material(m)
+	}
+	fn casts_shadow(&self) -> bool {
+		self.get_base().casts_shadow()
+	}
+	fn set_casts_shadow(&mut self, casts_shadow: bool) {
+		self.get_base_mut().set_casts_shadow(casts_shadow)
+	}
+	// these allow BaseShape to cache the results
+	fn transformation_inverse(&self) -> &Matrix {
+		self.get_base().transformation_inverse()
+	}
+	fn transformation_inverse_transpose(&self) -> &Matrix {
+		self.get_base().transformation_inverse_transpose()
+	}
 
 	// When intersecting the shape with a ray, all shapes need to first convert the
 	//ray into object space, transforming it by the inverse of the shape’s transformation
@@ -54,10 +78,6 @@ pub trait Shape: Debug {
 		// println!("world normal: {:?}", world_normal);
 		world_normal.norm()
 	}
-
-	// these allow BaseShape to cache the results
-	fn transformation_inverse(&self) -> &Matrix;
-	fn transformation_inverse_transpose(&self) -> &Matrix;
 }
 
 // I don't entirely understand why the lifetime params are required, but the compiler will not let us

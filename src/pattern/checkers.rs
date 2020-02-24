@@ -1,7 +1,6 @@
 use crate::color::Color;
 use crate::constants::black;
 use crate::constants::white;
-use crate::matrix::Matrix;
 use crate::pattern::pattern::BasePattern;
 use crate::pattern::pattern::Pattern;
 use crate::tuple::Tuple;
@@ -30,6 +29,12 @@ impl Default for Checkers {
 }
 
 impl Pattern for Checkers {
+	fn get_base(&self) -> &BasePattern {
+		&self.base
+	}
+	fn get_base_mut(&mut self) -> &mut BasePattern {
+		&mut self.base
+	}
 	fn color_at_world(&self, world_point: Tuple) -> Color {
 		// TODO: is any kind of overflow possible here?
 		if (world_point.x.abs() + world_point.y.abs() + world_point.z.abs()).floor() as i32 % 2 == 0
@@ -38,12 +43,6 @@ impl Pattern for Checkers {
 		} else {
 			self.b
 		}
-	}
-	fn set_transformation(&mut self, t: Matrix) {
-		self.base.set_transformation(t)
-	}
-	fn transformation_inverse(&self) -> &Matrix {
-		self.base.transformation_inverse()
 	}
 }
 

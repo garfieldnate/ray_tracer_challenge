@@ -36,6 +36,12 @@ impl Default for Sphere {
 }
 
 impl Shape for Sphere {
+	fn get_base(&self) -> &BaseShape {
+		&self.base
+	}
+	fn get_base_mut(&mut self) -> &mut BaseShape {
+		&mut self.base
+	}
 	fn local_intersect(&self, object_ray: Ray) -> Vec<Intersection> {
 		// ​# the vector from the sphere's center to the ray origin​
 		let sphere_to_ray = object_ray.origin - self.center;
@@ -62,32 +68,6 @@ impl Shape for Sphere {
 	}
 	fn local_norm_at(&self, object_point: Tuple) -> Tuple {
 		object_point - self.center
-	}
-
-	// forward these to BaseShape (TODO: need delegation RFC to be accepted!)
-	fn transformation(&self) -> &Matrix {
-		&self.base.transformation()
-	}
-	fn set_transformation(&mut self, t: Matrix) {
-		self.base.set_transformation(t);
-	}
-	fn material(&self) -> &Material {
-		self.base.material()
-	}
-	fn set_material(&mut self, m: Material) {
-		self.base.set_material(m);
-	}
-	fn casts_shadow(&self) -> bool {
-		self.base.casts_shadow()
-	}
-	fn set_casts_shadow(&mut self, casts_shadow: bool) {
-		self.base.set_casts_shadow(casts_shadow)
-	}
-	fn transformation_inverse(&self) -> &Matrix {
-		self.base.transformation_inverse()
-	}
-	fn transformation_inverse_transpose(&self) -> &Matrix {
-		self.base.transformation_inverse_transpose()
 	}
 }
 
