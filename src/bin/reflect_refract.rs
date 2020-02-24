@@ -1,13 +1,14 @@
 use ray_tracer_challenge::camera::Camera;
 use ray_tracer_challenge::color::Color;
 use ray_tracer_challenge::constants::metal;
-use ray_tracer_challenge::constants::{white, yellow};
+use ray_tracer_challenge::constants::{white, yellow, REFRACTION_GLASS};
 use ray_tracer_challenge::light::PointLight;
 use ray_tracer_challenge::material::Material;
 use ray_tracer_challenge::pattern::pattern::Pattern;
 use ray_tracer_challenge::pattern::rings::Rings;
 use ray_tracer_challenge::pattern::sine_2d::Sine2D;
 use ray_tracer_challenge::pattern::stripes::Stripes;
+use ray_tracer_challenge::shape::cone::Cone;
 use ray_tracer_challenge::shape::cylinder::Cylinder;
 use ray_tracer_challenge::shape::plane::Plane;
 use ray_tracer_challenge::shape::shape::Shape;
@@ -48,7 +49,7 @@ fn main() {
 	middle_sphere_material.specular = 1.0;
 	middle_sphere_material.shininess = 300.0;
 	middle_sphere_material.transparency = 1.0;
-	middle_sphere_material.refractive_index = 1.5;
+	middle_sphere_material.refractive_index = REFRACTION_GLASS;
 	middle_sphere_material.reflective = 1.0;
 
 	let middle = {
@@ -105,6 +106,20 @@ fn main() {
 		c
 	};
 
+	let cone = {
+		let mut c = Cone::new();
+		c.maximum_y = 1.5;
+		c.minimum_y = 0.0;
+		let mut m = Material::default();
+		m.reflective = 0.5;
+		m.color = color!(0.6, 0.3, 0.1);
+		m.shininess = 10.0;
+		m.specular = 0.8;
+		c.set_material(m);
+		c.set_transformation(&translation(-3.5, 0.0, 4.0) * &scaling(0.33, 1.8, 0.33));
+		c
+	};
+
 	let world = World {
 		objects: vec![
 			Box::new(floor),
@@ -112,6 +127,7 @@ fn main() {
 			Box::new(middle),
 			Box::new(right),
 			Box::new(cylinder),
+			Box::new(cone),
 		],
 		// The light source is white, shining from above and to the left
 		light: Some(PointLight::new(point!(-10, 10, -10), white())),
@@ -124,6 +140,6 @@ fn main() {
 		view_transform(point!(0, 1.5, -5), point!(0, 1, 0), vector!(0, 1, 0)),
 	);
 
-	let canvas = camera.render(world);
+	let canvas = camera.render(world, 20);
 	println!("{}", canvas.to_ppm());
 }
