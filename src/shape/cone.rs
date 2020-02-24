@@ -44,7 +44,20 @@ impl Default for Cone {
 impl Shape for Cone {
     fn local_intersect(&self, object_ray: Ray) -> Vec<Intersection> {}
 
-    fn local_norm_at(&self, object_point: Tuple) -> Tuple {}
+    // norms at the corners are the norms of one of the adjacent sides
+    fn local_norm_at(&self, object_point: Tuple) -> Tuple {
+        let dist_square = object_point.x.powi(2) + object_point.z.powi(2);
+        if dist_square < 1.0 {
+            if object_point.y >= self.maximum_y - CLOSE_TO_ZERO {
+                return vector!(0, 1, 0);
+            } else if object_point.y <= self.minimum_y + CLOSE_TO_ZERO {
+                return vector!(0, -1, 0);
+            }
+        }
+        let y = (object_point.x.powi(2) + object_point.z.powi(2)).sqrt();
+        let y = if object_point.y > 0.0 { -y } else { y };
+        vector!(object_point.x, y, object_point.z)
+    }
 
     // forward these to BaseShape (TODO: need delegation RFC to be accepted!)
     fn transformation(&self) -> &Matrix {
@@ -167,9 +180,9 @@ mod tests {
     fn cone_normal_vector() {
         let c = Cone::new();
         let test_data = vec![
-            ("", point!(0, 0, 0), vector!(0, 0, 0)),
-            ("", point!(1, 1, 1), vector!(1, -SQRT_2, 1)),
-            ("", point!(-1, -1, 0), vector!(-1, 1, 0)),
+            ("1", point!(0, 0, 0), vector!(0, 0, 0)),
+            ("2", point!(1, 1, 1), vector!(1, -SQRT_2, 1)),
+            ("3", point!(-1, -1, 0), vector!(-1, 1, 0)),
         ];
         for (name, point, expected_normal) in test_data {
             let normal = c.local_norm_at(point);
