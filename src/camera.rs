@@ -36,15 +36,11 @@ impl Camera {
 		// TODO: I don't get what this is for. It seems like we pick the longer dimension to be the width
 		// and the shorter to be the height. But wouldn't that turn the image sideways?
 		let aspect_ratio = (width_pixels as f32) / (height_pixels as f32);
-		let half_width_world: f32;
-		let half_height_world: f32;
-		if aspect_ratio >= 1.0 {
-			half_width_world = half_view;
-			half_height_world = half_view / aspect_ratio;
+		let (half_width_world, half_height_world) = if aspect_ratio >= 1.0 {
+			(half_view, half_view / aspect_ratio)
 		} else {
-			half_width_world = half_view * aspect_ratio;
-			half_height_world = half_view;
-		}
+			(half_view * aspect_ratio, half_view)
+		};
 		let pixel_size = (half_width_world * 2.0) / width_pixels as f32;
 
 		Camera {
@@ -128,7 +124,10 @@ mod tests {
 		let c = Camera::new(201, 101, PI / 2.0, identity_4x4());
 		let r = c.ray_for_pixel(0, 0);
 		assert_eq!(r.origin, point!(0, 0, 0));
-		assert_abs_diff_eq!(r.direction, vector!(0.6651864, 0.33259323, -0.66851234));
+		assert_abs_diff_eq!(
+			r.direction,
+			vector!(0.665_186_4, 0.332_593_23, -0.668_512_34)
+		);
 	}
 
 	#[test]

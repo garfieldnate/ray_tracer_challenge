@@ -15,11 +15,11 @@ impl PartialEq for Intersection<'_> {
 }
 
 impl Intersection<'_> {
-    pub fn new<'a>(distance: f32, object: &'a dyn Shape) -> Intersection<'a> {
+    pub fn new(distance: f32, object: &dyn Shape) -> Intersection {
         Intersection { distance, object }
     }
     // returns the a reference to the intersection with the lowest non-negative distance (or None if all are negative)
-    pub fn hit<'a>(intersections: &'a Vec<Intersection<'a>>) -> Option<&'a Intersection<'a>> {
+    pub fn hit<'a>(intersections: &'a [Intersection<'a>]) -> Option<&'a Intersection<'a>> {
         intersections
             .iter()
             .filter(|i| i.distance >= 0.0)
