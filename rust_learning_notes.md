@@ -18,6 +18,7 @@
     * Currently you can't enable/disable lints, including for clippy, in a config file. Issue: https://github.com/rust-lang/cargo/issues/5034. I can't really fix all of the direct float comparison spots, and sometimes it's for sure safe.
     * Clippy says that `0.121_218_32` has a mistyped literal suffix and suggests changing the end to `f32` That's clearly a bug. The actual number is supposed to end in `32`.
     * I think for now Clippy has to be a "run once in a while for improvements" tool, not a "run all the time to catch mistakes" tool.
+* Lack of visibility controls and relative imports is kind of a bummer. I expected this part to be a lot more modern.
 
 ### VS Code Wishes
 * I wish that VSCode could auto-format macros. Doesn't seem to do indenting automatically.
