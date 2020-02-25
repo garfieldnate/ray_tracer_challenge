@@ -59,7 +59,7 @@ mod tests {
 		assert_eq!(pattern.color_at_world(point!(0, 0, 0)), white());
 		assert_eq!(pattern.color_at_world(point!(1, 0, 0)), black());
 		assert_eq!(pattern.color_at_world(point!(0, 0, 1)), black());
-		// 0.708 = just slightly more than √2/2​
+		// 0.708 = just slightly more than √2/2
 		assert_eq!(pattern.color_at_world(point!(0.708, 0, 0.708)), black());
 	}
 }

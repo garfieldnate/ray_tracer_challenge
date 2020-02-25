@@ -157,7 +157,7 @@ mod tests {
 		let image = c.render(w, DEFAULT_RAY_RECURSION_DEPTH);
 		assert_abs_diff_eq!(
 			image.pixel_at(5, 5),
-			color!(0.38063288, 0.47579104, 0.28547466)
+			color!(0.380_632_88, 0.475_791_04, 0.285_474_66)
 		);
 	}
 }

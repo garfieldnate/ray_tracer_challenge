@@ -71,7 +71,7 @@ impl Shape for Cylinder {
     }
 }
 
-const CLOSE_TO_ZERO: f32 = 0.000001;
+const CLOSE_TO_ZERO: f32 = 0.000_001;
 impl Cylinder {
     fn intersect_sides<'a>(&'a self, object_ray: &Ray, intersections: &mut Vec<Intersection<'a>>) {
         let two_a = 2.0 * (object_ray.direction.x.powi(2) + object_ray.direction.z.powi(2));
@@ -185,8 +185,8 @@ mod tests {
                 "angle",
                 point!(0.5, 0, -5),
                 vector!(0.1, 1, 1),
-                6.808006,
-                7.0886984,
+                6.808_006,
+                7.088_698_4,
             ),
         ];
         for (name, origin, direction, distance1, distance2) in test_data {
