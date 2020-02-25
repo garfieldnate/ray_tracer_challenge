@@ -9,7 +9,7 @@ use std::f32;
 
 // Base shape is parallel to the Y-axis and infinitely long, centered on world origin
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug)]
 pub struct Cylinder {
     base: BaseShape,
     pub minimum_y: f32,

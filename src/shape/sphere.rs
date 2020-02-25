@@ -7,7 +7,8 @@ use crate::shape::shape::Shape;
 use crate::tuple::Tuple;
 
 // Base shape has radius of 1 and straddles world origin
-#[derive(Clone, Debug, PartialEq)]
+
+#[derive(Debug)]
 pub struct Sphere {
 	base: BaseShape,
 	center: Tuple,

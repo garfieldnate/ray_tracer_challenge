@@ -5,14 +5,14 @@ use crate::shape::base_shape::BaseShape;
 use crate::shape::shape::Shape;
 use crate::tuple::Tuple;
 
-#[derive(Debug, PartialEq)]
-struct GroupShape {
+#[derive(Debug)]
+pub struct GroupShape {
     base: BaseShape,
     pub children: Vec<Box<dyn Shape>>,
 }
 
 impl GroupShape {
-    fn new() -> Self {
+    pub fn new() -> Self {
         Self::default()
     }
 }
