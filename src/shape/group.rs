@@ -5,31 +5,41 @@ use crate::shape::base_shape::BaseShape;
 use crate::shape::shape::Shape;
 use crate::tuple::Tuple;
 use std::cmp::Ordering::Equal;
+use std::rc::{Rc, Weak};
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct GroupShape {
     base: BaseShape,
     children: Vec<Box<dyn Shape>>,
+    self_ref: Option<Weak<GroupShape>>,
 }
 
 impl GroupShape {
     pub fn new() -> Self {
         Self::default()
     }
-    pub fn add_child(&mut self, mut child: Box<dyn Shape>) {
-        child.as_mut().set_parent(self);
-        self.children.push(child);
+    pub fn add_self_ref(&mut self, self_ref: Weak<GroupShape>) {
+        self.self_ref = Some(self_ref);
     }
-}
-
-impl Default for GroupShape {
-    fn default() -> GroupShape {
-        GroupShape {
-            base: BaseShape::new(),
-            children: vec![],
+    pub fn add_child(&mut self, mut child: Box<dyn Shape>) {
+        match &self.self_ref {
+            Some(r) => {
+                child.as_mut().set_parent(r.clone());
+                self.children.push(child);
+            }
+            None => panic!("cannot call add_child until add_self_ref is called"),
         }
     }
 }
+
+// impl Default for GroupShape {
+//     fn default() -> GroupShape {
+//         GroupShape {
+//             base: BaseShape::new(),
+//             children: vec![],
+//         }
+//     }
+// }
 
 impl Shape for GroupShape {
     fn get_base(&self) -> &BaseShape {
@@ -73,7 +83,8 @@ mod tests {
         let s = Box::new(BaseShape::new());
         // TODO: this is possibly kind of a fragile test
         let s_address = s.as_ref() as *const dyn Shape;
-        let mut g = GroupShape::new();
+        let g = Rc::new(GroupShape::new());
+        g.add_self_ref(Rc::downgrade(&g));
         g.add_child(s);
         assert_eq!(g.children.len(), 1, "g should have 1 child,");
         assert_eq!(
@@ -82,7 +93,7 @@ mod tests {
             "the one child should be s,"
         );
         assert!(
-            ptr::eq(g.children[0].get_parent().unwrap(), &g),
+            ptr::eq(g.children[0].get_parent().unwrap().as_ref(), g.as_ref()),
             "and s's parent should be g"
         );
     }

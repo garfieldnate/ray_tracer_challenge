@@ -9,6 +9,8 @@ use std::fmt::Debug;
 use std::hash::Hash;
 use std::hash::Hasher;
 use std::ptr;
+use std::rc::Rc;
+use std::rc::Weak;
 
 pub trait Shape: Debug {
 	// tthe BaseShape that the wrapping instance is delegating to
@@ -49,11 +51,11 @@ pub trait Shape: Debug {
 	// Note: these two MUST NEVER be called outside of GroupShape! That could potentially break unsafe assumptions!
 	// TODO: how can we restrict the visibility to GroupShape and BaseShape somehow?
 	#[doc(hidden)]
-	fn set_parent(&mut self, parent_group: &mut GroupShape) {
+	fn set_parent(&mut self, parent_group: Weak<GroupShape>) {
 		self.get_base_mut().set_parent(parent_group);
 	}
 	#[doc(hidden)]
-	fn get_parent(&self) -> Option<&GroupShape> {
+	fn get_parent(&self) -> Option<Rc<GroupShape>> {
 		self.get_base().get_parent()
 	}
 

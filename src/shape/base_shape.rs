@@ -6,6 +6,8 @@ use crate::shape::group::GroupShape;
 use crate::shape::shape::Shape;
 use crate::tuple::Tuple;
 use std::fmt::Debug;
+use std::rc::Rc;
+use std::rc::Weak;
 use std::sync::atomic::{AtomicPtr, Ordering};
 
 // Other shape implementations should delegate to this one where these defaults are acceptable.
@@ -16,7 +18,7 @@ pub struct BaseShape {
     t_inverse_transpose: Matrix,
     m: Material,
     casts_shadow: bool,
-    parent: AtomicPtr<GroupShape>,
+    parent: Weak<GroupShape>,
 }
 
 impl BaseShape {
@@ -64,12 +66,11 @@ impl Shape for BaseShape {
         &self.t_inverse_transpose
     }
 
-    fn set_parent(&mut self, group: &mut GroupShape) {
-        // TODO: add programmatic check that parent can only be set once?
-        self.parent = AtomicPtr::new(group);
+    fn set_parent(&mut self, group: Weak<GroupShape>) {
+        self.parent = group;
     }
-    fn get_parent(&self) -> Option<&GroupShape> {
-        unsafe { self.parent.load(Ordering::Relaxed).as_ref() }
+    fn get_parent(&self) -> Option<Rc<GroupShape>> {
+        self.parent.upgrade()
     }
 
     // These two methods *must* be implemented by wrapping implementations
@@ -126,10 +127,10 @@ mod tests {
         let mut shape = BaseShape::new();
         assert!(shape.get_parent().is_none(), "No parent group by default");
 
-        let mut parent = GroupShape::new();
-        shape.set_parent(&mut parent);
+        let mut parent = Rc::new(GroupShape::new());
+        shape.set_parent(Rc::downgrade(&parent));
         assert!(
-            ptr::eq(shape.get_parent().unwrap(), &parent),
+            ptr::eq(shape.get_parent().unwrap().as_ref(), parent.as_ref()),
             "Parent group should be settable"
         );
     }
