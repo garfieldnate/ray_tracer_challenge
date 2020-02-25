@@ -1,17 +1,10 @@
 use crate::shape::shape::Shape;
 use std::cmp::Ordering::Equal;
-use std::ptr;
-#[derive(Copy, Clone, Debug)]
+
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Intersection<'a> {
     pub distance: f32,
     pub object: &'a dyn Shape,
-}
-
-impl PartialEq for Intersection<'_> {
-    fn eq(&self, other: &Intersection) -> bool {
-        // TODO: why doesn't Rust allow self.object == other.object, and also auto deriving of this trait impl?
-        self.distance.eq(&other.distance) && ptr::eq(self.object, other.object)
-    }
 }
 
 impl Intersection<'_> {
@@ -32,6 +25,7 @@ mod tests {
     use super::*;
     use crate::shape::shape::Shape;
     use crate::shape::sphere::Sphere;
+    use std::ptr;
 
     #[test]
     fn basic_intersection_creation() {
