@@ -20,6 +20,9 @@ impl GroupShape {
         child.as_mut().set_parent(self);
         self.children.push(child);
     }
+    pub fn get_children(&self) -> Option<&Vec<Box<dyn Shape>>> {
+        Some(&self.children)
+    }
 }
 
 impl Default for GroupShape {
@@ -48,8 +51,8 @@ impl Shape for GroupShape {
         intersections.sort_by(|i1, i2| i1.distance.partial_cmp(&i2.distance).unwrap_or(Equal));
         intersections
     }
-    fn local_norm_at(&self, object_point: Tuple) -> Tuple {
-        vector!(0, 0, 0)
+    fn local_norm_at(&self, _object_point: Tuple) -> Tuple {
+        unreachable!("Groups do not have normals. This method should never be called.")
     }
     fn transformation_inverse(&self) -> &Matrix {
         self.base.transformation_inverse()
