@@ -57,6 +57,14 @@ pub trait Shape: Debug {
 		self.get_base().get_parent()
 	}
 
+	fn world_to_object(&self, p: Tuple) -> Tuple {
+		let entry_point = match self.get_base().get_parent() {
+			Some(parent) => parent.world_to_object(p),
+			None => p,
+		};
+		self.transformation_inverse() * &entry_point
+	}
+
 	// When intersecting the shape with a ray, all shapes need to first convert the
 	//ray into object space, transforming it by the inverse of the shape’s transformation
 	//matrix.
@@ -90,6 +98,12 @@ pub trait Shape: Debug {
 		// println!("world normal: {:?}", world_normal);
 		world_normal.norm()
 	}
+
+	// should only be implemented by GroupShape
+	fn get_children(&self) -> Option<&Vec<Box<dyn Shape>>> {
+		println!("Calling stupid default method");
+		None
+	}
 }
 
 // I don't entirely understand why the lifetime params are required, but the compiler will not let us
@@ -113,7 +127,9 @@ impl<'a> Eq for dyn Shape + 'a {}
 #[cfg(test)]
 mod tests {
 	use super::*;
+	use crate::shape::sphere::Sphere;
 	use crate::shape::test_shape::TestShape;
+	use crate::transformations::rotation_y;
 	use crate::transformations::rotation_z;
 	use crate::transformations::scaling;
 	use crate::transformations::translation;
@@ -165,5 +181,23 @@ mod tests {
 		let s = TestShape::new();
 		let n = s.normal_at(point!(1, 5, 10));
 		assert_abs_diff_eq!(n, n.norm());
+	}
+
+	#[test]
+	fn converting_point_from_world_to_object_space() {
+		let mut g1 = GroupShape::new();
+		g1.set_transformation(rotation_y(PI / 2.0));
+		let mut g2 = GroupShape::new();
+		g2.set_transformation(scaling(2.0, 2.0, 2.0));
+		let mut s = Sphere::new();
+		s.set_transformation(translation(5.0, 0.0, 0.0));
+		g2.add_child(Box::new(s));
+		g1.add_child(Box::new(g2));
+		let s = g1.get_children().unwrap()[0].as_ref();
+		println!("{:?}", s);
+		s.get_children().unwrap()[0].as_ref();
+
+		// let p = s.world_to_object(point!(-2, 0, -10));
+		// assert_eq!(p, point!(0, 0, -1));
 	}
 }
