@@ -109,55 +109,12 @@ impl<'a> Eq for dyn Shape + 'a {}
 #[cfg(test)]
 mod tests {
 	use super::*;
-	use crate::matrix::identity_4x4;
-	use crate::shape::base_shape::BaseShape;
 	use crate::shape::test_shape::TestShape;
 	use crate::transformations::rotation_z;
 	use crate::transformations::scaling;
 	use crate::transformations::translation;
 	use std::f32::consts::FRAC_1_SQRT_2;
 	use std::f32::consts::PI;
-
-	#[test]
-	fn shape_transformation() {
-		let mut shape = BaseShape::new();
-		assert_eq!(
-			shape.transformation(),
-			&identity_4x4(),
-			"Default transform should be identity"
-		);
-
-		shape.set_transformation(translation(2.0, 3.0, 4.0));
-		assert_eq!(
-			shape.transformation(),
-			&translation(2.0, 3.0, 4.0),
-			"transformation should be settable"
-		);
-	}
-
-	#[test]
-	fn shape_material() {
-		let mut shape = BaseShape::new();
-		assert_eq!(shape.material(), &Material::default(), "Default material");
-
-		let mut override_material = Material::default();
-		override_material.ambient = 1.0;
-		shape.set_material(override_material.clone());
-		assert_eq!(
-			shape.material(),
-			&override_material,
-			"material should be settable"
-		);
-	}
-
-	#[test]
-	fn shape_casts_shadow() {
-		let mut shape = BaseShape::new();
-		assert_eq!(shape.casts_shadow(), true, "casts shadow by default");
-
-		shape.set_casts_shadow(false);
-		assert!(!shape.casts_shadow(), "casts_shadow should be settable");
-	}
 
 	#[test]
 	fn intersect_scaled_shape_with_ray() {
