@@ -7,7 +7,7 @@ use crate::tuple::Tuple;
 use std::fmt::Debug;
 
 // Other shape implementations should delegate to this one where these defaults are acceptable.
-#[derive(Default, Clone, Debug, PartialEq)]
+#[derive(Default, Debug)]
 pub struct BaseShape {
     t: Matrix,
     t_inverse: Matrix,

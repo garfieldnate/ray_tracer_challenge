@@ -9,7 +9,7 @@ use std::f32;
 
 // Base shape has a dimension of two and straddles the world origin
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug)]
 pub struct Cube {
     base: BaseShape,
 }
