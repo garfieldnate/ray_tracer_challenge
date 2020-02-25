@@ -30,6 +30,7 @@
 
 ### Ergonomics
 
+- String ID's for all shapes. Would make testing way easier
 - YAML scene file parsing
 - getset or rust-derive-builder would probably simplify material or other creations, too
 - display a grid
