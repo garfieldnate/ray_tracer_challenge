@@ -14,6 +14,10 @@
 * Rust is very careful to distinguish between mutable and immutable variables, but you can rebind immutable variables for some reason. I guess it's memory safe, but it seems like a possible footgun if you expect better immutability gaurantees. I'm used to TypeScript, where you just declare locals as consts all the time.
 * I wish assert_abs_diff_eq from the approx crate would take an additional message string with format args, like the built-in assert! and friends do. See https://github.com/brendanzab/approx/issues/44.
     - Would also be great if the AproxEq trait were implemented for tuples.
+- Linting with clippy:
+    * Currently you can't enable/disable lints, including for clippy, in a config file. Issue: https://github.com/rust-lang/cargo/issues/5034. I can't really fix all of the direct float comparison spots, and sometimes it's for sure safe.
+    * Clippy says that `0.121_218_32` has a mistyped literal suffix and suggests changing the end to `f32` That's clearly a bug. The actual number is supposed to end in `32`.
+    * I think for now Clippy has to be a "run once in a while for improvements" tool, not a "run all the time to catch mistakes" tool.
 
 ### VS Code Wishes
 * I wish that VSCode could auto-format macros. Doesn't seem to do indenting automatically.

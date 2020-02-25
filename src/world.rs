@@ -202,7 +202,7 @@ const SELF_INTERSECTION_AVOIDANCE_EPSILON: f32 = f32::EPSILON * 10000.0;
 pub fn precompute_values<'a>(
 	r: Ray,
 	hit: &Intersection<'a>,
-	intersections: &Vec<Intersection<'a>>,
+	intersections: &[Intersection<'a>],
 ) -> PrecomputedValues<'a> {
 	let point = r.position(hit.distance);
 	let mut surface_normal = hit.object.normal_at(point);
