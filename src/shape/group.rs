@@ -8,12 +8,16 @@ use crate::tuple::Tuple;
 #[derive(Debug)]
 pub struct GroupShape {
     base: BaseShape,
-    pub children: Vec<Box<dyn Shape>>,
+    children: Vec<Box<dyn Shape>>,
 }
 
 impl GroupShape {
     pub fn new() -> Self {
         Self::default()
+    }
+    pub fn add_child(&mut self, mut child: Box<dyn Shape>) {
+        child.as_mut().set_parent(self);
+        self.children.push(child);
     }
 }
 
@@ -49,6 +53,25 @@ impl Shape for GroupShape {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+    use crate::shape::base_shape::BaseShape;
+    use std::ptr;
+
     #[test]
-    fn default_group_parent() {}
+    fn add_child_to_group() {
+        let s = Box::new(BaseShape::new());
+        let s_address = s.as_ref() as *const dyn Shape;
+        let mut g = GroupShape::new();
+        g.add_child(s);
+        assert_eq!(g.children.len(), 1, "g should have 1 child,");
+        assert_eq!(
+            g.children[0].as_ref() as *const _,
+            s_address,
+            "the one child should be s,"
+        );
+        assert!(
+            ptr::eq(g.children[0].get_parent().unwrap(), &g),
+            "and s's parent should be g"
+        );
+    }
 }

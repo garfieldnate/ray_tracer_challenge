@@ -65,6 +65,7 @@ impl Shape for BaseShape {
     }
 
     fn set_parent(&mut self, group: &mut GroupShape) {
+        // TODO: add programmatic check that parent can only be set once?
         self.parent = AtomicPtr::new(group);
     }
     fn get_parent(&self) -> Option<&GroupShape> {
@@ -86,6 +87,7 @@ mod tests {
     use crate::matrix::identity_4x4;
     use crate::shape::base_shape::BaseShape;
     use crate::transformations::translation;
+    use std::ptr;
 
     #[test]
     fn shape_transformation() {
@@ -116,6 +118,19 @@ mod tests {
             shape.material(),
             &override_material,
             "material should be settable"
+        );
+    }
+
+    #[test]
+    fn shape_parent() {
+        let mut shape = BaseShape::new();
+        assert!(shape.get_parent().is_none(), "No parent group by default");
+
+        let mut parent = GroupShape::new();
+        shape.set_parent(&mut parent);
+        assert!(
+            ptr::eq(shape.get_parent().unwrap(), &parent),
+            "Parent group should be settable"
         );
     }
 

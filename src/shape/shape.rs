@@ -46,9 +46,13 @@ pub trait Shape: Debug {
 		self.get_base().transformation_inverse_transpose()
 	}
 
+	// Note: these two MUST NEVER be called outside of GroupShape! That could potentially break unsafe assumptions!
+	// TODO: how can we restrict the visibility to GroupShape and BaseShape somehow?
+	#[doc(hidden)]
 	fn set_parent(&mut self, parent_group: &mut GroupShape) {
 		self.get_base_mut().set_parent(parent_group);
 	}
+	#[doc(hidden)]
 	fn get_parent(&self) -> Option<&GroupShape> {
 		self.get_base().get_parent()
 	}
