@@ -5,26 +5,34 @@ use crate::ray::Ray;
 use crate::shape::group::GroupShape;
 use crate::shape::shape::Shape;
 use crate::tuple::Tuple;
+use atom::AtomSetOnce;
 use std::fmt::Debug;
 use std::sync::atomic::{AtomicPtr, Ordering};
 
 // Other shape implementations should delegate to this one where these defaults are acceptable.
-#[derive(Default, Debug)]
+#[derive(Debug)]
 pub struct BaseShape {
     t: Matrix,
     t_inverse: Matrix,
     t_inverse_transpose: Matrix,
     m: Material,
     casts_shadow: bool,
-    parent: AtomicPtr<GroupShape>,
+    parent: AtomSetOnce<Box<GroupShape>>,
+}
+
+impl Default for BaseShape {
+    fn default() -> Self {
+        BaseShape {
+            casts_shadow: true,
+            parent: AtomSetOnce::empty(),
+            ..Default::default()
+        }
+    }
 }
 
 impl BaseShape {
     pub fn new() -> Self {
-        Self {
-            casts_shadow: true,
-            ..Default::default()
-        }
+        Self::default()
     }
 }
 
@@ -65,7 +73,8 @@ impl Shape for BaseShape {
     }
 
     fn set_parent(&mut self, group: &mut GroupShape) {
-        self.parent = AtomicPtr::new(group);
+        let boxedGroup = Box::new(group);
+        self.parent = AtomSetOnce::new(boxedGroup);
     }
     fn get_parent(&self) -> Option<&GroupShape> {
         unsafe { self.parent.load(Ordering::Relaxed).as_ref() }
