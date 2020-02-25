@@ -3,6 +3,7 @@ use crate::material::Material;
 use crate::matrix::Matrix;
 use crate::ray::Ray;
 use crate::shape::base_shape::BaseShape;
+use crate::shape::group::GroupShape;
 use crate::tuple::Tuple;
 use std::fmt::Debug;
 use std::hash::Hash;
@@ -43,6 +44,13 @@ pub trait Shape: Debug {
 	}
 	fn transformation_inverse_transpose(&self) -> &Matrix {
 		self.get_base().transformation_inverse_transpose()
+	}
+
+	fn set_parent(&mut self, parent_group: &mut GroupShape) {
+		self.get_base_mut().set_parent(parent_group);
+	}
+	fn get_parent(&self) -> Option<&GroupShape> {
+		self.get_base().get_parent()
 	}
 
 	// When intersecting the shape with a ray, all shapes need to first convert the

@@ -2,9 +2,11 @@ use crate::intersection::Intersection;
 use crate::material::Material;
 use crate::matrix::Matrix;
 use crate::ray::Ray;
+use crate::shape::group::GroupShape;
 use crate::shape::shape::Shape;
 use crate::tuple::Tuple;
 use std::fmt::Debug;
+use std::sync::atomic::{AtomicPtr, Ordering};
 
 // Other shape implementations should delegate to this one where these defaults are acceptable.
 #[derive(Default, Debug)]
@@ -14,6 +16,7 @@ pub struct BaseShape {
     t_inverse_transpose: Matrix,
     m: Material,
     casts_shadow: bool,
+    parent: AtomicPtr<GroupShape>,
 }
 
 impl BaseShape {
@@ -59,6 +62,13 @@ impl Shape for BaseShape {
     }
     fn transformation_inverse_transpose(&self) -> &Matrix {
         &self.t_inverse_transpose
+    }
+
+    fn set_parent(&mut self, group: &mut GroupShape) {
+        self.parent = AtomicPtr::new(group);
+    }
+    fn get_parent(&self) -> Option<&GroupShape> {
+        unsafe { self.parent.load(Ordering::Relaxed).as_ref() }
     }
 
     // These two methods *must* be implemented by wrapping implementations
