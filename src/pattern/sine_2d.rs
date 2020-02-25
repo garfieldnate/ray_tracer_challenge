@@ -63,11 +63,11 @@ mod tests {
 		assert_eq!(pattern.color_at_world(point!(0, 0, 0)), white());
 		assert_abs_diff_eq!(
 			pattern.color_at_world(point!(0, 0, 1)),
-			color!(0.77015114, 0.77015114, 0.77015114)
+			color!(0.770_151_14, 0.770_151_14, 0.770_151_14)
 		);
 		assert_eq!(
 			pattern.color_at_world(point!(0, 0, 2)),
-			color!(0.29192656, 0.29192656, 0.29192656)
+			color!(0.291_926_56, 0.291_926_56, 0.291_926_56)
 		);
 		assert_eq!(pattern.color_at_world(point!(0, 0, PI)), color!(0, 0, 0));
 	}

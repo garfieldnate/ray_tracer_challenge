@@ -129,7 +129,7 @@ impl AbsDiffEq for Matrix {
 				}
 			}
 		}
-		return true;
+		true
 	}
 }
 

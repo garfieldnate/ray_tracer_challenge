@@ -180,7 +180,7 @@ mod tests {
 		let mut s = TestShape::new();
 		s.set_transformation(translation(0.0, 1.0, 0.0));
 		let n = s.normal_at(point!(0, 1.70711, -0.70711));
-		assert_abs_diff_eq!(n, vector!(0.0, 0.6000001, -0.79999995));
+		assert_abs_diff_eq!(n, vector!(0.0, 0.600_000_1, -0.799_999_95));
 	}
 
 	#[test]
@@ -188,7 +188,7 @@ mod tests {
 		let mut s = TestShape::new();
 		s.set_transformation(&scaling(1.0, 0.5, 1.0) * &rotation_z(PI / 5.0));
 		let n = s.normal_at(point!(0, FRAC_1_SQRT_2, -FRAC_1_SQRT_2));
-		assert_abs_diff_eq!(n, vector!(-0.08352663, 0.9325296, -0.3513003));
+		assert_abs_diff_eq!(n, vector!(-0.083_526_63, 0.932_529_6, -0.351_300_3));
 	}
 
 	#[test]

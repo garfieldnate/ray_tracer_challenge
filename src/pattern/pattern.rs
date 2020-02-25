@@ -63,16 +63,14 @@ impl Pattern for BasePattern {
 	}
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Default)]
 pub struct TestPattern {
 	base: BasePattern,
 }
 
 impl TestPattern {
 	pub fn new() -> Self {
-		TestPattern {
-			base: BasePattern::new(),
-		}
+		Self::default()
 	}
 }
 

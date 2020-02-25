@@ -42,23 +42,20 @@ fn main() {
 			let ray_direction = (target - ray_origin).norm();
 			let r = Ray::new(ray_origin, ray_direction);
 			let xs = shape.intersect(r);
-			match Intersection::hit(&xs) {
-				Some(hit) => {
-					let hit_point = r.position(hit.distance);
-					let normal = hit.object.normal_at(hit_point);
-					let eye = -ray_direction;
-					let color = phong_lighting(
-						hit.object,
-						hit.object.material(),
-						light,
-						hit_point,
-						eye,
-						normal,
-						false,
-					);
-					canvas.write_pixel(x, y, color)
-				}
-				None => {}
+			if let Some(hit) = Intersection::hit(&xs) {
+				let hit_point = r.position(hit.distance);
+				let normal = hit.object.normal_at(hit_point);
+				let eye = -ray_direction;
+				let color = phong_lighting(
+					hit.object,
+					hit.object.material(),
+					light,
+					hit_point,
+					eye,
+					normal,
+					false,
+				);
+				canvas.write_pixel(x, y, color)
 			}
 		}
 	}

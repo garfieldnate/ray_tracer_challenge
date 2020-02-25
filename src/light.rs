@@ -175,7 +175,7 @@ mod tests {
 			false,
 		);
 		// 0.1 + 0.9 * FRAC_1_SQRT_2 + 0.9, but with some floating point errors
-		assert_abs_diff_eq!(result, color!(1.6363853, 1.6363853, 1.6363853));
+		assert_abs_diff_eq!(result, color!(1.636_385_3, 1.636_385_3, 1.636_385_3));
 	}
 
 	#[test]

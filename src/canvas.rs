@@ -15,12 +15,12 @@ impl Canvas {
     // Create a canvas initialized to all black
     pub fn new(width: usize, height: usize) -> Canvas {
         Canvas {
-            width: width,
-            height: height,
+            width,
+            height,
             data: vec![vec![color!(0, 0, 0); width]; height],
         }
     }
-    pub fn write_pixel(&mut self, x: usize, y: usize, color: Color) -> () {
+    pub fn write_pixel(&mut self, x: usize, y: usize, color: Color) {
         if x <= self.width && y <= self.height {
             self.data[y][x] = color;
         } else {
@@ -84,7 +84,7 @@ impl Canvas {
                     self.write_rgb_separator(&mut current_line, &mut ppm);
                 }
             }
-            if current_line.len() != 0 {
+            if !current_line.is_empty() {
                 ppm.push_str(&current_line);
                 ppm.push('\n');
             }

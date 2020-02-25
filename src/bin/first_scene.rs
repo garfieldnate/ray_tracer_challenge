@@ -40,7 +40,7 @@ fn main() {
 	let right_wall = Sphere::build(
 		&translation(0.0, 0.0, 5.0)
 			* &(&rotation_y(PI / 4.0) * &(&rotation_x(PI / 2.0) * &scaling(10.0, 0.01, 10.0))),
-		room_material.clone(),
+		room_material,
 	);
 
 	// The large sphere in the middle is a unit sphere, translated upward slightly and colored green.

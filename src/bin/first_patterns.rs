@@ -32,7 +32,7 @@ fn main() {
 	sine2d.set_transformation(&scaling(0.005, 1.0, 0.005) * &translation(-5.0, 1.0, 0.5));
 	let mut room_material = Material::default();
 	room_material.color = color!(1, 0.9, 0.9);
-	room_material.pattern = Some(Box::new(sine2d.clone()));
+	room_material.pattern = Some(Box::new(sine2d));
 	room_material.specular = 0.0;
 	// The floor is a plane
 	let floor = Plane::build(scaling(10.0, 0.01, 10.0), room_material);
@@ -62,7 +62,7 @@ fn main() {
 	// The smallest sphere is scaled by a third before being translated
 	let mut left_sphere_material = Material::default();
 	left_sphere_material.color = color!(1, 0.8, 0.1);
-	left_sphere_material.pattern = Some(Box::new(stripes.clone()));
+	left_sphere_material.pattern = Some(Box::new(stripes));
 	left_sphere_material.diffuse = 0.7;
 	left_sphere_material.specular = 0.3;
 	let left = Sphere::build(

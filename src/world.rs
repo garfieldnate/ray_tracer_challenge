@@ -71,11 +71,9 @@ impl World {
 		let material = comps.object.material();
 		if material.reflective > 0.0 && material.transparency > 0.0 {
 			let reflectance = schlick_reflectance(&comps);
-			return surface_color
-				+ reflected_color * reflectance
-				+ refracted_color * (1.0 - reflectance);
+			surface_color + reflected_color * reflectance + refracted_color * (1.0 - reflectance)
 		} else {
-			return surface_color + reflected_color + refracted_color;
+			surface_color + reflected_color + refracted_color
 		}
 	}
 
@@ -291,7 +289,7 @@ fn schlick_reflectance(comps: &PrecomputedValues) -> f32 {
 		cosine = cosine_refracted;
 	}
 	let r0 = ((comps.n1 - comps.n2) / (comps.n1 + comps.n2)).powi(2);
-	return r0 + (1.0 - r0) * (1.0 - cosine).powi(5);
+	r0 + (1.0 - r0) * (1.0 - cosine).powi(5)
 }
 
 #[cfg(test)]
@@ -483,7 +481,7 @@ mod tests {
 		let i = Intersection::new(SQRT_2, w.objects.last().unwrap().as_ref());
 		let comps = precompute_values(r, &i, &vec![i]);
 		let color = w.reflected_color(&comps, 1);
-		assert_abs_diff_eq!(color, color!(0.19052197, 0.23815246, 0.14289148));
+		assert_abs_diff_eq!(color, color!(0.190_521_97, 0.238_152_46, 0.142_891_48));
 	}
 
 	#[test]
@@ -498,7 +496,7 @@ mod tests {
 		let i = Intersection::new(SQRT_2, w.objects.last().unwrap().as_ref());
 		let comps = precompute_values(r, &i, &vec![i]);
 		let color = w.shade_hit(comps, 1);
-		assert_abs_diff_eq!(color, color!(0.8769108, 0.9245413, 0.8292803));
+		assert_abs_diff_eq!(color, color!(0.876_910_8, 0.924_541_3, 0.829_280_3));
 	}
 
 	#[test]
@@ -540,7 +538,7 @@ mod tests {
 		let i = Intersection::new(4.0, shape.as_ref());
 		let comps = precompute_values(r, &i, &vec![i]);
 		let c = w.shade_hit(comps, 1);
-		assert_abs_diff_eq!(c, color!(0.38063288, 0.47579104, 0.28547466))
+		assert_abs_diff_eq!(c, color!(0.380_632_88, 0.475_791_04, 0.285_474_66))
 	}
 
 	#[test]
@@ -552,7 +550,7 @@ mod tests {
 		let i = Intersection::new(0.5, shape.as_ref());
 		let comps = precompute_values(r, &i, &vec![i]);
 		let c = w.shade_hit(comps, 1);
-		assert_abs_diff_eq!(c, color!(0.9045995, 0.9045995, 0.9045995))
+		assert_abs_diff_eq!(c, color!(0.904_599_5, 0.904_599_5, 0.904_599_5))
 	}
 
 	#[test]
@@ -568,7 +566,7 @@ mod tests {
 		let w = World::default();
 		let r = Ray::new(point!(0, 0, -5), vector!(0, 0, 1));
 		let c = w.color_at(r, 1);
-		assert_abs_diff_eq!(c, color!(0.38063288, 0.47579104, 0.28547466))
+		assert_abs_diff_eq!(c, color!(0.380_632_88, 0.475_791_04, 0.285_474_66))
 	}
 
 	#[test]
@@ -727,14 +725,14 @@ mod tests {
 		let r = Ray::new(point!(0, 0, 0.1), vector!(0, 1, 0));
 
 		let xs = vec![
-			Intersection::new(-0.9899, shape_a.as_ref()),
-			Intersection::new(-0.4899, shape_b.as_ref()),
-			Intersection::new(0.4899, shape_b.as_ref()),
-			Intersection::new(0.9899, shape_a.as_ref()),
+			Intersection::new(-0.989_9, shape_a.as_ref()),
+			Intersection::new(-0.489_9, shape_b.as_ref()),
+			Intersection::new(0.489_9, shape_b.as_ref()),
+			Intersection::new(0.989_9, shape_a.as_ref()),
 		];
 		let comps = precompute_values(r, &xs[2], &xs);
 		let c = w.refracted_color(&comps, 5);
-		assert_abs_diff_eq!(c, color!(0, 0.9976768, 0.047521036));
+		assert_abs_diff_eq!(c, color!(0, 0.997_676_8, 0.047_521_036));
 	}
 
 	#[test]
@@ -763,9 +761,9 @@ mod tests {
 		let comps = precompute_values(r, &xs[0], &xs);
 		let c = w.shade_hit(comps, 5);
 
-		// TODO: the books value was Color { r: 0.93642, g: 0.68642, b: 0.68642 }
+		// TODO: the books value was Color { r: 0.936_42, g: 0.686_42, b: 0.686_42 }
 		// Is ours really close enough to be correct, or did we something wrong here?
-		assert_abs_diff_eq!(c, color!(0.93638885, 0.68638885, 0.68638885));
+		assert_abs_diff_eq!(c, color!(0.936_388_85, 0.686_388_85, 0.686_388_85));
 	}
 
 	#[test]
@@ -800,7 +798,7 @@ mod tests {
 		let xs = vec![Intersection::new(1.8589, &shape)];
 		let comps = precompute_values(r, &xs[0], &xs);
 		let reflectance = schlick_reflectance(&comps);
-		assert_abs_diff_eq!(reflectance, 0.48873067);
+		assert_abs_diff_eq!(reflectance, 0.488_730_67);
 	}
 
 	#[test]
@@ -830,6 +828,6 @@ mod tests {
 		let comps = precompute_values(r, &xs[0], &xs);
 		let c = w.shade_hit(comps, 5);
 
-		assert_abs_diff_eq!(c, color!(0.93388665, 0.69640774, 0.6924002));
+		assert_abs_diff_eq!(c, color!(0.933_886_65, 0.696_407_74, 0.692_400_2));
 	}
 }

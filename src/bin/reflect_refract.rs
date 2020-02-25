@@ -36,7 +36,7 @@ fn main() {
 	sine2d.set_transformation(&scaling(0.005, 1.0, 0.005) * &translation(-5.0, 1.0, 0.5));
 	let mut room_material = Material::default();
 	room_material.color = color!(1, 0.9, 0.9);
-	room_material.pattern = Some(Box::new(sine2d.clone()));
+	room_material.pattern = Some(Box::new(sine2d));
 	room_material.specular = 0.0;
 	room_material.reflective = 0.5;
 	// The floor is a plane
@@ -78,7 +78,7 @@ fn main() {
 	// The smallest sphere is scaled by a third before being translated
 	let mut left_sphere_material = Material::default();
 
-	let mut stripes2 = stripes.clone();
+	let mut stripes2 = stripes;
 	// have to make this thing much darker since it will also be reflective
 	stripes2.a = stripes2.a / 4.0;
 	stripes2.b = stripes2.b / 4.0;

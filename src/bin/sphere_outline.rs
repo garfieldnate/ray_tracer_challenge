@@ -31,9 +31,8 @@ fn main() {
             let target = point!(world_x, world_y, wall_z);
             let r = Ray::new(ray_origin, target - ray_origin);
             let xs = shape.intersect(r);
-            match Intersection::hit(&xs) {
-                Some(_) => canvas.write_pixel(x, y, color),
-                None => {}
+            if Intersection::hit(&xs).is_some() {
+                canvas.write_pixel(x, y, color)
             }
         }
     }

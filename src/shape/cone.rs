@@ -72,7 +72,7 @@ impl Shape for Cone {
     }
 }
 
-const CLOSE_TO_ZERO: f32 = 0.000001;
+const CLOSE_TO_ZERO: f32 = 0.000_001;
 impl Cone {
     fn intersect_sides<'a>(&'a self, object_ray: &Ray, intersections: &mut Vec<Intersection<'a>>) {
         // calculating 2a here instead of a to save a multiplication later
@@ -181,17 +181,17 @@ mod tests {
             (
                 "2",
                 // Note: book specifies exactly 5 for z, but our floating point numbers are just a bit different.
-                point!(0, 0, -4.999999),
+                point!(0, 0, -4.999_999),
                 vector!(1, 1, 1),
-                8.660253,
-                8.660253,
+                8.660_253,
+                8.660_253,
             ),
             (
                 "3",
                 point!(1, 1, -5),
                 vector!(-0.5, -1, 1),
-                4.5500546,
-                49.449955,
+                4.550_054_6,
+                49.449_955,
             ),
         ];
         for (name, origin, direction, distance1, distance2) in test_data {
@@ -225,7 +225,7 @@ mod tests {
         let r = Ray::new(point!(0, 0, -1), vector!(0, 1, 1).norm());
         let intersections = s.local_intersect(r);
         assert_eq!(intersections.len(), 1);
-        assert_abs_diff_eq!(intersections[0].distance, 0.35355338);
+        assert_abs_diff_eq!(intersections[0].distance, 0.353_553_38);
     }
 
     #[test]

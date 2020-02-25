@@ -26,11 +26,9 @@ impl Tuple {
         self.w == 1.0
     }
     pub fn magnitude(&self) -> f32 {
-        // if !self.is_vector() {
-        //     // complain loudly
-        // }
+        debug_assert!(self.is_vector());
         // TODO: book says w is included.
-        return (self.x.powi(2) + self.y.powi(2) + self.z.powi(2) + (self.w as f32).powi(2)).sqrt();
+        (self.x.powi(2) + self.y.powi(2) + self.z.powi(2) + (self.w as f32).powi(2)).sqrt()
     }
     pub fn norm(&self) -> Tuple {
         //TODO: should only take vectors, not tuples
@@ -163,7 +161,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_tuple_constructor() -> () {
+    fn test_tuple_constructor() {
         let tuple = Tuple::new(1.1, 2.2, 3.3, 0.0);
         assert_eq!(
             tuple,
@@ -177,7 +175,7 @@ mod tests {
     }
 
     #[test]
-    fn test_tuple_with_w_equal_1_is_point() -> () {
+    fn test_tuple_with_w_equal_1_is_point() {
         let tuple = Tuple {
             x: 1.1,
             y: 2.2,
@@ -188,7 +186,7 @@ mod tests {
     }
 
     #[test]
-    fn test_tuple_with_w_equal_0_is_vector() -> () {
+    fn test_tuple_with_w_equal_0_is_vector() {
         let tuple = Tuple {
             x: 1.1,
             y: 2.2,
@@ -199,7 +197,7 @@ mod tests {
     }
 
     #[test]
-    fn test_point_creates_tuple_with_w_equal_1() -> () {
+    fn test_point_creates_tuple_with_w_equal_1() {
         let p = point!(1.1, 2.2, 3.3);
         assert_eq!(
             p,
@@ -213,7 +211,7 @@ mod tests {
     }
 
     #[test]
-    fn test_vector_creates_tuple_with_w_equal_0() -> () {
+    fn test_vector_creates_tuple_with_w_equal_0() {
         let v = vector!(1.1, 2.2, 3.3);
         assert_eq!(
             v,
@@ -227,7 +225,7 @@ mod tests {
     }
 
     #[test]
-    fn test_add_tuples() -> () {
+    fn test_add_tuples() {
         let tuple_1 = Tuple {
             x: 1.1,
             y: 2.2,

@@ -157,6 +157,6 @@ mod tests {
 	fn test_parse_hex() {
 		let c = Color::from_str("#0ab33f").unwrap();
 		println!("{:?}", c);
-		assert_abs_diff_eq!(c, color!(0.039215688, 0.7019608, 0.24705882));
+		assert_abs_diff_eq!(c, color!(0.039_215_688, 0.701_960_8, 0.247_058_82));
 	}
 }
