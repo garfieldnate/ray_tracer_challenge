@@ -2,11 +2,9 @@ use crate::intersection::Intersection;
 use crate::material::Material;
 use crate::matrix::Matrix;
 use crate::ray::Ray;
-use crate::shape::group::GroupShape;
 use crate::shape::shape::Shape;
 use crate::tuple::Tuple;
 use std::fmt::Debug;
-use std::sync::atomic::{AtomicPtr, Ordering};
 
 // Other shape implementations should delegate to this one where these defaults are acceptable.
 #[derive(Default, Debug)]
@@ -16,7 +14,6 @@ pub struct BaseShape {
     t_inverse_transpose: Matrix,
     m: Material,
     casts_shadow: bool,
-    parent: AtomicPtr<GroupShape>,
 }
 
 impl BaseShape {
@@ -64,14 +61,6 @@ impl Shape for BaseShape {
         &self.t_inverse_transpose
     }
 
-    fn set_parent(&mut self, group: &mut GroupShape) {
-        // TODO: add programmatic check that parent can only be set once?
-        self.parent = AtomicPtr::new(group);
-    }
-    fn get_parent(&self) -> Option<&GroupShape> {
-        unsafe { self.parent.load(Ordering::Relaxed).as_ref() }
-    }
-
     // These two methods *must* be implemented by wrapping implementations
     fn local_intersect(&self, _object_ray: Ray) -> Vec<Intersection> {
         unimplemented!()
@@ -87,7 +76,6 @@ mod tests {
     use crate::matrix::identity_4x4;
     use crate::shape::base_shape::BaseShape;
     use crate::transformations::translation;
-    use std::ptr;
 
     #[test]
     fn shape_transformation() {
@@ -118,19 +106,6 @@ mod tests {
             shape.material(),
             &override_material,
             "material should be settable"
-        );
-    }
-
-    #[test]
-    fn shape_parent() {
-        let mut shape = BaseShape::new();
-        assert!(shape.get_parent().is_none(), "No parent group by default");
-
-        let mut parent = GroupShape::new();
-        shape.set_parent(&mut parent);
-        assert!(
-            ptr::eq(shape.get_parent().unwrap(), &parent),
-            "Parent group should be settable"
         );
     }
 
