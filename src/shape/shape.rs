@@ -3,7 +3,6 @@ use crate::material::Material;
 use crate::matrix::Matrix;
 use crate::ray::Ray;
 use crate::shape::base_shape::BaseShape;
-use crate::shape::group::GroupShape;
 use crate::tuple::Tuple;
 use std::fmt::Debug;
 use std::hash::Hash;
@@ -24,6 +23,7 @@ pub trait Shape: Debug {
 		self.get_base().transformation()
 	}
 	fn set_transformation(&mut self, t: Matrix) {
+		// println!("Shape trait: setting transformation to {:?}", t);
 		self.get_base_mut().set_transformation(t)
 	}
 	fn material(&self) -> &Material {
@@ -46,23 +46,8 @@ pub trait Shape: Debug {
 		self.get_base().transformation_inverse_transpose()
 	}
 
-	// Note: these two MUST NEVER be called outside of GroupShape! That could potentially break unsafe assumptions!
-	// TODO: how can we restrict the visibility to GroupShape and BaseShape somehow?
-	#[doc(hidden)]
-	fn set_parent(&mut self, parent_group: &mut GroupShape) {
-		self.get_base_mut().set_parent(parent_group);
-	}
-	#[doc(hidden)]
-	fn get_parent(&self) -> Option<&GroupShape> {
-		self.get_base().get_parent()
-	}
-
 	fn world_to_object(&self, p: Tuple) -> Tuple {
-		let entry_point = match self.get_base().get_parent() {
-			Some(parent) => parent.world_to_object(p),
-			None => p,
-		};
-		self.transformation_inverse() * &entry_point
+		self.transformation_inverse() * &p
 	}
 
 	// When intersecting the shape with a ray, all shapes need to first convert the
@@ -90,18 +75,11 @@ pub trait Shape: Debug {
 		// 3x3 submatrix before the computation.
 		world_normal.w = 0.0;
 
-		// println!("self.t.i: {:?}", self.transformation_inverse());
-		// println!("world point: {:?}", world_point);
-		// println!("object point: {:?}", object_point);
-		// println!("object normal: {:?}", object_normal);
-		// println!("self t.i.t: {:?}", self.transformation_inverse_transpose());
-		// println!("world normal: {:?}", world_normal);
 		world_normal.norm()
 	}
 
 	// should only be implemented by GroupShape
 	fn get_children(&self) -> Option<&Vec<Box<dyn Shape>>> {
-		println!("Calling stupid default method");
 		None
 	}
 }
@@ -127,12 +105,14 @@ impl<'a> Eq for dyn Shape + 'a {}
 #[cfg(test)]
 mod tests {
 	use super::*;
+	use crate::shape::group::GroupShape;
 	use crate::shape::sphere::Sphere;
 	use crate::shape::test_shape::TestShape;
 	use crate::transformations::rotation_y;
 	use crate::transformations::rotation_z;
 	use crate::transformations::scaling;
 	use crate::transformations::translation;
+	use approx::AbsDiffEq;
 	use std::f32::consts::FRAC_1_SQRT_2;
 	use std::f32::consts::PI;
 
@@ -193,11 +173,12 @@ mod tests {
 		s.set_transformation(translation(5.0, 0.0, 0.0));
 		g2.add_child(Box::new(s));
 		g1.add_child(Box::new(g2));
-		let s = g1.get_children().unwrap()[0].as_ref();
-		println!("{:?}", s);
-		s.get_children().unwrap()[0].as_ref();
 
-		// let p = s.world_to_object(point!(-2, 0, -10));
-		// assert_eq!(p, point!(0, 0, -1));
+		// lost ownership of these, so we have to dig them out again for testing...
+		let g2 = g1.get_children().unwrap()[0].as_ref();
+		let s = g2.get_children().unwrap()[0].as_ref();
+
+		let p = s.world_to_object(point!(-2, 0, -10));
+		assert!(p.abs_diff_eq(&point!(0, 0, -1), 0.000001));
 	}
 }

@@ -6,7 +6,11 @@ use crate::shape::shape::Shape;
 use crate::tuple::Tuple;
 use std::cmp::Ordering::Equal;
 
-#[derive(Debug)]
+// instead of using BaseShape for the transform here, we propagate transforms to the children and then
+// locally always assume a transform of I, allowing children to do all actual ray transformations.
+// This leads to fewer multiplications and also allows us to avoid linking to parent groups, which
+// is a pain in the Rusty...
+#[derive(Debug, Default)]
 pub struct GroupShape {
     base: BaseShape,
     children: Vec<Box<dyn Shape>>,
@@ -17,20 +21,10 @@ impl GroupShape {
         Self::default()
     }
     pub fn add_child(&mut self, mut child: Box<dyn Shape>) {
-        child.as_mut().set_parent(self);
+        // bake this group's transform into the child's existing transform
+        let old_child_transform = child.transformation().clone();
+        child.set_transformation(self.transformation() * &old_child_transform);
         self.children.push(child);
-    }
-    pub fn get_children(&self) -> Option<&Vec<Box<dyn Shape>>> {
-        Some(&self.children)
-    }
-}
-
-impl Default for GroupShape {
-    fn default() -> GroupShape {
-        GroupShape {
-            base: BaseShape::new(),
-            children: vec![],
-        }
     }
 }
 
@@ -40,6 +34,29 @@ impl Shape for GroupShape {
     }
     fn get_base_mut(&mut self) -> &mut BaseShape {
         &mut self.base
+    }
+    /// Note to clients: the children's transforms will have this group's transform baked in.
+    /// To get the child in its origin form, call remove_child (not implemented)
+    fn get_children(&self) -> Option<&Vec<Box<dyn Shape>>> {
+        Some(&self.children)
+    }
+    fn set_transformation(&mut self, t: Matrix) {
+        // loop over children and undo the previous transformation that was applied to them
+        // by multiplying their transform by the inverse of this group's transform. Then
+        // apply the new group transform.
+        if self.children.len() > 0 {
+            let child_transformer = self.transformation_inverse() * &t;
+            for c in self.children.iter_mut() {
+                let old_child_transform = c.transformation().clone();
+                c.set_transformation(&child_transformer * &old_child_transform);
+            }
+        }
+        // important in case parent group needs to undo its own transform propagated to this group
+        self.get_base_mut().set_transformation(t);
+    }
+    fn intersect(&self, world_ray: Ray) -> Vec<Intersection> {
+        // skip world to local conversion for Group, since the transformation matrix is propagated to the children
+        self.local_intersect(world_ray)
     }
     fn local_intersect(&self, object_ray: Ray) -> Vec<Intersection> {
         let mut intersections = vec![];
@@ -69,7 +86,6 @@ mod tests {
     use crate::shape::sphere::Sphere;
     use crate::transformations::scaling;
     use crate::transformations::translation;
-    use std::ptr;
 
     #[test]
     fn add_child_to_group() {
@@ -78,15 +94,11 @@ mod tests {
         let s_address = s.as_ref() as *const dyn Shape;
         let mut g = GroupShape::new();
         g.add_child(s);
-        assert_eq!(g.children.len(), 1, "g should have 1 child,");
+        assert_eq!(g.children.len(), 1, "g should have 1 child...");
         assert_eq!(
             g.children[0].as_ref() as *const _,
             s_address,
-            "the one child should be s,"
-        );
-        assert!(
-            ptr::eq(g.children[0].get_parent().unwrap(), &g),
-            "and s's parent should be g"
+            " and the one child should be s"
         );
     }
 
@@ -124,7 +136,7 @@ mod tests {
     }
 
     #[test]
-    fn intersect_ray_with_transformed_group() {
+    fn intersect_ray_with_transformed_group_set_transform_before_adding() {
         // tests that rays are correctly transformed by both parent and
         // child transformation matrices
         let mut g = GroupShape::new();
@@ -132,7 +144,70 @@ mod tests {
         let mut s = Sphere::new();
         s.set_transformation(translation(5.0, 0.0, 0.0));
         g.add_child(Box::new(s));
+
+        assert_eq!(
+            g.get_children().unwrap()[0].transformation(),
+            &matrix!(
+                [2.0, 0.0, 0.0, 10.0],
+                [0.0, 2.0, 0.0, 0.0],
+                [0.0, 0.0, 2.0, 0.0],
+                [0.0, 0.0, 0.0, 1.0]
+            )
+        );
+
         let r = Ray::new(point!(10, 0, -10), vector!(0, 0, 1));
+        let xs = g.intersect(r);
+        assert_eq!(xs.len(), 2);
+    }
+
+    #[test]
+    fn intersect_ray_with_transformed_group_set_transform_after_adding() {
+        // tests that rays are correctly transformed by both parent and
+        // child transformation matrices
+        let mut g = GroupShape::new();
+        let mut s = Sphere::new();
+        s.set_transformation(translation(5.0, 0.0, 0.0));
+        g.add_child(Box::new(s));
+        g.set_transformation(scaling(2.0, 2.0, 2.0));
+        let r = Ray::new(point!(10, 0, -10), vector!(0, 0, 1));
+
+        assert_eq!(
+            g.get_children().unwrap()[0].transformation(),
+            &matrix!(
+                [2.0, 0.0, 0.0, 10.0],
+                [0.0, 2.0, 0.0, 0.0],
+                [0.0, 0.0, 2.0, 0.0],
+                [0.0, 0.0, 0.0, 1.0]
+            )
+        );
+
+        let xs = g.intersect(r);
+        assert_eq!(xs.len(), 2);
+    }
+
+    #[test]
+    fn intersect_ray_with_transformed_group_set_transform_before_and_after_adding() {
+        // tests that rays are correctly transformed by both parent and
+        // child transformation matrices
+        let mut g = GroupShape::new();
+        let mut s = Sphere::new();
+        s.set_transformation(translation(5.0, 0.0, 0.0));
+
+        g.set_transformation(scaling(3.0, 4.0, 8.0));
+        g.add_child(Box::new(s));
+        g.set_transformation(scaling(2.0, 2.0, 2.0));
+        let r = Ray::new(point!(10, 0, -10), vector!(0, 0, 1));
+
+        assert_eq!(
+            g.get_children().unwrap()[0].transformation(),
+            &matrix!(
+                [2.0, 0.0, 0.0, 10.0],
+                [0.0, 2.0, 0.0, 0.0],
+                [0.0, 0.0, 2.0, 0.0],
+                [0.0, 0.0, 0.0, 1.0]
+            )
+        );
+
         let xs = g.intersect(r);
         assert_eq!(xs.len(), 2);
     }
