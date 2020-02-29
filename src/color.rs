@@ -1,4 +1,5 @@
 use approx::AbsDiffEq;
+use std::fmt::Display;
 use std::ops::{Add, Div, Mul, Sub};
 use std::str::FromStr;
 
@@ -12,6 +13,12 @@ pub struct Color {
 impl Color {
     pub fn new(r: f32, g: f32, b: f32) -> Color {
         Color { r, g, b }
+    }
+}
+
+impl Display for Color {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), std::fmt::Error> {
+        write!(f, "color!({}, {}, {})", self.r, self.g, self.b)
     }
 }
 

@@ -1,4 +1,5 @@
 use approx::AbsDiffEq;
+use std::fmt::Display;
 use std::ops::{Add, Div, Mul, Neg, Sub};
 
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -51,6 +52,19 @@ impl Tuple {
             // result is also a vector
             w: 0.0,
         }
+    }
+}
+
+impl Display for Tuple {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), std::fmt::Error> {
+        if self.is_point() {
+            write!(f, "point!(")?;
+        } else {
+            write!(f, "vector!(")?;
+        }
+        write!(f, "{}, {}, {})", self.x, self.y, self.z)?;
+
+        Ok(())
     }
 }
 
