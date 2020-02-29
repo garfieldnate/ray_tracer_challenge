@@ -26,68 +26,68 @@ const CANVAS_WIDTH: u32 = 100;
 const CANVAS_HEIGHT: u32 = 50;
 
 fn main() {
-	let mut stripes = Stripes::new(color!(1.0, 0.2, 0.4), color!(0.1, 0.1, 0.1));
-	stripes.set_transformation(&scaling(0.3, 0.3, 0.3) * &rotation_z(3.0 * PI / 4.0));
-	let mut sine2d = Sine2D::new(color!(0.1, 1, 0.5), color!(0.9, 0.2, 0.6));
-	sine2d.set_transformation(&scaling(0.005, 1.0, 0.005) * &translation(-5.0, 1.0, 0.5));
-	let mut room_material = Material::default();
-	room_material.color = color!(1, 0.9, 0.9);
-	room_material.pattern = Some(Box::new(sine2d));
-	room_material.specular = 0.0;
-	// The floor is a plane
-	let floor = Plane::build(scaling(10.0, 0.01, 10.0), room_material);
+    let mut stripes = Stripes::new(color!(1.0, 0.2, 0.4), color!(0.1, 0.1, 0.1));
+    stripes.set_transformation(&scaling(0.3, 0.3, 0.3) * &rotation_z(3.0 * PI / 4.0));
+    let mut sine2d = Sine2D::new(color!(0.1, 1, 0.5), color!(0.9, 0.2, 0.6));
+    sine2d.set_transformation(&scaling(0.005, 1.0, 0.005) * &translation(-5.0, 1.0, 0.5));
+    let mut room_material = Material::default();
+    room_material.color = color!(1, 0.9, 0.9);
+    room_material.pattern = Some(Box::new(sine2d));
+    room_material.specular = 0.0;
+    // The floor is a plane
+    let floor = Plane::build(scaling(10.0, 0.01, 10.0), room_material);
 
-	// The large sphere in the middle is a unit sphere, translated upward slightly and colored green.
+    // The large sphere in the middle is a unit sphere, translated upward slightly and colored green.
 
-	let mut middle_sphere_material = Material::default();
-	middle_sphere_material.color = color!(0.1, 1, 0.5);
-	middle_sphere_material.pattern = Some(Box::new(stripes.clone()));
-	middle_sphere_material.diffuse = 0.7;
-	middle_sphere_material.specular = 0.3;
-	let middle = Sphere::build(translation(-0.5, 1.0, 0.5), middle_sphere_material);
+    let mut middle_sphere_material = Material::default();
+    middle_sphere_material.color = color!(0.1, 1, 0.5);
+    middle_sphere_material.pattern = Some(Box::new(stripes.clone()));
+    middle_sphere_material.diffuse = 0.7;
+    middle_sphere_material.specular = 0.3;
+    let middle = Sphere::build(translation(-0.5, 1.0, 0.5), middle_sphere_material);
 
-	// The smaller green sphere on the right is scaled in half
+    // The smaller green sphere on the right is scaled in half
 
-	let mut right_sphere_material = Material::default();
-	right_sphere_material.color = color!(0.5, 1, 0.1);
-	right_sphere_material.pattern = Some(Box::new(stripes.clone()));
-	right_sphere_material.diffuse = 0.7;
-	right_sphere_material.specular = 0.3;
-	let right = Sphere::build(
-		&shearing(0.0, 1.0, 0.0, 0.0, 0.0, 1.0)
-			* &(&translation(1.5, 0.5, -0.5) * &scaling(0.5, 0.5, 0.5)),
-		right_sphere_material,
-	);
+    let mut right_sphere_material = Material::default();
+    right_sphere_material.color = color!(0.5, 1, 0.1);
+    right_sphere_material.pattern = Some(Box::new(stripes.clone()));
+    right_sphere_material.diffuse = 0.7;
+    right_sphere_material.specular = 0.3;
+    let right = Sphere::build(
+        &shearing(0.0, 1.0, 0.0, 0.0, 0.0, 1.0)
+            * &(&translation(1.5, 0.5, -0.5) * &scaling(0.5, 0.5, 0.5)),
+        right_sphere_material,
+    );
 
-	// The smallest sphere is scaled by a third before being translated
-	let mut left_sphere_material = Material::default();
-	left_sphere_material.color = color!(1, 0.8, 0.1);
-	left_sphere_material.pattern = Some(Box::new(stripes));
-	left_sphere_material.diffuse = 0.7;
-	left_sphere_material.specular = 0.3;
-	let left = Sphere::build(
-		&translation(-1.5, 0.33, -0.75) * &scaling(0.33, 0.33, 0.33),
-		left_sphere_material,
-	);
+    // The smallest sphere is scaled by a third before being translated
+    let mut left_sphere_material = Material::default();
+    left_sphere_material.color = color!(1, 0.8, 0.1);
+    left_sphere_material.pattern = Some(Box::new(stripes));
+    left_sphere_material.diffuse = 0.7;
+    left_sphere_material.specular = 0.3;
+    let left = Sphere::build(
+        &translation(-1.5, 0.33, -0.75) * &scaling(0.33, 0.33, 0.33),
+        left_sphere_material,
+    );
 
-	let world = World {
-		objects: vec![
-			Box::new(floor),
-			Box::new(left),
-			Box::new(middle),
-			Box::new(right),
-		],
-		// The light source is white, shining from above and to the left
-		light: Some(PointLight::new(point!(-10, 10, -10), white())),
-	};
+    let world = World {
+        objects: vec![
+            Box::new(floor),
+            Box::new(left),
+            Box::new(middle),
+            Box::new(right),
+        ],
+        // The light source is white, shining from above and to the left
+        light: Some(PointLight::new(point!(-10, 10, -10), white())),
+    };
 
-	let camera = Camera::new(
-		CANVAS_WIDTH,
-		CANVAS_HEIGHT,
-		PI / 3.0,
-		view_transform(point!(0, 1.5, -5), point!(0, 1, 0), vector!(0, 1, 0)),
-	);
+    let camera = Camera::new(
+        CANVAS_WIDTH,
+        CANVAS_HEIGHT,
+        PI / 3.0,
+        view_transform(point!(0, 1.5, -5), point!(0, 1, 0), vector!(0, 1, 0)),
+    );
 
-	let canvas = camera.render(world, DEFAULT_RAY_RECURSION_DEPTH);
-	println!("{}", canvas.to_ppm());
+    let canvas = camera.render(world, DEFAULT_RAY_RECURSION_DEPTH);
+    println!("{}", canvas.to_ppm());
 }

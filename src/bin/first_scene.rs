@@ -23,76 +23,76 @@ const CANVAS_HEIGHT: u32 = 500;
 // const CANVAS_HEIGHT: u32 = 50;
 
 fn main() {
-	let mut room_material = Material::default();
-	room_material.color = color!(1, 0.9, 0.9);
-	room_material.specular = 0.0;
-	// The floor is an extremely flattened sphere with a matte texture.
-	let floor = Sphere::build(scaling(10.0, 0.01, 10.0), room_material.clone());
+    let mut room_material = Material::default();
+    room_material.color = color!(1, 0.9, 0.9);
+    room_material.specular = 0.0;
+    // The floor is an extremely flattened sphere with a matte texture.
+    let floor = Sphere::build(scaling(10.0, 0.01, 10.0), room_material.clone());
 
-	// The wall on the left has the same scale and color as the floor, but is also rotated and translated into place.
-	let left_wall = Sphere::build(
-		&translation(0.0, 0.0, 5.0)
-			* &(&rotation_y(-PI / 4.0) * &(&rotation_x(PI / 2.0) * &scaling(10.0, 0.01, 10.0))),
-		room_material.clone(),
-	);
+    // The wall on the left has the same scale and color as the floor, but is also rotated and translated into place.
+    let left_wall = Sphere::build(
+        &translation(0.0, 0.0, 5.0)
+            * &(&rotation_y(-PI / 4.0) * &(&rotation_x(PI / 2.0) * &scaling(10.0, 0.01, 10.0))),
+        room_material.clone(),
+    );
 
-	// The wall on the right is identical to the left wall, but is rotated the opposite direction in y.
-	let right_wall = Sphere::build(
-		&translation(0.0, 0.0, 5.0)
-			* &(&rotation_y(PI / 4.0) * &(&rotation_x(PI / 2.0) * &scaling(10.0, 0.01, 10.0))),
-		room_material,
-	);
+    // The wall on the right is identical to the left wall, but is rotated the opposite direction in y.
+    let right_wall = Sphere::build(
+        &translation(0.0, 0.0, 5.0)
+            * &(&rotation_y(PI / 4.0) * &(&rotation_x(PI / 2.0) * &scaling(10.0, 0.01, 10.0))),
+        room_material,
+    );
 
-	// The large sphere in the middle is a unit sphere, translated upward slightly and colored green.
+    // The large sphere in the middle is a unit sphere, translated upward slightly and colored green.
 
-	let mut middle_sphere_material = Material::default();
-	middle_sphere_material.color = color!(0.1, 1, 0.5);
-	middle_sphere_material.diffuse = 0.7;
-	middle_sphere_material.specular = 0.3;
-	let middle = Sphere::build(translation(-0.5, 1.0, 0.5), middle_sphere_material);
+    let mut middle_sphere_material = Material::default();
+    middle_sphere_material.color = color!(0.1, 1, 0.5);
+    middle_sphere_material.diffuse = 0.7;
+    middle_sphere_material.specular = 0.3;
+    let middle = Sphere::build(translation(-0.5, 1.0, 0.5), middle_sphere_material);
 
-	// The smaller green sphere on the right is scaled in half
+    // The smaller green sphere on the right is scaled in half
 
-	let mut right_sphere_material = Material::default();
-	right_sphere_material.color = color!(0.5, 1, 0.1);
-	right_sphere_material.diffuse = 0.7;
-	right_sphere_material.specular = 0.3;
-	let right = Sphere::build(
-		&shearing(0.0, 1.0, 0.0, 0.0, 0.0, 1.0)
-			* &(&translation(1.5, 0.5, -0.5) * &scaling(0.5, 0.5, 0.5)),
-		right_sphere_material,
-	);
+    let mut right_sphere_material = Material::default();
+    right_sphere_material.color = color!(0.5, 1, 0.1);
+    right_sphere_material.diffuse = 0.7;
+    right_sphere_material.specular = 0.3;
+    let right = Sphere::build(
+        &shearing(0.0, 1.0, 0.0, 0.0, 0.0, 1.0)
+            * &(&translation(1.5, 0.5, -0.5) * &scaling(0.5, 0.5, 0.5)),
+        right_sphere_material,
+    );
 
-	// The smallest sphere is scaled by a third before being translated
-	let mut left_sphere_material = Material::default();
-	left_sphere_material.color = color!(1, 0.8, 0.1);
-	left_sphere_material.diffuse = 0.7;
-	left_sphere_material.specular = 0.3;
-	let left = Sphere::build(
-		&translation(-1.5, 0.33, -0.75) * &scaling(0.33, 0.33, 0.33),
-		left_sphere_material,
-	);
+    // The smallest sphere is scaled by a third before being translated
+    let mut left_sphere_material = Material::default();
+    left_sphere_material.color = color!(1, 0.8, 0.1);
+    left_sphere_material.diffuse = 0.7;
+    left_sphere_material.specular = 0.3;
+    let left = Sphere::build(
+        &translation(-1.5, 0.33, -0.75) * &scaling(0.33, 0.33, 0.33),
+        left_sphere_material,
+    );
 
-	let world = World {
-		objects: vec![
-			Box::new(floor),
-			Box::new(left_wall),
-			Box::new(right_wall),
-			Box::new(left),
-			Box::new(middle),
-			Box::new(right),
-		],
-		// The light source is white, shining from above and to the left
-		light: Some(PointLight::new(point!(-10, 10, -10), white())),
-	};
+    let world = World {
+        objects: vec![
+            Box::new(floor),
+            Box::new(left_wall),
+            Box::new(right_wall),
+            Box::new(left),
+            Box::new(middle),
+            Box::new(right),
+        ],
+        // The light source is white, shining from above and to the left
+        light: Some(PointLight::new(point!(-10, 10, -10), white())),
+    };
 
-	let camera = Camera::new(
-		CANVAS_WIDTH,
-		CANVAS_HEIGHT,
-		PI / 3.0,
-		view_transform(point!(0, 1.5, -5), point!(0, 1, 0), vector!(0, 1, 0)),
-	);
+    let camera = Camera::new(
+        CANVAS_WIDTH,
+        CANVAS_HEIGHT,
+        PI / 3.0,
+        view_transform(point!(0, 1.5, -5), point!(0, 1, 0), vector!(0, 1, 0)),
+    );
 
-	let canvas = camera.render(world, DEFAULT_RAY_RECURSION_DEPTH);
-	println!("{}", canvas.to_ppm());
+    let canvas = camera.render(world, DEFAULT_RAY_RECURSION_DEPTH);
+    println!("{}", canvas.to_ppm());
 }
