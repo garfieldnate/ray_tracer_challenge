@@ -1,6 +1,4 @@
 use crate::intersection::Intersection;
-use crate::material::Material;
-use crate::matrix::Matrix;
 use crate::ray::Ray;
 use crate::shape::base_shape::BaseShape;
 use crate::shape::shape::Shape;
@@ -47,7 +45,7 @@ impl Shape for Triangle {
         vec![]
     }
     fn local_norm_at(&self, object_point: Tuple) -> Tuple {
-        point!(0, 0, 0)
+        self.normal
     }
 }
 
@@ -67,5 +65,22 @@ mod tests {
         assert_eq!(t.e1, vector!(-1, -1, 0));
         assert_eq!(t.e2, vector!(1, -1, 0));
         assert_eq!(t.normal, vector!(0, 0, -1));
+    }
+
+    #[test]
+    fn triangle_normal() {
+        let p1 = point!(0, 1, 0);
+        let p2 = point!(-1, 0, 0);
+        let p3 = point!(1, 0, 0);
+        let t = Triangle::new(p1, p2, p3);
+
+        let n1 = t.local_norm_at(point!(0, 0.5, 0));
+        let n2 = t.local_norm_at(point!(-0.5, 0.75, 0));
+        let n3 = t.local_norm_at(point!(0.5, 0.25, 0));
+
+        // t.normal should always be used for triangle's normal
+        assert_eq!(n1, t.normal);
+        assert_eq!(n2, t.normal);
+        assert_eq!(n3, t.normal);
     }
 }
