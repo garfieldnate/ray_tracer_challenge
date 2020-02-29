@@ -45,36 +45,43 @@ pub trait Shape: Debug {
         self.get_base().transformation_inverse_transpose()
     }
 
-    fn world_to_object(&self, p: &Tuple) -> Tuple {
-        self.transformation_inverse() * p
+    // Inverse transform maps from world to object space
+    fn world_to_object_point(&self, world_point: &Tuple) -> Tuple {
+        self.transformation_inverse() * world_point
+    }
+    fn world_to_object_ray(&self, world_ray: &Ray) -> Ray {
+        world_ray.transform(&self.transformation_inverse())
     }
 
     // When intersecting the shape with a ray, all shapes need to first convert the
     //ray into object space, transforming it by the inverse of the shape’s transformation
     //matrix.
     fn intersect(&self, world_ray: Ray) -> Vec<Intersection> {
-        let object_ray = world_ray.transform(&self.transformation_inverse());
+        let object_ray = self.world_to_object_ray(&world_ray);
         self.local_intersect(object_ray)
     }
 
-    fn normal_at(&self, world_point: Tuple) -> Tuple {
-        // When computing the normal vector, all shapes need to first convert the point to
-        // object space, multiplying it by the inverse of the shape’s transformation matrix.
-        let object_point = self.world_to_object(&world_point);
-
-        let object_normal = self.local_norm_at(object_point);
-
+    fn normal_to_world(&self, object_normal: &Tuple) -> Tuple {
         // Then, after computing the normal they must transform it by the inverse of the
         // transpose of the transformation matrix, and then normalize the resulting vector
         // before returning it.
         // TODO: why the inverse transpose instead of just the inverse?
-        let mut world_normal = self.transformation_inverse_transpose() * &object_normal;
+        let mut world_normal = self.transformation_inverse_transpose() * object_normal;
         // transpose of translation matrix will mess with w; manually setting it back
         // to 0 here is faster and simpler than avoiding the computation by taking the
         // 3x3 submatrix before the computation.
         world_normal.w = 0.0;
 
         world_normal.norm()
+    }
+
+    fn normal_at(&self, world_point: Tuple) -> Tuple {
+        // When computing the normal vector, all shapes need to first convert the point to
+        // object space, multiplying it by the inverse of the shape’s transformation matrix.
+        let object_point = self.world_to_object_point(&world_point);
+
+        let object_normal = self.local_norm_at(object_point);
+        self.normal_to_world(&object_normal)
     }
 
     // should only be implemented by GroupShape
@@ -183,9 +190,7 @@ mod tests {
         let g2 = g1.get_children().unwrap()[0].as_ref();
         let s = g2.get_children().unwrap()[0].as_ref();
 
-        let mut n = s.transformation_inverse_transpose() * &object_normal;
-        n.w = 0.0;
-        let n = n.norm();
+        let n = s.normal_to_world(&object_normal);
         assert_abs_diff_eq!(n, vector!(0.28571427, 0.42857143, -0.85714287));
     }
 }
