@@ -45,7 +45,7 @@ impl Shape for GroupShape {
         // by multiplying their transform by the inverse of this group's transform. Then
         // apply the new group transform.
         if self.children.len() > 0 {
-            let child_transformer = self.transformation_inverse() * &t;
+            let child_transformer = &t * self.transformation_inverse();
             for c in self.children.iter_mut() {
                 let old_child_transform = c.transformation().clone();
                 c.set_transformation(&child_transformer * &old_child_transform);
@@ -84,8 +84,11 @@ mod tests {
     use super::*;
     use crate::shape::base_shape::BaseShape;
     use crate::shape::sphere::Sphere;
+    use crate::transformations::rotation_y;
     use crate::transformations::scaling;
     use crate::transformations::translation;
+    use approx::AbsDiffEq;
+    use std::f32::consts::PI;
 
     #[test]
     fn add_child_to_group() {
@@ -210,5 +213,24 @@ mod tests {
 
         let xs = g.intersect(r);
         assert_eq!(xs.len(), 2);
+    }
+
+    #[test]
+    fn converting_point_in_child_from_world_to_object_space() {
+        let mut g1 = GroupShape::new();
+        g1.set_transformation(rotation_y(PI / 2.0));
+        let mut g2 = GroupShape::new();
+        g2.set_transformation(scaling(1.0, 2.0, 3.0));
+        let mut s = Sphere::new();
+        s.set_transformation(translation(5.0, 0.0, 0.0));
+        g2.add_child(Box::new(s));
+        g1.add_child(Box::new(g2));
+
+        // lost ownership of these, so we have to dig them out again for testing...
+        let g2 = g1.get_children().unwrap()[0].as_ref();
+        let s = g2.get_children().unwrap()[0].as_ref();
+
+        let p = s.world_to_object(point!(-2, 0, -10));
+        assert_abs_diff_eq!(p, point!(5.0, 0.0, -0.66666657));
     }
 }
