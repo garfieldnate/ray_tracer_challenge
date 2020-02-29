@@ -224,7 +224,7 @@ mod tests {
         let g2 = g1.get_children().unwrap()[0].as_ref();
         let s = g2.get_children().unwrap()[0].as_ref();
 
-        let p = s.world_to_object(&point!(-2, 0, -10));
+        let p = s.world_to_object_point(&point!(-2, 0, -10));
         assert_abs_diff_eq!(p, point!(5.0, 0.0, -0.66666657));
     }
 }
