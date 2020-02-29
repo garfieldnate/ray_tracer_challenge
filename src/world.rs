@@ -11,6 +11,7 @@ use crate::shape::shape::Shape;
 use crate::shape::sphere::Sphere;
 use crate::transformations::scaling;
 use crate::tuple::Tuple;
+use fnv::FnvBuildHasher;
 use linked_hash_set::LinkedHashSet;
 use std::cmp::Ordering::Equal;
 use std::f32;
@@ -226,7 +227,8 @@ pub fn precompute_values<'a>(
     let mut n2 = f32::NAN;
 
     // objects containing the current hit, ordered outermost to innermost
-    let mut containing_objects: LinkedHashSet<&'a dyn Shape> = LinkedHashSet::new();
+    let mut containing_objects: LinkedHashSet<&'a dyn Shape, FnvBuildHasher> =
+        LinkedHashSet::with_hasher(FnvBuildHasher::default());
 
     // the book uses REFRACTION_VACCUM; should probably be REFRACTION_AIR (though the difference is small)
     let default_refraction_index = REFRACTION_VACCUM;

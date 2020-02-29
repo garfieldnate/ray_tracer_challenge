@@ -10,4 +10,5 @@ edition = "2018"
 
 approx = "0.3.2"
 dyn-clone = "1.0.1"
+fnv = "1.0.6"
 linked_hash_set = "0.1.3"

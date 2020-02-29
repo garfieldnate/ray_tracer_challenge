@@ -21,6 +21,7 @@
 
 ### Performance
 
+- Triangle mesh instead of just group of triangle
 - Profile to find any bottlenecks
 - Parallelize rendering
 - (also ergonomics) new canvas implementation that displays during render
