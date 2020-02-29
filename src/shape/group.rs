@@ -71,12 +71,6 @@ impl Shape for GroupShape {
     fn local_norm_at(&self, _object_point: Tuple) -> Tuple {
         unreachable!("Groups do not have normals. This method should never be called.")
     }
-    fn transformation_inverse(&self) -> &Matrix {
-        self.base.transformation_inverse()
-    }
-    fn transformation_inverse_transpose(&self) -> &Matrix {
-        self.base.transformation_inverse_transpose()
-    }
 }
 
 #[cfg(test)]
@@ -87,7 +81,7 @@ mod tests {
     use crate::transformations::rotation_y;
     use crate::transformations::scaling;
     use crate::transformations::translation;
-    use approx::AbsDiffEq;
+    use crate::tuple::Tuple;
     use std::f32::consts::PI;
 
     #[test]
@@ -230,7 +224,7 @@ mod tests {
         let g2 = g1.get_children().unwrap()[0].as_ref();
         let s = g2.get_children().unwrap()[0].as_ref();
 
-        let p = s.world_to_object(point!(-2, 0, -10));
+        let p = s.world_to_object(&point!(-2, 0, -10));
         assert_abs_diff_eq!(p, point!(5.0, 0.0, -0.66666657));
     }
 }
