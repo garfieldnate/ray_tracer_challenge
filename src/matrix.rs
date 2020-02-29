@@ -1,5 +1,6 @@
 use crate::tuple::*;
 use approx::AbsDiffEq;
+use std::fmt::Display;
 use std::ops::Mul;
 
 // Only supports square matrices
@@ -14,6 +15,16 @@ impl Matrix {
         Matrix {
             data: vec![vec![0.0; size]; size],
         }
+    }
+}
+
+impl Display for Matrix {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), std::fmt::Error> {
+        write!(f, "[")?;
+        for row in 0..self.size() {
+            write!(f, "\n    {:?}", self.data[row])?;
+        }
+        write!(f, "\n]")
     }
 }
 
