@@ -21,12 +21,12 @@
 
 ### Performance
 
+- Triangle meshes as mentioned in the book, instead of simple groups
 - Profile to find any bottlenecks
 - Parallelize rendering
 - (also ergonomics) new canvas implementation that displays during render
 - switch to matrix library (open BLAS or whatever)
 - can we use a GPU somehow?
-- Refraction uses a hash map with the default hasher (siphash), which is apparently a tad slow. Replace it with the dumbest, fastest practical thing. We don't need cryptographic-level hashing.
 
 ### Ergonomics
 
