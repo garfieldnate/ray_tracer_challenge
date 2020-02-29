@@ -75,7 +75,7 @@ pub trait Shape: Debug {
         world_normal.norm()
     }
 
-    fn normal_at(&self, world_point: Tuple) -> Tuple {
+    fn normal_at(&self, world_point: &Tuple) -> Tuple {
         // When computing the normal vector, all shapes need to first convert the point to
         // object space, multiplying it by the inverse of the shape’s transformation matrix.
         let object_point = self.world_to_object_point(&world_point);
@@ -148,7 +148,7 @@ mod tests {
     fn normal_on_translated_shape() {
         let mut s = TestShape::new();
         s.set_transformation(translation(0.0, 1.0, 0.0));
-        let n = s.normal_at(point!(0, 1.70711, -0.70711));
+        let n = s.normal_at(&point!(0, 1.70711, -0.70711));
         assert_abs_diff_eq!(n, vector!(0.0, 0.600_000_1, -0.799_999_95));
     }
 
@@ -156,14 +156,14 @@ mod tests {
     fn normal_on_transformed_shape() {
         let mut s = TestShape::new();
         s.set_transformation(&scaling(1.0, 0.5, 1.0) * &rotation_z(PI / 5.0));
-        let n = s.normal_at(point!(0, FRAC_1_SQRT_2, -FRAC_1_SQRT_2));
+        let n = s.normal_at(&point!(0, FRAC_1_SQRT_2, -FRAC_1_SQRT_2));
         assert_abs_diff_eq!(n, vector!(-0.083_526_63, 0.932_529_6, -0.351_300_3));
     }
 
     #[test]
     fn normal_is_normalized_vector() {
         let s = TestShape::new();
-        let n = s.normal_at(point!(1, 5, 10));
+        let n = s.normal_at(&point!(1, 5, 10));
         assert_abs_diff_eq!(n, n.norm());
     }
 
