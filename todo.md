@@ -63,3 +63,4 @@ Notes from book about reflection/refraction:
 * Cone and cylinder side intersections required checking a.abs() and b.abs() against a very small number; exact checking against 0 did not work at all.
 * Does the book recommend 32-bit or 64-bit numbers?
 * Had to change point value in one cone test from -5 to -4.999999 to get it to work right
+* Test converting_point_in_child_from_world_to_object_space should use 1,2,3 instead of 2,2,2 to catch more errors.

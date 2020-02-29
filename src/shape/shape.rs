@@ -23,7 +23,6 @@ pub trait Shape: Debug {
         self.get_base().transformation()
     }
     fn set_transformation(&mut self, t: Matrix) {
-        // println!("Shape trait: setting transformation to {:?}", t);
         self.get_base_mut().set_transformation(t)
     }
     fn material(&self) -> &Material {
@@ -46,8 +45,8 @@ pub trait Shape: Debug {
         self.get_base().transformation_inverse_transpose()
     }
 
-    fn world_to_object(&self, p: Tuple) -> Tuple {
-        self.transformation_inverse() * &p
+    fn world_to_object(&self, p: &Tuple) -> Tuple {
+        self.transformation_inverse() * p
     }
 
     // When intersecting the shape with a ray, all shapes need to first convert the
@@ -61,7 +60,7 @@ pub trait Shape: Debug {
     fn normal_at(&self, world_point: Tuple) -> Tuple {
         // When computing the normal vector, all shapes need to first convert the point to
         // object space, multiplying it by the inverse of the shape’s transformation matrix.
-        let object_point = self.transformation_inverse() * &world_point;
+        let object_point = self.world_to_object(&world_point);
 
         let object_normal = self.local_norm_at(object_point);
 
@@ -112,7 +111,6 @@ mod tests {
     use crate::transformations::rotation_z;
     use crate::transformations::scaling;
     use crate::transformations::translation;
-    use approx::AbsDiffEq;
     use std::f32::consts::FRAC_1_SQRT_2;
     use std::f32::consts::PI;
 
@@ -171,7 +169,6 @@ mod tests {
         let s_transform = translation(5.0, 0.0, 0.0);
         let object_normal = vector!(frac_1_sqrt_3, frac_1_sqrt_3, frac_1_sqrt_3);
 
-        // set transforms here but don't add as children yet for testing purposes
         let mut s = Sphere::new();
         s.set_transformation(s_transform.clone());
         let mut g2 = GroupShape::new();
@@ -179,39 +176,6 @@ mod tests {
         let mut g1 = GroupShape::new();
         g1.set_transformation(g1_transform.clone());
 
-        // try inverse transpose of combined transform
-        let all_at_once_transform =
-            g1.transformation() * &(g2.transformation() * s.transformation());
-        println!("all at once transform: {}", all_at_once_transform);
-        // println!(
-        //     "inverse transpose of all at once transform: {}",
-        //     all_at_once_transform.inverse().transpose()
-        // );
-        // let mut all_at_once1 = &all_at_once_transform.inverse().transpose() * &object_normal;
-        // all_at_once1.w = 0.0;
-        // let all_at_once1 = all_at_once1.norm();
-        // println!(
-        //     "inv. trans. of all at once transpose world norm: {}",
-        //     all_at_once1
-        // );
-
-        println!("\n\n\n");
-        // // try combining each inverse transpose into one multiplication
-        // let all_at_once_inverse_transpose = g1.transformation_inverse_transpose()
-        //     * &(g2.transformation_inverse_transpose() * s.transformation_inverse_transpose());
-        // println!(
-        //     "all at once inverse transpose: {}",
-        //     all_at_once_inverse_transpose
-        // );
-        // let mut all_at_once = &all_at_once_inverse_transpose * &object_normal;
-        // all_at_once.w = 0.0;
-        // let all_at_once = all_at_once.norm();
-
-        // println!("all at once world norm: {}", all_at_once);
-
-        // println!("\n\n\n");
-
-        // ACTUAL TEST STARTS HERE
         g2.add_child(Box::new(s));
         g1.add_child(Box::new(g2));
 
@@ -219,20 +183,9 @@ mod tests {
         let g2 = g1.get_children().unwrap()[0].as_ref();
         let s = g2.get_children().unwrap()[0].as_ref();
 
-        // let frac_1_sqrt_3 = 1.0 / 3f32.sqrt();
-        println!(
-            "programmatic all at once transformation: {}",
-            s.transformation()
-        );
-        // println!(
-        //     "programmatic all at once inverse transpose: {}",
-        //     s.transformation_inverse_transpose()
-        // );
-        // let n = s.normal_to_world(object_normal);
         let mut n = s.transformation_inverse_transpose() * &object_normal;
         n.w = 0.0;
         let n = n.norm();
-        // println!("programmatic world norm: {}", n);
         assert_abs_diff_eq!(n, vector!(0.28571427, 0.42857143, -0.85714287));
     }
 }
