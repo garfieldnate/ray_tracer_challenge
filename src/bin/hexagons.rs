@@ -21,6 +21,7 @@ use ray_tracer_challenge::tuple::Tuple;
 use ray_tracer_challenge::world::World;
 use ray_tracer_challenge::{color, point, vector};
 use std::f32::consts::PI;
+use std::str::FromStr;
 
 // To render larger, be sure to use an optimized (release) build and give it several minutes to finish
 const CANVAS_WIDTH: u32 = 1000;
@@ -34,7 +35,10 @@ fn main() {
         plane.set_transformation(&translation(0.0, 0.0, 5.0) * &rotation_x(PI / 2.0));
 
         // TODO: looks like checkers doesn't work right. Creates square rings. Which are also cool!
-        let checkers = Checkers::new(color!(0.2, 0.2, 0.2), color!(1, 1, 1));
+        let checkers = Checkers::new(
+            Color::from_str("#C5D86D").unwrap(),
+            Color::from_str("#261C15").unwrap(),
+        );
         // checkers.set_transformation(rotation_x(PI / 2.0));
         let mut m = Material::default();
 
