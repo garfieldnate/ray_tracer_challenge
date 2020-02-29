@@ -227,4 +227,29 @@ mod tests {
         let p = s.world_to_object_point(&point!(-2, 0, -10));
         assert_abs_diff_eq!(p, point!(5.0, 0.0, -0.66666657));
     }
+
+    #[test]
+    fn finding_normal_on_child_object() {
+        let g1_transform = rotation_y(PI / 2.0);
+        let g2_transform = scaling(1.0, 2.0, 3.0);
+        let s_transform = translation(5.0, 0.0, 0.0);
+        let world_point = point!(1.7321, 1.1547, -5.5774);
+
+        let mut s = Sphere::new();
+        s.set_transformation(s_transform.clone());
+        let mut g2 = GroupShape::new();
+        g2.set_transformation(g2_transform.clone());
+        let mut g1 = GroupShape::new();
+        g1.set_transformation(g1_transform.clone());
+
+        g2.add_child(Box::new(s));
+        g1.add_child(Box::new(g2));
+
+        // lost ownership of these, so we have to dig them out again for testing...
+        let g2 = g1.get_children().unwrap()[0].as_ref();
+        let s = g2.get_children().unwrap()[0].as_ref();
+
+        let n = s.normal_at(world_point);
+        assert_abs_diff_eq!(n, vector!(0.2857036, 0.42854306, -0.8571606));
+    }
 }

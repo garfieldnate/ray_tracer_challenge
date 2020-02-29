@@ -79,7 +79,6 @@ pub trait Shape: Debug {
         // When computing the normal vector, all shapes need to first convert the point to
         // object space, multiplying it by the inverse of the shape’s transformation matrix.
         let object_point = self.world_to_object_point(&world_point);
-
         let object_normal = self.local_norm_at(object_point);
         self.normal_to_world(&object_normal)
     }
