@@ -249,7 +249,7 @@ mod tests {
         let g2 = g1.get_children().unwrap()[0].as_ref();
         let s = g2.get_children().unwrap()[0].as_ref();
 
-        let n = s.normal_at(world_point);
+        let n = s.normal_at(&world_point);
         assert_abs_diff_eq!(n, vector!(0.2857036, 0.42854306, -0.8571606));
     }
 }

@@ -205,7 +205,7 @@ pub fn precompute_values<'a>(
     intersections: &[Intersection<'a>],
 ) -> PrecomputedValues<'a> {
     let point = r.position(hit.distance);
-    let mut surface_normal = hit.object.normal_at(point);
+    let mut surface_normal = hit.object.normal_at(&point);
     let eye_vector = -r.direction;
     let reflection_vector = Ray::reflect(r.direction, surface_normal);
 

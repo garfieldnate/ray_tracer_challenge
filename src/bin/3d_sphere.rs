@@ -44,7 +44,7 @@ fn main() {
             let xs = shape.intersect(r);
             if let Some(hit) = Intersection::hit(&xs) {
                 let hit_point = r.position(hit.distance);
-                let normal = hit.object.normal_at(hit_point);
+                let normal = hit.object.normal_at(&hit_point);
                 let eye = -ray_direction;
                 let color = phong_lighting(
                     hit.object,
