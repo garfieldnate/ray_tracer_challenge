@@ -42,7 +42,18 @@ impl Shape for Triangle {
         &mut self.base
     }
     fn local_intersect(&self, object_ray: Ray) -> Vec<Intersection> {
-        vec![]
+        // Get a vector that's orthogonal to both the incoming ray and one of the edges
+        let dir_cross_e2 = object_ray.direction.cross(self.e2);
+        // Check the cosine between the other edge and this orthogonal vector
+        let determinant = self.e1.dot(dir_cross_e2);
+        // If the other edge is not even kind of orthogonal, then the ray is parallel
+        // to the triangle face and will miss the triangle
+        // TODO: should probably be a constant somewhere
+        if determinant.abs() < 0.0000001 {
+            return vec![];
+        }
+        // bogus intersection to ensure no false positives
+        vec![Intersection::new(1.0, self)]
     }
     fn local_norm_at(&self, object_point: Tuple) -> Tuple {
         self.normal
@@ -52,6 +63,10 @@ impl Shape for Triangle {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn default_triangle() -> Triangle {
+        Triangle::new(point!(0, 1, 0), point!(-1, 0, 0), point!(1, 0, 0))
+    }
     #[test]
     fn triangle_construction() {
         let p1 = point!(0, 1, 0);
@@ -69,10 +84,7 @@ mod tests {
 
     #[test]
     fn triangle_normal() {
-        let p1 = point!(0, 1, 0);
-        let p2 = point!(-1, 0, 0);
-        let p3 = point!(1, 0, 0);
-        let t = Triangle::new(p1, p2, p3);
+        let t = default_triangle();
 
         let n1 = t.local_norm_at(point!(0, 0.5, 0));
         let n2 = t.local_norm_at(point!(-0.5, 0.75, 0));
@@ -82,5 +94,13 @@ mod tests {
         assert_eq!(n1, t.normal);
         assert_eq!(n2, t.normal);
         assert_eq!(n3, t.normal);
+    }
+
+    #[test]
+    fn intersect_ray_parallel_to_triangle() {
+        let t = default_triangle();
+        let r = Ray::new(point!(0, -1, -2), vector!(0, 1, 0));
+        let xs = t.local_intersect(r);
+        assert!(xs.is_empty());
     }
 }
