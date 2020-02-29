@@ -38,9 +38,11 @@ impl Shape for Triangle {
     fn get_base(&self) -> &BaseShape {
         &self.base
     }
+
     fn get_base_mut(&mut self) -> &mut BaseShape {
         &mut self.base
     }
+
     fn local_intersect(&self, object_ray: Ray) -> Vec<Intersection> {
         // Get a vector that's orthogonal to both the incoming ray and one of the edges
         let dir_cross_e2 = object_ray.direction.cross(self.e2);
@@ -52,10 +54,29 @@ impl Shape for Triangle {
         if determinant.abs() < 0.0000001 {
             return vec![];
         }
-        // bogus intersection to ensure no false positives
-        vec![Intersection::new(1.0, self)]
+
+        // Ray misses p1-p3 edge. TODO: explain math
+        let f = 1.0 / determinant;
+        let p1_to_origin = object_ray.origin - self.p1;
+        let u = f * p1_to_origin.dot(dir_cross_e2);
+        if u < 0.0 || u > 1.0 {
+            return vec![];
+        }
+
+        // Ray misses p2-p3 and p1-p2 edges. TODO: explain math
+        let origin_cross_e1 = p1_to_origin.cross(self.e1);
+        let v = f * object_ray.direction.dot(origin_cross_e1);
+        if v < 0.0 || (u + v) > 1.0 {
+            return vec![];
+        }
+
+        // Ray intersects the triangle. TODO: explain math
+        let distance = f * self.e2.dot(origin_cross_e1);
+        vec![Intersection::new(distance, self)]
     }
-    fn local_norm_at(&self, object_point: Tuple) -> Tuple {
+
+    fn local_norm_at(&self, _object_point: Tuple) -> Tuple {
+        // Normal is always the same, regardless of point on triangle
         self.normal
     }
 }
@@ -102,5 +123,38 @@ mod tests {
         let r = Ray::new(point!(0, -1, -2), vector!(0, 1, 0));
         let xs = t.local_intersect(r);
         assert!(xs.is_empty());
+    }
+
+    #[test]
+    fn ray_misses_p1_p3_edge() {
+        let t = default_triangle();
+        let r = Ray::new(point!(1, 1, -2), vector!(0, 0, 1));
+        let xs = t.local_intersect(r);
+        assert!(xs.is_empty());
+    }
+
+    #[test]
+    fn ray_misses_p1_p2_edge() {
+        let t = default_triangle();
+        let r = Ray::new(point!(-1, 1, -2), vector!(0, 0, 1));
+        let xs = t.local_intersect(r);
+        assert!(xs.is_empty());
+    }
+
+    #[test]
+    fn ray_misses_p2_p3_edge() {
+        let t = default_triangle();
+        let r = Ray::new(point!(0, -1, -2), vector!(0, 0, 1));
+        let xs = t.local_intersect(r);
+        assert!(xs.is_empty());
+    }
+
+    #[test]
+    fn ray_strikes_triangle() {
+        let t = default_triangle();
+        let r = Ray::new(point!(0, 0.5, -2), vector!(0, 0, 1));
+        let xs = t.local_intersect(r);
+        assert_eq!(xs.len(), 1);
+        assert_eq!(xs[0].distance, 2.0);
     }
 }
