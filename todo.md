@@ -34,6 +34,8 @@
 
 ### Ergonomics
 
+- Parse more details of OBJ files, or at least ignore everything after / in polygon lines
+- Normalize OBJ inputs into a cube for easier handling: https://forum.raytracerchallenge.com/thread/27/triangle-mesh-normalization
 - String ID's for all shapes. Would make testing way easier
 - YAML scene file parsing
 - getset or rust-derive-builder would probably simplify material or other creations, too
