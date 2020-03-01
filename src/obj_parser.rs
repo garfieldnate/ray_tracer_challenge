@@ -1,13 +1,24 @@
 use crate::shape::group::GroupShape;
 use crate::shape::triangle::Triangle;
 use crate::tuple::Tuple;
+use std::collections::hash_map::HashMap;
 use std::fmt::{self, Display, Formatter};
 use std::io::{self, BufRead, BufReader, Read};
 
 pub struct ObjParseResults {
     num_ignored_lines: usize,
     vertices: Vec<Tuple>,
-    default_group: GroupShape,
+    groups: HashMap<String, GroupShape>,
+}
+
+impl ObjParseResults {
+    pub fn get_default_group(&self) -> &GroupShape {
+        self.groups.get("").unwrap()
+    }
+
+    pub fn get_group(&self, group_name: &str) -> Option<&GroupShape> {
+        self.groups.get(group_name)
+    }
 }
 
 // TODO: proper parsing errors should also contain the line and column number
@@ -51,7 +62,11 @@ pub fn parse_obj<T: Read>(reader: T) -> Result<ObjParseResults, ParseError> {
     let mut num_ignored_lines = 0;
     // add one dummy point to simplify processing; OBJ files use 1-indexing
     let mut vertices = vec![point!(0, 0, 0)];
-    let mut default_group = GroupShape::new();
+    let mut groups: HashMap<String, GroupShape> = HashMap::new();
+    // the default group. We use the empty string because it will be impossible to
+    // accidentally override while parsing the OBJ file.
+    groups.insert("".into(), GroupShape::new());
+    let mut current_group = groups.get_mut("").unwrap();
     for (index, line) in buf_reader.lines().enumerate() {
         let line = line?;
         let line = line.trim();
@@ -85,7 +100,7 @@ pub fn parse_obj<T: Read>(reader: T) -> Result<ObjParseResults, ParseError> {
                     )));
                 } else {
                     for triangle in fan_triangulation(&vertices, &coordinates) {
-                        default_group.add_child(Box::new(triangle));
+                        current_group.add_child(Box::new(triangle));
                     }
                 }
             }
@@ -100,7 +115,7 @@ pub fn parse_obj<T: Read>(reader: T) -> Result<ObjParseResults, ParseError> {
     Ok(ObjParseResults {
         num_ignored_lines,
         vertices,
-        default_group,
+        groups,
     })
 }
 
@@ -165,7 +180,7 @@ mod tests {
         ";
         let results = parse_obj(text.as_bytes()).unwrap();
 
-        let g_children = results.default_group.get_children().unwrap();
+        let g_children = results.get_default_group().get_children().unwrap();
         let t1 = g_children[0].downcast_ref::<Triangle>().unwrap();
         let t2 = g_children[1].downcast_ref::<Triangle>().unwrap();
 
@@ -191,7 +206,7 @@ mod tests {
         ";
 
         let results = parse_obj(text.as_bytes()).unwrap();
-        let g_children = results.default_group.get_children().unwrap();
+        let g_children = results.get_default_group().get_children().unwrap();
         let t1 = g_children[0].downcast_ref::<Triangle>().unwrap();
         let t2 = g_children[1].downcast_ref::<Triangle>().unwrap();
         let t3 = g_children[2].downcast_ref::<Triangle>().unwrap();
