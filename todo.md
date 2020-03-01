@@ -19,6 +19,7 @@
 - make cube intersection more performant
   - apparently divides in general are expensive and caching the inverses of ray direction components is worthwhile
 - read up on and understand the Any crate, downcast_ref vs. Box::downcast
+    - also read up on the standard library in general
 - update any tests that could benefit from the new downcasting functionality
 
 ### Performance

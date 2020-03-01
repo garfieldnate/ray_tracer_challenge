@@ -29,6 +29,7 @@ pub enum ParseError {
     ParseIntError(std::num::ParseIntError),
     MalformedVertex(String),
     MalformedFace(String),
+    MalformedGroupDeclaration(String),
 }
 impl From<io::Error> for ParseError {
     fn from(err: io::Error) -> ParseError {
@@ -53,6 +54,7 @@ impl Display for ParseError {
             ParseError::ParseIntError(ref e) => e.fmt(f),
             ParseError::MalformedVertex(ref s) => f.write_str(s),
             ParseError::MalformedFace(ref s) => f.write_str(s),
+            ParseError::MalformedGroupDeclaration(ref s) => f.write_str(s),
         }
     }
 }
@@ -104,6 +106,19 @@ pub fn parse_obj<T: Read>(reader: T) -> Result<ObjParseResults, ParseError> {
                     }
                 }
             }
+            // parse a group declaration: g GroupName
+            Some("g") => match elements.next() {
+                Some(name) => {
+                    groups.insert(name.to_string(), GroupShape::new());
+                    current_group = groups.get_mut(&name.to_string()).unwrap();
+                }
+                None => {
+                    return Err(ParseError::MalformedGroupDeclaration(format!(
+                        "Missing group name on line {}",
+                        index
+                    )));
+                }
+            },
             // as-yet unknown command
             Some(_) => {}
             // blank line
@@ -139,6 +154,8 @@ fn fan_triangulation(all_vertices: &Vec<Tuple>, chosen_vertices: &Vec<usize>) ->
 mod tests {
     use super::*;
     use crate::shape::shape::Shape;
+    use std::fs::File;
+    use std::path::PathBuf;
 
     #[test]
     fn ignoring_unrecognized_files() {
@@ -222,5 +239,34 @@ mod tests {
         assert_eq!(t3.p1, results.vertices[1]);
         assert_eq!(t3.p2, results.vertices[4]);
         assert_eq!(t3.p3, results.vertices[5]);
+    }
+
+    #[test]
+    fn triangles_in_groups() {
+        let path: PathBuf = [
+            env!("CARGO_MANIFEST_DIR"),
+            "resources/test",
+            "triangles.obj",
+        ]
+        .iter()
+        .collect();
+        let file = File::open(&path).unwrap();
+        let results = parse_obj(file).unwrap();
+        let g1 = results.get_group("FirstGroup").unwrap();
+        let t1 = g1.get_children().unwrap()[0]
+            .downcast_ref::<Triangle>()
+            .unwrap();
+        let g2 = results.get_group("SecondGroup").unwrap();
+        let t2 = g2.get_children().unwrap()[0]
+            .downcast_ref::<Triangle>()
+            .unwrap();
+
+        assert_eq!(t1.p1, results.vertices[1]);
+        assert_eq!(t1.p2, results.vertices[2]);
+        assert_eq!(t1.p3, results.vertices[3]);
+
+        assert_eq!(t2.p1, results.vertices[1]);
+        assert_eq!(t2.p2, results.vertices[3]);
+        assert_eq!(t2.p3, results.vertices[4]);
     }
 }
