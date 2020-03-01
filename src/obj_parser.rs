@@ -1,5 +1,4 @@
 use crate::shape::group::GroupShape;
-use crate::shape::shape::Shape;
 use crate::shape::triangle::Triangle;
 use crate::tuple::Tuple;
 use std::fmt::{self, Display, Formatter};
@@ -111,17 +110,7 @@ pub fn parse_obj<T: Read>(reader: T) -> Result<ObjParseResults, ParseError> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::any::Any;
-
-    trait A {
-        fn as_any(&self) -> &dyn Any;
-    }
-
-    impl A for Triangle {
-        fn as_any(&self) -> &dyn Any {
-            self
-        }
-    }
+    use crate::shape::shape::Shape;
 
     #[test]
     fn ignoring_unrecognized_files() {
@@ -162,24 +151,17 @@ mod tests {
         f 1 3 4
         ";
         let results = parse_obj(file.as_bytes()).unwrap();
-        let g = results.default_group;
-        let g_children = g.get_children().unwrap();
-        let t1 = g_children[0].as_ref();
-        let t2 = g_children[1].as_ref();
 
-        println!("{:?}", t1);
-        println!("{:?}", t2);
-        assert!(false);
+        let g_children = results.default_group.get_children().unwrap();
+        let t1 = g_children[0].downcast_ref::<Triangle>().unwrap();
+        let t2 = g_children[1].downcast_ref::<Triangle>().unwrap();
 
-        // let (t1, vptr): (Triangle, *const ()) = unsafe { std::mem::transmute(s1) };
-        // let (t2, vptr): (Triangle, *const ()) = unsafe { std::mem::transmute(s2) };
+        assert_eq!(t1.p1, results.vertices[1]);
+        assert_eq!(t1.p2, results.vertices[2]);
+        assert_eq!(t1.p3, results.vertices[3]);
 
-        // assert_eq!(t1.p1, results.vertices[1]);
-        // assert_eq!(t1.p2, results.vertices[2]);
-        // assert_eq!(t1.p3, results.vertices[3]);
-
-        // assert_eq!(t2.p1, results.vertices[1]);
-        // assert_eq!(t2.p2, results.vertices[3]);
-        // assert_eq!(t2.p3, results.vertices[4]);
+        assert_eq!(t2.p1, results.vertices[1]);
+        assert_eq!(t2.p2, results.vertices[3]);
+        assert_eq!(t2.p3, results.vertices[4]);
     }
 }
