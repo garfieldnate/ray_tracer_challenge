@@ -77,19 +77,16 @@ pub fn parse_obj<T: Read>(reader: T) -> Result<ObjParseResults, ParseError> {
                 let coordinates = elements
                     .map(|x| x.parse::<usize>())
                     .collect::<Result<Vec<usize>, std::num::ParseIntError>>()?;
-                if coordinates.len() != 3 {
+                if coordinates.len() < 3 {
                     return Err(ParseError::MalformedFace(format!(
-                        "Wrong number of vertices in face at line {}; expected 3, found {}",
+                        "Not enough vertices to form a face at line {}; expected 3, found {}",
                         index,
                         coordinates.len()
                     )));
                 } else {
-                    let t = Triangle::new(
-                        vertices[coordinates[0]],
-                        vertices[coordinates[1]],
-                        vertices[coordinates[2]],
-                    );
-                    default_group.add_child(Box::new(t));
+                    for triangle in fan_triangulation(&vertices, &coordinates) {
+                        default_group.add_child(Box::new(triangle));
+                    }
                 }
             }
             // as-yet unknown command
@@ -105,6 +102,22 @@ pub fn parse_obj<T: Read>(reader: T) -> Result<ObjParseResults, ParseError> {
         vertices,
         default_group,
     })
+}
+
+// Assumptons: chosen_vertices describes a convex polygon (interior angles all < PI/2).
+fn fan_triangulation(all_vertices: &Vec<Tuple>, chosen_vertices: &Vec<usize>) -> Vec<Triangle> {
+    debug_assert!(chosen_vertices.len() > 2);
+    // TODO: try replacing this with a fancy windowing function
+    let mut triangles = vec![];
+    for index in 1..chosen_vertices.len() - 1 {
+        let tri = Triangle::new(
+            all_vertices[chosen_vertices[0]],
+            all_vertices[chosen_vertices[index]],
+            all_vertices[chosen_vertices[index + 1]],
+        );
+        triangles.push(tri);
+    }
+    triangles
 }
 
 #[cfg(test)]
@@ -141,7 +154,7 @@ mod tests {
 
     #[test]
     fn triangle_faces() {
-        let file = "
+        let text = "
         v -1 1 0
         v -1 0 0
         v 1 0 0
@@ -150,7 +163,7 @@ mod tests {
         f 1 2 3
         f 1 3 4
         ";
-        let results = parse_obj(file.as_bytes()).unwrap();
+        let results = parse_obj(text.as_bytes()).unwrap();
 
         let g_children = results.default_group.get_children().unwrap();
         let t1 = g_children[0].downcast_ref::<Triangle>().unwrap();
@@ -163,5 +176,36 @@ mod tests {
         assert_eq!(t2.p1, results.vertices[1]);
         assert_eq!(t2.p2, results.vertices[3]);
         assert_eq!(t2.p3, results.vertices[4]);
+    }
+
+    #[test]
+    fn triangulating_polygons() {
+        let text = "
+        v -1 1 0
+        v -1 0 0
+        v 1 0 0
+        v 1 1 0
+        v 0 2 0
+
+        f 1 2 3 4 5
+        ";
+
+        let results = parse_obj(text.as_bytes()).unwrap();
+        let g_children = results.default_group.get_children().unwrap();
+        let t1 = g_children[0].downcast_ref::<Triangle>().unwrap();
+        let t2 = g_children[1].downcast_ref::<Triangle>().unwrap();
+        let t3 = g_children[2].downcast_ref::<Triangle>().unwrap();
+
+        assert_eq!(t1.p1, results.vertices[1]);
+        assert_eq!(t1.p2, results.vertices[2]);
+        assert_eq!(t1.p3, results.vertices[3]);
+
+        assert_eq!(t2.p1, results.vertices[1]);
+        assert_eq!(t2.p2, results.vertices[3]);
+        assert_eq!(t2.p3, results.vertices[4]);
+
+        assert_eq!(t3.p1, results.vertices[1]);
+        assert_eq!(t3.p2, results.vertices[4]);
+        assert_eq!(t3.p3, results.vertices[5]);
     }
 }
