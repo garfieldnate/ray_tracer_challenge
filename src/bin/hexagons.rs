@@ -19,7 +19,7 @@ use ray_tracer_challenge::transformations::translation;
 use ray_tracer_challenge::transformations::view_transform;
 use ray_tracer_challenge::tuple::Tuple;
 use ray_tracer_challenge::world::World;
-use ray_tracer_challenge::{color, point, vector};
+use ray_tracer_challenge::{point, vector};
 use std::f32::consts::PI;
 use std::str::FromStr;
 
