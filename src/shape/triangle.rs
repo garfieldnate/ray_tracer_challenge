@@ -9,9 +9,9 @@ use crate::tuple::Tuple;
 #[derive(Debug)]
 pub struct Triangle {
     base: BaseShape,
-    p1: Tuple,
-    p2: Tuple,
-    p3: Tuple,
+    pub p1: Tuple,
+    pub p2: Tuple,
+    pub p3: Tuple,
     e1: Tuple,
     e2: Tuple,
     normal: Tuple,
