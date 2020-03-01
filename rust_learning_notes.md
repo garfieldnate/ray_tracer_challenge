@@ -21,6 +21,8 @@
 * Lack of visibility controls and relative imports is kind of a bummer. I expected this part to be a lot more modern.
 * I really, *really* wish I could do `println!(3)` instead of `println!("{}", 3)`.
 * Interesting, in Java I would always return a vague type, but in Rust if you return a trait type then you have to box it. Is that inefficient? I don't think it can be completely 0 cost, since the reason the box is required there is that the plain trait object can't be passed back normally via the stack because the size is unknown. It has to be allocated and a pointer returned instead.
+* Just realized I've been glossing over generics and using dynamics traits everywhere when I really shouldn't. Generics allow the compiler to specialize our code, like C++ templates! Trait objects, on the other hand, cause dynamic dispatch, which is more expensive. http://blog.metrink.com/blog/2018/03/30/rust-trait-objects-vs-generics/
+* cargo-flamegraph is freaking AWESOME! I never found it this easy to profile code before! One problem: on Mac you have to run it with sudo because of permissions that dtrace needs. This can also lead to the build directory being owned by a superuser, so you have to chown it back after profiling.
 
 ### VS Code Wishes
 * I wish that VSCode could auto-format macros. Doesn't seem to do indenting automatically.

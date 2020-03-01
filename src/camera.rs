@@ -15,7 +15,7 @@ pub struct Camera {
     half_height_world: f32,
     pixel_size: f32,
 
-    transform: Matrix,
+    transform_inverse: Matrix,
 }
 
 impl Camera {
@@ -47,7 +47,7 @@ impl Camera {
             width_pixels,
             height_pixels,
             field_of_view,
-            transform,
+            transform_inverse: transform.inverse(),
             half_width_world,
             half_height_world,
             pixel_size,
@@ -66,8 +66,8 @@ impl Camera {
         let world_y = self.half_height_world - y_offset;
         // use camera matrix to transform the canvas point and the origin, then get ray's direction vector
         // canvas is located at z=-1
-        let pixel: Tuple = &self.transform.inverse() * &point!(world_x, world_y, -1);
-        let origin: Tuple = &self.transform.inverse() * &point!(0, 0, 0);
+        let pixel: Tuple = &self.transform_inverse * &point!(world_x, world_y, -1);
+        let origin: Tuple = &self.transform_inverse * &point!(0, 0, 0);
         let direction = (pixel - origin).norm();
         Ray::new(origin, direction)
     }
