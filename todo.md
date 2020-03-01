@@ -21,8 +21,9 @@
 
 ### Performance
 
+- auto-decide when a refract/reflect recursion should end. The reflect_refract binary is 10x faster at 5 instead of 20 but I don't see a visual difference. Seems like maybe we could check if something is close to 0.
+- (also ergonomics) see if we can replace trait objects with generics everywhere.
 - Triangle meshes as mentioned in the book, instead of simple groups
-- Profile to find any bottlenecks
 - Parallelize rendering
 - (also ergonomics) new canvas implementation that displays during render
 - switch to matrix library (open BLAS or whatever)
