@@ -18,6 +18,8 @@
 - Integrate error-chain if needed (http://brson.github.io/2016/11/30/starting-with-error-chain)
 - make cube intersection more performant
   - apparently divides in general are expensive and caching the inverses of ray direction components is worthwhile
+- read up on and understand the Any crate, downcast_ref vs. Box::downcast
+- update any tests that could benefit from the new downcasting functionality
 
 ### Performance
 

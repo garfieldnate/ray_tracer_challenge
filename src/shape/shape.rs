@@ -9,7 +9,10 @@ use std::hash::Hash;
 use std::hash::Hasher;
 use std::ptr;
 
-pub trait Shape: Debug {
+use downcast_rs::Downcast;
+
+// TODO: update to DowncastSync later when parallelizing
+pub trait Shape: Debug + Downcast {
     // tthe BaseShape that the wrapping instance is delegating to
     fn get_base(&self) -> &BaseShape;
     fn get_base_mut(&mut self) -> &mut BaseShape;
@@ -89,11 +92,16 @@ pub trait Shape: Debug {
     }
 }
 
+// TODO: add 'sync' keyword when parallelizing
+impl_downcast!(Shape);
+
 // I don't entirely understand why the lifetime params are required, but the compiler will not let us
 // put shapes with lifetime params into a collection of Borrow values without them.
+// Since Shape extends Downcast, which extends Any, which specifies 'static, we had to
+// switch to that particular lifetime here.
 
 // Shapes are always globally unique. They are only equal if they are the same object
-impl<'a> PartialEq for dyn Shape + 'a {
+impl<'a> PartialEq for dyn Shape + 'static {
     fn eq(&self, other: &dyn Shape) -> bool {
         ptr::eq(self, other)
     }
