@@ -8,16 +8,38 @@ use std::io::{self, BufRead, BufReader, Read};
 pub struct ObjParseResults {
     num_ignored_lines: usize,
     vertices: Vec<Tuple>,
-    groups: HashMap<String, GroupShape>,
+    groups: Option<HashMap<String, GroupShape>>,
 }
 
 impl ObjParseResults {
-    pub fn get_default_group(&self) -> &GroupShape {
-        self.groups.get("").unwrap()
+    pub fn get_default_group(&self) -> Option<&GroupShape> {
+        match &self.groups {
+            Some(groups) => groups.get(""),
+            None => None,
+        }
     }
 
     pub fn get_group(&self, group_name: &str) -> Option<&GroupShape> {
-        self.groups.get(group_name)
+        match &self.groups {
+            Some(groups) => groups.get(group_name),
+            None => None,
+        }
+    }
+
+    pub fn take_all_as_group(&mut self) -> Option<GroupShape> {
+        match self.groups {
+            Some(ref mut groups) => {
+                let mut all_as_group = GroupShape::new();
+                for (_k, v) in groups.drain() {
+                    println!("adding as all_as_group child: {:?}", v);
+                    all_as_group.add_child(Box::new(v));
+                }
+                self.groups = None;
+                println!("all_as_group: {:?}", all_as_group);
+                Some(all_as_group)
+            }
+            None => None,
+        }
     }
 }
 
@@ -65,10 +87,7 @@ pub fn parse_obj<T: Read>(reader: T) -> Result<ObjParseResults, ParseError> {
     // add one dummy point to simplify processing; OBJ files use 1-indexing
     let mut vertices = vec![point!(0, 0, 0)];
     let mut groups: HashMap<String, GroupShape> = HashMap::new();
-    // the default group. We use the empty string because it will be impossible to
-    // accidentally override while parsing the OBJ file.
-    groups.insert("".into(), GroupShape::new());
-    let mut current_group = groups.get_mut("").unwrap();
+    let mut current_group: Option<&mut GroupShape> = None;
     for (index, line) in buf_reader.lines().enumerate() {
         let line = line?;
         let line = line.trim();
@@ -101,8 +120,21 @@ pub fn parse_obj<T: Read>(reader: T) -> Result<ObjParseResults, ParseError> {
                         coordinates.len()
                     )));
                 } else {
+                    // current_group = current_group.get_or_insert_with(||{});
+                    match current_group {
+                        None => {
+                            // the default group. We use the empty string because it will be impossible to
+                            // accidentally override while parsing the OBJ file.
+                            groups.insert("".into(), GroupShape::new());
+                            current_group = groups.get_mut("");
+                        }
+                        _ => {}
+                    }
                     for triangle in fan_triangulation(&vertices, &coordinates) {
-                        current_group.add_child(Box::new(triangle));
+                        current_group = current_group.map(|g| {
+                            g.add_child(Box::new(triangle));
+                            g
+                        });
                     }
                 }
             }
@@ -110,7 +142,7 @@ pub fn parse_obj<T: Read>(reader: T) -> Result<ObjParseResults, ParseError> {
             Some("g") => match elements.next() {
                 Some(name) => {
                     groups.insert(name.to_string(), GroupShape::new());
-                    current_group = groups.get_mut(&name.to_string()).unwrap();
+                    current_group = groups.get_mut(&name.to_string());
                 }
                 None => {
                     return Err(ParseError::MalformedGroupDeclaration(format!(
@@ -130,12 +162,12 @@ pub fn parse_obj<T: Read>(reader: T) -> Result<ObjParseResults, ParseError> {
     Ok(ObjParseResults {
         num_ignored_lines,
         vertices,
-        groups,
+        groups: Some(groups),
     })
 }
 
 // Assumptons: chosen_vertices describes a convex polygon (interior angles all < PI/2).
-fn fan_triangulation(all_vertices: &Vec<Tuple>, chosen_vertices: &Vec<usize>) -> Vec<Triangle> {
+fn fan_triangulation(all_vertices: &[Tuple], chosen_vertices: &[usize]) -> Vec<Triangle> {
     debug_assert!(chosen_vertices.len() > 2);
     // TODO: try replacing this with a fancy windowing function
     let mut triangles = vec![];
@@ -197,7 +229,7 @@ mod tests {
         ";
         let results = parse_obj(text.as_bytes()).unwrap();
 
-        let g_children = results.get_default_group().get_children().unwrap();
+        let g_children = results.get_default_group().unwrap().get_children().unwrap();
         let t1 = g_children[0].downcast_ref::<Triangle>().unwrap();
         let t2 = g_children[1].downcast_ref::<Triangle>().unwrap();
 
@@ -223,7 +255,7 @@ mod tests {
         ";
 
         let results = parse_obj(text.as_bytes()).unwrap();
-        let g_children = results.get_default_group().get_children().unwrap();
+        let g_children = results.get_default_group().unwrap().get_children().unwrap();
         let t1 = g_children[0].downcast_ref::<Triangle>().unwrap();
         let t2 = g_children[1].downcast_ref::<Triangle>().unwrap();
         let t3 = g_children[2].downcast_ref::<Triangle>().unwrap();
@@ -241,17 +273,17 @@ mod tests {
         assert_eq!(t3.p3, results.vertices[5]);
     }
 
+    fn parse_obj_test_file(file_name: &str) -> ObjParseResults {
+        let path: PathBuf = [env!("CARGO_MANIFEST_DIR"), "resources/test", file_name]
+            .iter()
+            .collect();
+        let file = File::open(&path).unwrap();
+        parse_obj(file).unwrap()
+    }
+
     #[test]
     fn triangles_in_groups() {
-        let path: PathBuf = [
-            env!("CARGO_MANIFEST_DIR"),
-            "resources/test",
-            "triangles.obj",
-        ]
-        .iter()
-        .collect();
-        let file = File::open(&path).unwrap();
-        let results = parse_obj(file).unwrap();
+        let results = parse_obj_test_file("triangles.obj");
         let g1 = results.get_group("FirstGroup").unwrap();
         let t1 = g1.get_children().unwrap()[0]
             .downcast_ref::<Triangle>()
@@ -268,5 +300,35 @@ mod tests {
         assert_eq!(t2.p1, results.vertices[1]);
         assert_eq!(t2.p2, results.vertices[3]);
         assert_eq!(t2.p3, results.vertices[4]);
+    }
+
+    #[test]
+    fn converting_obj_file_to_group() {
+        let mut results = parse_obj_test_file("triangles.obj");
+
+        let parent_group = results.take_all_as_group().unwrap();
+        let child_groups = parent_group.get_children().unwrap();
+
+        let g1 = child_groups[0].downcast_ref::<GroupShape>().unwrap();
+        let g2 = child_groups[1].downcast_ref::<GroupShape>().unwrap();
+
+        let t1 = g1.get_children().unwrap()[0]
+            .downcast_ref::<Triangle>()
+            .unwrap();
+        let t2 = g2.get_children().unwrap()[0]
+            .downcast_ref::<Triangle>()
+            .unwrap();
+
+        // can only test points the triangles have in common because
+        // return ordering is random; TODO: switch to LinkedHashMap. Except LinkedHashMap
+        // doesn't implement drain(), so you'll have to send a PR. Except the project
+        // is no longer maintained, so you might have to ask for a commit bit.
+        assert_eq!(t1.p1, point!(-1, 1, 0));
+        // assert_eq!(t1.p2, point!(-1, 0, 0));
+        // assert_eq!(t1.p3, point!(1, 0, 0));
+
+        assert_eq!(t2.p1, point!(-1, 1, 0));
+        // assert_eq!(t2.p2, point!(1, 0, 0));
+        // assert_eq!(t2.p3, point!(1, 1, 0));
     }
 }
