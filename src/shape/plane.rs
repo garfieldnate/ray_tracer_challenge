@@ -53,7 +53,7 @@ impl Shape for Plane {
             vec![Intersection::new(distance, self)]
         }
     }
-    fn local_norm_at(&self, _object_point: Tuple) -> Tuple {
+    fn local_norm_at(&self, _object_point: Tuple, _hit: &Intersection) -> Tuple {
         vector!(0, 1, 0)
     }
 }
@@ -61,12 +61,13 @@ impl Shape for Plane {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::test::utils::dummy_intersection;
     #[test]
     fn normal_of_plane_is_constant_everywhere() {
         let p = Plane::new();
-        let n1 = p.local_norm_at(point!(0, 0, 0));
-        let n2 = p.local_norm_at(point!(10, 0, -10));
-        let n3 = p.local_norm_at(point!(-5, 0, 150));
+        let n1 = p.local_norm_at(point!(0, 0, 0), &dummy_intersection(&p));
+        let n2 = p.local_norm_at(point!(10, 0, -10), &dummy_intersection(&p));
+        let n3 = p.local_norm_at(point!(-5, 0, 150), &dummy_intersection(&p));
         assert_eq!(n1, vector!(0, 1, 0));
         assert_eq!(n2, vector!(0, 1, 0));
         assert_eq!(n3, vector!(0, 1, 0));

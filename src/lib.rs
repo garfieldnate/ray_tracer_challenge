@@ -31,3 +31,6 @@ pub mod ray;
 pub mod shape;
 pub mod transformations;
 pub mod world;
+
+#[cfg(test)]
+mod test;

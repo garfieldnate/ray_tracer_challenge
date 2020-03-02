@@ -56,7 +56,7 @@ impl Shape for Cone {
     }
 
     // norms at the corners are the norms of one of the adjacent sides
-    fn local_norm_at(&self, object_point: Tuple) -> Tuple {
+    fn local_norm_at(&self, object_point: Tuple, _hit: &Intersection) -> Tuple {
         let dist_square = object_point.x.powi(2) + object_point.z.powi(2);
         // TODO: why does this work? Shouldn't it be < y?
         if dist_square < 1.0 {
@@ -165,6 +165,7 @@ impl Cone {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::test::utils::dummy_intersection;
     use approx::AbsDiffEq;
     use std::f32::consts::SQRT_2;
 
@@ -258,7 +259,7 @@ mod tests {
             ("3", point!(-1, -1, 0), vector!(-1, 1, 0)),
         ];
         for (name, point, expected_normal) in test_data {
-            let normal = c.local_norm_at(point);
+            let normal = c.local_norm_at(point, &dummy_intersection(&c));
             assert_eq!(normal, expected_normal, "{}", name);
         }
     }

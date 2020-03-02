@@ -44,7 +44,7 @@ impl Shape for Sphere {
         &mut self.base
     }
     fn local_intersect(&self, object_ray: Ray) -> Vec<Intersection> {
-        // ​# the vector from the sphere's center to the ray origin​
+        // the vector from the sphere's center to the ray origin
         let sphere_to_ray = object_ray.origin - self.center;
         // println!("sphere to ray: {:?}", sphere_to_ray);
         let a = object_ray.direction.dot(object_ray.direction);
@@ -67,7 +67,7 @@ impl Shape for Sphere {
             Intersection::new((-b + discriminant_sqrt) / two_a, self),
         ]
     }
-    fn local_norm_at(&self, object_point: Tuple) -> Tuple {
+    fn local_norm_at(&self, object_point: Tuple, _hit: &Intersection) -> Tuple {
         object_point - self.center
     }
 }
@@ -75,6 +75,7 @@ impl Shape for Sphere {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::test::utils::dummy_intersection;
     use crate::transformations::scaling;
     use crate::transformations::translation;
 
@@ -104,28 +105,31 @@ mod tests {
     #[test]
     fn sphere_normal_on_x_axis() {
         let s = Sphere::new();
-        let n = s.local_norm_at(point!(1, 0, 0));
+        let n = s.local_norm_at(point!(1, 0, 0), &dummy_intersection(&s));
         assert_eq!(n, vector!(1, 0, 0));
     }
 
     #[test]
     fn sphere_normal_on_y_axis() {
         let s = Sphere::new();
-        let n = s.local_norm_at(point!(0, 1, 0));
+        let n = s.local_norm_at(point!(0, 1, 0), &dummy_intersection(&s));
         assert_eq!(n, vector!(0, 1, 0));
     }
 
     #[test]
     fn sphere_normal_on_z_axis() {
         let s = Sphere::new();
-        let n = s.local_norm_at(point!(0, 0, 1));
+        let n = s.local_norm_at(point!(0, 0, 1), &dummy_intersection(&s));
         assert_eq!(n, vector!(0, 0, 1));
     }
 
     #[test]
     fn sphere_normal_on_nonaxial_point() {
         let s = Sphere::new();
-        let n = s.local_norm_at(point!(frac_1_sqrt_3(), frac_1_sqrt_3(), frac_1_sqrt_3()));
+        let n = s.local_norm_at(
+            point!(frac_1_sqrt_3(), frac_1_sqrt_3(), frac_1_sqrt_3()),
+            &dummy_intersection(&s),
+        );
         assert_abs_diff_eq!(
             n,
             vector!(frac_1_sqrt_3(), frac_1_sqrt_3(), frac_1_sqrt_3())

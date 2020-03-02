@@ -38,7 +38,7 @@ impl Shape for SmoothTriangle {
         self.base.local_intersect(object_ray)
     }
 
-    fn local_norm_at(&self, object_point: Tuple) -> Tuple {
+    fn local_norm_at(&self, object_point: Tuple, i: &Intersection) -> Tuple {
         vector!(0, 0, 0)
     }
 }

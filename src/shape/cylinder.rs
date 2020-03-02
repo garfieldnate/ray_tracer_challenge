@@ -58,7 +58,7 @@ impl Shape for Cylinder {
     }
 
     // norms at the corners are the norms of one of the adjacent sides
-    fn local_norm_at(&self, object_point: Tuple) -> Tuple {
+    fn local_norm_at(&self, object_point: Tuple, _hit: &Intersection) -> Tuple {
         let dist_square = object_point.x.powi(2) + object_point.z.powi(2);
         if dist_square < 1.0 {
             if object_point.y >= self.maximum_y - CLOSE_TO_ZERO {
@@ -146,6 +146,7 @@ impl Cylinder {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::test::utils::dummy_intersection;
     use approx::AbsDiffEq;
 
     #[test]
@@ -325,7 +326,7 @@ mod tests {
             ("-x", point!(-1, 1, 0), vector!(-1, 0, 0)),
         ];
         for (name, point, expected_normal) in test_data {
-            let normal = c.local_norm_at(point);
+            let normal = c.local_norm_at(point, &dummy_intersection(&c));
             assert_eq!(normal, expected_normal, "{}", name);
         }
     }
@@ -348,7 +349,7 @@ mod tests {
             ("+y at top front", point!(0, 2, 0.5), vector!(0, 1, 0)),
         ];
         for (name, point, expected_normal) in test_data {
-            let normal = c.local_norm_at(point);
+            let normal = c.local_norm_at(point, &dummy_intersection(&c));
             assert_eq!(normal, expected_normal, "{}", name);
         }
     }

@@ -18,7 +18,7 @@ pub trait Shape: Debug + Downcast {
     fn get_base_mut(&mut self) -> &mut BaseShape;
 
     fn local_intersect(&self, object_ray: Ray) -> Vec<Intersection>;
-    fn local_norm_at(&self, object_point: Tuple) -> Tuple;
+    fn local_norm_at(&self, object_point: Tuple, hit: &Intersection) -> Tuple;
 
     // The rest of these should not be overridden by Shape implementers
 
@@ -78,11 +78,11 @@ pub trait Shape: Debug + Downcast {
         world_normal.norm()
     }
 
-    fn normal_at(&self, world_point: &Tuple) -> Tuple {
+    fn normal_at(&self, world_point: &Tuple, hit: &Intersection) -> Tuple {
         // When computing the normal vector, all shapes need to first convert the point to
         // object space, multiplying it by the inverse of the shape’s transformation matrix.
         let object_point = self.world_to_object_point(&world_point);
-        let object_normal = self.local_norm_at(object_point);
+        let object_normal = self.local_norm_at(object_point, hit);
         self.normal_to_world(&object_normal)
     }
 
@@ -121,6 +121,7 @@ mod tests {
     use crate::shape::group::GroupShape;
     use crate::shape::sphere::Sphere;
     use crate::shape::test_shape::TestShape;
+    use crate::test::utils::dummy_intersection;
     use crate::transformations::rotation_y;
     use crate::transformations::rotation_z;
     use crate::transformations::scaling;
@@ -156,7 +157,7 @@ mod tests {
     fn normal_on_translated_shape() {
         let mut s = TestShape::new();
         s.set_transformation(translation(0.0, 1.0, 0.0));
-        let n = s.normal_at(&point!(0, 1.70711, -0.70711));
+        let n = s.normal_at(&point!(0, 1.70711, -0.70711), &dummy_intersection(&s));
         assert_abs_diff_eq!(n, vector!(0.0, 0.600_000_1, -0.799_999_95));
     }
 
@@ -164,14 +165,17 @@ mod tests {
     fn normal_on_transformed_shape() {
         let mut s = TestShape::new();
         s.set_transformation(&scaling(1.0, 0.5, 1.0) * &rotation_z(PI / 5.0));
-        let n = s.normal_at(&point!(0, FRAC_1_SQRT_2, -FRAC_1_SQRT_2));
+        let n = s.normal_at(
+            &point!(0, FRAC_1_SQRT_2, -FRAC_1_SQRT_2),
+            &dummy_intersection(&s),
+        );
         assert_abs_diff_eq!(n, vector!(-0.083_526_63, 0.932_529_6, -0.351_300_3));
     }
 
     #[test]
     fn normal_is_normalized_vector() {
         let s = TestShape::new();
-        let n = s.normal_at(&point!(1, 5, 10));
+        let n = s.normal_at(&point!(1, 5, 10), &dummy_intersection(&s));
         assert_abs_diff_eq!(n, n.norm());
     }
 
