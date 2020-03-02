@@ -5,6 +5,7 @@ pub mod cylinder;
 pub mod group;
 pub mod plane;
 pub mod shape;
+pub mod smooth_triangle;
 pub mod sphere;
 mod test_shape;
 pub mod triangle;

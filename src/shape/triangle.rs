@@ -4,8 +4,6 @@ use crate::shape::base_shape::BaseShape;
 use crate::shape::shape::Shape;
 use crate::tuple::Tuple;
 
-// Base shape has radius of 1 and straddles world origin
-
 #[derive(Debug)]
 pub struct Triangle {
     base: BaseShape,
@@ -90,14 +88,11 @@ mod tests {
     }
     #[test]
     fn triangle_construction() {
-        let p1 = point!(0, 1, 0);
-        let p2 = point!(-1, 0, 0);
-        let p3 = point!(1, 0, 0);
-        let t = Triangle::new(p1, p2, p3);
+        let t = default_triangle();
 
-        assert_eq!(t.p1, p1);
-        assert_eq!(t.p2, p2);
-        assert_eq!(t.p3, p3);
+        assert_eq!(t.p1, point!(0, 1, 0));
+        assert_eq!(t.p2, point!(-1, 0, 0));
+        assert_eq!(t.p3, point!(1, 0, 0));
         assert_eq!(t.e1, vector!(-1, -1, 0));
         assert_eq!(t.e2, vector!(1, -1, 0));
         assert_eq!(t.normal, vector!(0, 0, -1));
