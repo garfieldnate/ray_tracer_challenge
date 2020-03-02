@@ -47,6 +47,7 @@ impl Shape for SmoothTriangle {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::world::precompute_values;
 
     fn default_smooth_triangle() -> SmoothTriangle {
         SmoothTriangle::new(
@@ -87,5 +88,15 @@ mod tests {
         let i = Intersection::new_with_uv(1.0, &t, 0.45, 0.25);
         let n = t.normal_at(&point!(0, 0, 0), &i);
         assert_abs_diff_eq!(n, vector!(-0.5547002, 0.8320504, 0.0));
+    }
+
+    #[test]
+    fn u_and_v_propagated_by_prepare_computations() {
+        let t = default_smooth_triangle();
+        let i = Intersection::new_with_uv(1.0, &t, 0.45, 0.25);
+        let r = Ray::new(point!(-0.2, 0.3, -2), vector!(0, 0, 1));
+        let xs = vec![i];
+        let comps = precompute_values(r, &i, &xs);
+        assert_abs_diff_eq!(comps.surface_normal, vector!(-0.5547002, 0.8320504, 0.0));
     }
 }

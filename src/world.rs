@@ -159,7 +159,8 @@ pub struct PrecomputedValues<'a> {
     point: Tuple,
     eye_vector: Tuple,
     reflection_vector: Tuple,
-    surface_normal: Tuple,
+    // public only for testing
+    pub(crate) surface_normal: Tuple,
     inside: bool,
     // a point a tiny distance above the surface to avoid self-shadowing/salt-and-pepper noise, caused
     // by finite precision in floating point calculations
