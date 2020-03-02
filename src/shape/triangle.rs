@@ -70,7 +70,7 @@ impl Shape for Triangle {
 
         // Ray intersects the triangle. TODO: explain math
         let distance = f * self.e2.dot(origin_cross_e1);
-        vec![Intersection::new(distance, self)]
+        vec![Intersection::new_with_uv(distance, self, u, v)]
     }
 
     fn local_norm_at(&self, _object_point: Tuple) -> Tuple {
