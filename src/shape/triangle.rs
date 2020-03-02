@@ -53,6 +53,7 @@ impl Shape for Triangle {
             return vec![];
         }
 
+        // TODO: explain u and v
         // Ray misses p1-p3 edge. TODO: explain math
         let f = 1.0 / determinant;
         let p1_to_origin = object_ray.origin - self.p1;

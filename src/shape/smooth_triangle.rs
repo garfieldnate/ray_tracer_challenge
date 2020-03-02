@@ -38,8 +38,9 @@ impl Shape for SmoothTriangle {
         self.base.local_intersect(object_ray)
     }
 
-    fn local_norm_at(&self, object_point: Tuple, i: &Intersection) -> Tuple {
-        vector!(0, 0, 0)
+    fn local_norm_at(&self, _object_point: Tuple, hit: &Intersection) -> Tuple {
+        // TODO: explain the math here. And why is the normal the same everywhere?
+        self.n2 * hit.u + self.n3 * hit.v + self.n1 * (1. - hit.u - hit.v)
     }
 }
 
@@ -78,5 +79,13 @@ mod tests {
         let xs = t.local_intersect(r);
         assert_eq!(xs[0].u, 0.45);
         assert_eq!(xs[0].v, 0.25);
+    }
+
+    #[test]
+    fn uses_u_and_v_to_interpolate_normal() {
+        let t = default_smooth_triangle();
+        let i = Intersection::new_with_uv(1.0, &t, 0.45, 0.25);
+        let n = t.normal_at(&point!(0, 0, 0), &i);
+        assert_abs_diff_eq!(n, vector!(-0.5547002, 0.8320504, 0.0));
     }
 }
