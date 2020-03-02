@@ -70,7 +70,7 @@ impl Shape for Cube {
     }
 
     // norms at the corners are the norms of one of the adjacent sides
-    fn local_norm_at(&self, object_point: Tuple) -> Tuple {
+    fn local_norm_at(&self, object_point: Tuple, _hit: &Intersection) -> Tuple {
         let (x_abs, y_abs, z_abs) = (
             object_point.x.abs(),
             object_point.y.abs(),
@@ -106,6 +106,7 @@ fn check_axis(origin: f32, direction: f32) -> (f32, f32) {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::test::utils::dummy_intersection;
     #[test]
     fn ray_intersects_cube() {
         let c = Cube::new();
@@ -189,7 +190,12 @@ mod tests {
             ),
         ];
         for (name, point, expected_normal) in test_data {
-            assert_eq!(c.local_norm_at(point), expected_normal, "{}", name);
+            assert_eq!(
+                c.local_norm_at(point, &dummy_intersection(&c)),
+                expected_normal,
+                "{}",
+                name
+            );
         }
     }
 }

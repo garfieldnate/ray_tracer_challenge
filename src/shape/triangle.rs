@@ -73,7 +73,7 @@ impl Shape for Triangle {
         vec![Intersection::new_with_uv(distance, self, u, v)]
     }
 
-    fn local_norm_at(&self, _object_point: Tuple) -> Tuple {
+    fn local_norm_at(&self, _object_point: Tuple, _hit: &Intersection) -> Tuple {
         // Normal is always the same, regardless of point on triangle
         self.normal
     }
@@ -82,6 +82,7 @@ impl Shape for Triangle {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::test::utils::dummy_intersection;
 
     fn default_triangle() -> Triangle {
         Triangle::new(point!(0, 1, 0), point!(-1, 0, 0), point!(1, 0, 0))
@@ -102,9 +103,9 @@ mod tests {
     fn triangle_normal() {
         let t = default_triangle();
 
-        let n1 = t.local_norm_at(point!(0, 0.5, 0));
-        let n2 = t.local_norm_at(point!(-0.5, 0.75, 0));
-        let n3 = t.local_norm_at(point!(0.5, 0.25, 0));
+        let n1 = t.local_norm_at(point!(0, 0.5, 0), &dummy_intersection(&t));
+        let n2 = t.local_norm_at(point!(-0.5, 0.75, 0), &dummy_intersection(&t));
+        let n3 = t.local_norm_at(point!(0.5, 0.25, 0), &dummy_intersection(&t));
 
         // t.normal should always be used for triangle's normal
         assert_eq!(n1, t.normal);

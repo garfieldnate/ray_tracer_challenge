@@ -65,7 +65,7 @@ impl Shape for BaseShape {
     fn local_intersect(&self, _object_ray: Ray) -> Vec<Intersection> {
         unimplemented!()
     }
-    fn local_norm_at(&self, _object_point: Tuple) -> Tuple {
+    fn local_norm_at(&self, _object_point: Tuple, _hit: &Intersection) -> Tuple {
         unimplemented!()
     }
 }

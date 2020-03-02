@@ -33,7 +33,7 @@ impl Shape for TestShape {
         self.saved_ray.borrow_mut().replace(_object_ray);
         vec![]
     }
-    fn local_norm_at(&self, _object_point: Tuple) -> Tuple {
+    fn local_norm_at(&self, _object_point: Tuple, _hit: &Intersection) -> Tuple {
         // return something that will let us test both the input and output calculations
         vector!(
             2.0 * _object_point.x,

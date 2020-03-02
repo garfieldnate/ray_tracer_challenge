@@ -68,7 +68,7 @@ impl Shape for GroupShape {
         intersections.sort_by(|i1, i2| i1.distance.partial_cmp(&i2.distance).unwrap_or(Equal));
         intersections
     }
-    fn local_norm_at(&self, _object_point: Tuple) -> Tuple {
+    fn local_norm_at(&self, _object_point: Tuple, _hit: &Intersection) -> Tuple {
         unreachable!("Groups do not have normals. This method should never be called.")
     }
 }
@@ -78,6 +78,7 @@ mod tests {
     use super::*;
     use crate::shape::base_shape::BaseShape;
     use crate::shape::sphere::Sphere;
+    use crate::test::utils::dummy_intersection;
     use crate::transformations::rotation_y;
     use crate::transformations::scaling;
     use crate::transformations::translation;
@@ -249,7 +250,7 @@ mod tests {
         let g2 = g1.get_children().unwrap()[0].as_ref();
         let s = g2.get_children().unwrap()[0].as_ref();
 
-        let n = s.normal_at(&world_point);
+        let n = s.normal_at(&world_point, &dummy_intersection(&g1));
         assert_abs_diff_eq!(n, vector!(0.2857036, 0.42854306, -0.8571606));
     }
 }
