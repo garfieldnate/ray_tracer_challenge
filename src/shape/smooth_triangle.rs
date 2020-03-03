@@ -7,7 +7,8 @@ use crate::tuple::Tuple;
 
 #[derive(Debug)]
 pub struct SmoothTriangle {
-    base: Triangle,
+    // visible for testing
+    pub(crate) base: Triangle,
     // normal vectors at each corner
     pub n1: Tuple,
     pub n2: Tuple,

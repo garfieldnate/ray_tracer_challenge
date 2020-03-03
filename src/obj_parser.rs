@@ -1,4 +1,6 @@
 use crate::shape::group::GroupShape;
+use crate::shape::shape::Shape;
+use crate::shape::smooth_triangle::SmoothTriangle;
 use crate::shape::triangle::Triangle;
 use crate::tuple::Tuple;
 use std::collections::hash_map::HashMap;
@@ -8,6 +10,7 @@ use std::io::{self, BufRead, BufReader, Read};
 pub struct ObjParseResults {
     num_ignored_lines: usize,
     vertices: Vec<Tuple>,
+    normals: Vec<Tuple>,
     groups: Option<HashMap<String, GroupShape>>,
 }
 
@@ -51,6 +54,7 @@ pub enum ParseError {
     ParseIntError(std::num::ParseIntError),
     MalformedVertex(String),
     MalformedFace(String),
+    MalformedNormal(String),
     MalformedGroupDeclaration(String),
 }
 impl From<io::Error> for ParseError {
@@ -76,6 +80,7 @@ impl Display for ParseError {
             ParseError::ParseIntError(ref e) => e.fmt(f),
             ParseError::MalformedVertex(ref s) => f.write_str(s),
             ParseError::MalformedFace(ref s) => f.write_str(s),
+            ParseError::MalformedNormal(ref s) => f.write_str(s),
             ParseError::MalformedGroupDeclaration(ref s) => f.write_str(s),
         }
     }
@@ -84,8 +89,9 @@ impl Display for ParseError {
 pub fn parse_obj<T: Read>(reader: T) -> Result<ObjParseResults, ParseError> {
     let buf_reader = BufReader::new(reader);
     let mut num_ignored_lines = 0;
-    // add one dummy point to simplify processing; OBJ files use 1-indexing
+    // add one dummy point to simplify processing; OBJ files use 1-based indexing
     let mut vertices = vec![point!(0, 0, 0)];
+    let mut normals = vec![point!(0, 0, 0)];
     let mut groups: HashMap<String, GroupShape> = HashMap::new();
     let mut current_group: Option<&mut GroupShape> = None;
     for (index, line) in buf_reader.lines().enumerate() {
@@ -108,16 +114,32 @@ pub fn parse_obj<T: Read>(reader: T) -> Result<ObjParseResults, ParseError> {
                     vertices.push(point!(coordinates[0], coordinates[1], coordinates[2]))
                 }
             }
+            // parse a normal line: vn f32 f32 f32
+            Some("vn") => {
+                let coordinates = elements
+                    .map(|x| x.parse::<f32>())
+                    .collect::<Result<Vec<f32>, std::num::ParseFloatError>>()?;
+                if coordinates.len() != 3 {
+                    return Err(ParseError::MalformedNormal(format!(
+                        "Wrong number of coordinates in normal vector at line {}; expected 3, found {}",
+                        index,
+                        coordinates.len()
+                    )));
+                } else {
+                    normals.push(vector!(coordinates[0], coordinates[1], coordinates[2]))
+                }
+            }
             // parse a triangle line: vf usize usize usize
             Some("f") => {
-                let coordinates = elements
-                    .map(|x| x.parse::<usize>())
-                    .collect::<Result<Vec<usize>, std::num::ParseIntError>>()?;
-                if coordinates.len() < 3 {
+                // TODO: throw useful error if normal is specified for some but not all faces in spec
+                let face_specs = elements
+                    .map(parse_face)
+                    .collect::<Result<Vec<FaceParseResults>, ParseError>>()?;
+                if face_specs.len() < 3 {
                     return Err(ParseError::MalformedFace(format!(
                         "Not enough vertices to form a face at line {}; expected 3, found {}",
                         index,
-                        coordinates.len()
+                        face_specs.len()
                     )));
                 } else {
                     // current_group = current_group.get_or_insert_with(||{});
@@ -130,9 +152,9 @@ pub fn parse_obj<T: Read>(reader: T) -> Result<ObjParseResults, ParseError> {
                         }
                         _ => {}
                     }
-                    for triangle in fan_triangulation(&vertices, &coordinates) {
+                    for triangle in fan_triangulation(&vertices, &normals, &face_specs) {
                         current_group = current_group.map(|g| {
-                            g.add_child(Box::new(triangle));
+                            g.add_child(triangle);
                             g
                         });
                     }
@@ -162,21 +184,66 @@ pub fn parse_obj<T: Read>(reader: T) -> Result<ObjParseResults, ParseError> {
     Ok(ObjParseResults {
         num_ignored_lines,
         vertices,
+        normals,
         groups: Some(groups),
     })
 }
 
+struct FaceParseResults {
+    vertex: usize,
+    texture: Option<usize>,
+    normal: Option<usize>,
+}
+
+fn parse_face(face_string: &str) -> Result<FaceParseResults, ParseError> {
+    let elements = face_string
+        .split('/')
+        .map(|x| {
+            if x.is_empty() {
+                None
+            } else {
+                Some(x.parse::<usize>())
+            }
+        })
+        .map(Option::transpose)
+        .collect::<Result<Vec<Option<usize>>, std::num::ParseIntError>>()?;
+    match elements[0] {
+        Some(vertex) => Ok(FaceParseResults {
+            vertex,
+            // get() returns an Option<&Option<usize>> here, unfortunately
+            texture: elements.get(1).map(|x| *x).flatten(),
+            normal: elements.get(2).map(|x| *x).flatten(),
+        }),
+        None => Err(ParseError::MalformedFace(
+            "Missing vertex index".to_string(),
+        )),
+    }
+}
+
 // Assumptons: chosen_vertices describes a convex polygon (interior angles all < PI/2).
-fn fan_triangulation(all_vertices: &[Tuple], chosen_vertices: &[usize]) -> Vec<Triangle> {
-    debug_assert!(chosen_vertices.len() > 2);
+fn fan_triangulation(
+    all_vertices: &[Tuple],
+    all_normals: &[Tuple],
+    face_specs: &[FaceParseResults],
+) -> Vec<Box<dyn Shape>> {
+    debug_assert!(face_specs.len() > 2);
+    let mut triangles: Vec<Box<dyn Shape>> = vec![];
+    let using_smooth_triangles = face_specs[0].normal.is_some();
+
     // TODO: try replacing this with a fancy windowing function
-    let mut triangles = vec![];
-    for index in 1..chosen_vertices.len() - 1 {
-        let tri = Triangle::new(
-            all_vertices[chosen_vertices[0]],
-            all_vertices[chosen_vertices[index]],
-            all_vertices[chosen_vertices[index + 1]],
-        );
+    for index in 1..face_specs.len() - 1 {
+        let v1 = all_vertices[face_specs[0].vertex];
+        let v2 = all_vertices[face_specs[index].vertex];
+        let v3 = all_vertices[face_specs[index + 1].vertex];
+
+        let tri: Box<dyn Shape> = if using_smooth_triangles {
+            let n1 = all_normals[face_specs[0].vertex];
+            let n2 = all_normals[face_specs[index].vertex];
+            let n3 = all_normals[face_specs[index + 1].vertex];
+            Box::new(SmoothTriangle::new(v1, v2, v3, n1, n2, n3))
+        } else {
+            Box::new(Triangle::new(v1, v2, v3))
+        };
         triangles.push(tri);
     }
     triangles
@@ -186,6 +253,7 @@ fn fan_triangulation(all_vertices: &[Tuple], chosen_vertices: &[usize]) -> Vec<T
 mod tests {
     use super::*;
     use crate::shape::shape::Shape;
+    use crate::shape::smooth_triangle::SmoothTriangle;
     use std::fs::File;
     use std::path::PathBuf;
 
@@ -323,6 +391,7 @@ mod tests {
         // return ordering is random; TODO: switch to LinkedHashMap. Except LinkedHashMap
         // doesn't implement drain(), so you'll have to send a PR. Except the project
         // is no longer maintained, so you might have to ask for a commit bit.
+        // TODO: store order of keys in results manually instead
         assert_eq!(t1.p1, point!(-1, 1, 0));
         // assert_eq!(t1.p2, point!(-1, 0, 0));
         // assert_eq!(t1.p3, point!(1, 0, 0));
@@ -330,5 +399,47 @@ mod tests {
         assert_eq!(t2.p1, point!(-1, 1, 0));
         // assert_eq!(t2.p2, point!(1, 0, 0));
         // assert_eq!(t2.p3, point!(1, 1, 0));
+    }
+
+    #[test]
+    fn vertex_normal_records() {
+        let text = "vn 0 0 1
+            vn 0.707 0 -0.707
+            vn 1 2 3";
+        let results = parse_obj(text.as_bytes()).unwrap();
+        assert_eq!(results.normals.len(), 4);
+        assert_eq!(results.normals[1], vector!(0, 0, 1));
+        assert_eq!(results.normals[2], vector!(0.707, 0, -0.707));
+        assert_eq!(results.normals[3], vector!(1, 2, 3));
+    }
+
+    #[test]
+    fn faces_with_normals() {
+        let text = "
+            v 0 1 0
+            v -1 0 0
+            v 1 0 0
+
+            vn -1 0 0
+            vn 1 0 0
+            vn 0 1 0
+
+            f 1//3 2//1 3//2
+            f 1/0/3 2/102/1 3/14/2";
+        let results = parse_obj(text.as_bytes()).unwrap();
+        let g = results.get_default_group().unwrap();
+        let g_children = g.get_children().unwrap();
+        let t1 = g_children[0].downcast_ref::<SmoothTriangle>().unwrap();
+        let t2 = g_children[1].downcast_ref::<SmoothTriangle>().unwrap();
+
+        let test_data = vec![("t1", t1), ("t2", t2)];
+        for (name, triangle) in test_data {
+            assert_eq!(triangle.base.p1, results.vertices[1], "{}", name);
+            assert_eq!(triangle.base.p2, results.vertices[2], "{}", name);
+            assert_eq!(triangle.base.p3, results.vertices[3], "{}", name);
+            assert_eq!(triangle.n1, results.normals[1], "{}", name);
+            assert_eq!(triangle.n2, results.normals[2], "{}", name);
+            assert_eq!(triangle.n3, results.normals[3], "{}", name);
+        }
     }
 }
