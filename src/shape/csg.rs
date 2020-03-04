@@ -48,14 +48,44 @@ impl Shape for CSG {
     }
 }
 
-// hit_s1: true if intersection is with a CSG's s1, false if with the s2
-// inside_s1: true if intersection is inside CSG's s1, false otherwise
-// inside_s2: true if intersection is inside CSG's s2, false otherwise
-fn intersection_allowed(op: CSGOperator, hit_s1: bool, inside_s1: bool, inside_s2: bool) -> bool {
-    match op {
-        CSGOperator::Union() => (hit_s1 && !inside_s2) || (!hit_s1 && !inside_s1),
-        CSGOperator::Intersection() => (hit_s1 && inside_s2) || (!hit_s1 && inside_s1),
-        CSGOperator::Difference() => (hit_s1 && !inside_s2) || (!hit_s1 && inside_s1),
+impl CSG {
+    fn filter_intersections(&self, intersections: &Vec<Intersection>) -> Vec<Intersection> {
+        // begin outside of both children
+        let mut inside_s1 = false;
+        let mut inside_s2 = false;
+        let mut filtered = vec![];
+
+        for i in intersections {
+            let hit_left = Next: add includes method to shape
+// ​ 	    ​# if i.object is part of the "left" child, then lhit is true​
+// ​ 	    lhit ← csg.left includes i.object
+// ​
+// ​ 	    ​if​ intersection_allowed(csg.operation, lhit, inl, inr) ​then​
+// ​ 	      add i to filtered
+// ​ 	    ​end​ ​if
+// ​ 	    ​# depending on which object was hit, toggle either inl or inr​
+// ​ 	    ​if​ lhit ​then​
+// ​ 	      inl ← not inl
+// ​ 	    ​else​
+// ​ 	      inr ← not inr
+// ​ 	    ​end​ ​if​
+        }
+        filtered
+    }
+    // hit_s1: true if intersection is with a CSG's s1, false if with the s2
+    // inside_s1: true if intersection is inside CSG's s1, false otherwise
+    // inside_s2: true if intersection is inside CSG's s2, false otherwise
+    fn intersection_allowed(
+        op: CSGOperator,
+        hit_s1: bool,
+        inside_s1: bool,
+        inside_s2: bool,
+    ) -> bool {
+        match op {
+            CSGOperator::Union() => (hit_s1 && !inside_s2) || (!hit_s1 && !inside_s1),
+            CSGOperator::Intersection() => (hit_s1 && inside_s2) || (!hit_s1 && inside_s1),
+            CSGOperator::Difference() => (hit_s1 && !inside_s2) || (!hit_s1 && inside_s1),
+        }
     }
 }
 
@@ -63,10 +93,10 @@ fn intersection_allowed(op: CSGOperator, hit_s1: bool, inside_s1: bool, inside_s
 mod tests {
     use super::*;
     use crate::shape::csg::CSGOperator::Difference;
-    use crate::shape::csg::CSGOperator::Intersection;
     use crate::shape::csg::CSGOperator::Union;
     use crate::shape::cube::Cube;
     use crate::shape::sphere::Sphere;
+    use std::ptr;
 
     #[test]
     fn csg_construction() {
@@ -94,14 +124,70 @@ mod tests {
             ("union6", Union(), false, true, false, false),
             ("union7", Union(), false, false, true, true),
             ("union8", Union(), false, false, false, true),
-            ("union9", Intersection(), true, true, true, true),
-            ("intersection1", Intersection(), true, true, false, false),
-            ("intersection2", Intersection(), true, false, true, true),
-            ("intersection3", Intersection(), true, false, false, false),
-            ("intersection4", Intersection(), false, true, true, true),
-            ("intersection5", Intersection(), false, true, false, true),
-            ("intersection6", Intersection(), false, false, true, false),
-            ("intersection7", Intersection(), false, false, false, false),
+            (
+                "union9",
+                CSGOperator::Intersection(),
+                true,
+                true,
+                true,
+                true,
+            ),
+            (
+                "intersection1",
+                CSGOperator::Intersection(),
+                true,
+                true,
+                false,
+                false,
+            ),
+            (
+                "intersection2",
+                CSGOperator::Intersection(),
+                true,
+                false,
+                true,
+                true,
+            ),
+            (
+                "intersection3",
+                CSGOperator::Intersection(),
+                true,
+                false,
+                false,
+                false,
+            ),
+            (
+                "intersection4",
+                CSGOperator::Intersection(),
+                false,
+                true,
+                true,
+                true,
+            ),
+            (
+                "intersection5",
+                CSGOperator::Intersection(),
+                false,
+                true,
+                false,
+                true,
+            ),
+            (
+                "intersection6",
+                CSGOperator::Intersection(),
+                false,
+                false,
+                true,
+                false,
+            ),
+            (
+                "intersection7",
+                CSGOperator::Intersection(),
+                false,
+                false,
+                false,
+                false,
+            ),
             ("", Difference(), true, true, true, false),
             ("", Difference(), true, true, false, true),
             ("", Difference(), true, false, true, false),
@@ -114,10 +200,34 @@ mod tests {
         for (name, op, hit_s1, inside_s1, inside_s2, expected) in test_data {
             assert_eq!(
                 expected,
-                intersection_allowed(op, hit_s1, inside_s1, inside_s2),
+                CSG::intersection_allowed(op, hit_s1, inside_s1, inside_s2),
                 "Case {}",
                 name
             );
+        }
+    }
+
+    #[test]
+    fn filter_intersections() {
+        let test_data = vec![
+            (Union(), 0, 3),
+            (CSGOperator::Intersection(), 1, 2),
+            (Difference(), 0, 1),
+        ];
+        for (op, x0, x1) in test_data {
+            let s1 = Box::new(Sphere::new());
+            let s2 = Box::new(Cube::new());
+            let c = CSG::new(op, s1, s2);
+            let xs = vec![
+                Intersection::new(1., c.s1.as_ref()),
+                Intersection::new(2., c.s2.as_ref()),
+                Intersection::new(3., c.s1.as_ref()),
+                Intersection::new(4., c.s2.as_ref()),
+            ];
+            let filtered = c.filter_intersections(&xs);
+            assert_eq!(2, filtered.len());
+            assert!(ptr::eq(&filtered[0], &xs[x0]));
+            assert!(ptr::eq(&filtered[1], &xs[x1]));
         }
     }
 }
