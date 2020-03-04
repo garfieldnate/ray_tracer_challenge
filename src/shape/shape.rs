@@ -100,6 +100,12 @@ pub trait Shape: Debug + Downcast {
     fn get_children(&self) -> Option<&Vec<Box<dyn Shape>>> {
         None
     }
+
+    // should only be overridden by GroupShape and CSG
+    fn includes(&self, other: &dyn Shape) -> bool {
+        // TODO: how to unify this with the PartialEq implementation
+        self.get_unique_id() == other.get_unique_id()
+    }
 }
 
 // TODO: add 'sync' keyword when parallelizing

@@ -4,7 +4,7 @@ use crate::shape::base_shape::BaseShape;
 use crate::shape::shape::Shape;
 use crate::tuple::Tuple;
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum CSGOperator {
     Union(),
     Intersection(),
@@ -39,37 +39,43 @@ impl Shape for CSG {
         &mut self.base
     }
 
-    fn local_intersect(&self, object_ray: Ray) -> Vec<Intersection> {
+    fn local_intersect(&self, _object_ray: Ray) -> Vec<Intersection> {
         vec![]
     }
 
     fn local_norm_at(&self, _object_point: Tuple, _hit: &Intersection) -> Tuple {
         vector!(0, 0, 0)
     }
+
+    fn includes(&self, other: &dyn Shape) -> bool {
+        if self.get_unique_id() == other.get_unique_id() {
+            true
+        } else {
+            self.s1.includes(other) || self.s2.includes(other)
+        }
+    }
 }
 
 impl CSG {
-    fn filter_intersections(&self, intersections: &Vec<Intersection>) -> Vec<Intersection> {
+    fn filter_intersections<'a>(
+        &self,
+        intersections: &Vec<Intersection<'a>>,
+    ) -> Vec<Intersection<'a>> {
         // begin outside of both children
         let mut inside_s1 = false;
         let mut inside_s2 = false;
-        let mut filtered = vec![];
+        let mut filtered: Vec<Intersection> = vec![];
 
         for i in intersections {
-            // Next: add includes method to shape
-            // let hit_s1 = self.s1.includes(i.object);
-            // ​ 	    ​# if i.object is part of the "left" child, then lhit is true​
-            // ​ 	    lhit ← csg.left includes i.object
-            // ​
-            // ​ 	    ​if​ intersection_allowed(csg.operation, lhit, inl, inr) ​then​
-            // ​ 	      add i to filtered
-            // ​ 	    ​end​ ​if
-            // ​ 	    ​# depending on which object was hit, toggle either inl or inr​
-            // ​ 	    ​if​ lhit ​then​
-            // ​ 	      inl ← not inl
-            // ​ 	    ​else​
-            // ​ 	      inr ← not inr
-            // ​ 	    ​end​ ​if​
+            let hit_s1 = self.s1.includes(i.object);
+            if CSG::intersection_allowed(self.op, hit_s1, inside_s1, inside_s2) {
+                filtered.push(*i);
+            }
+            if hit_s1 {
+                inside_s1 = !inside_s1;
+            } else {
+                inside_s2 = !inside_s2;
+            }
         }
         filtered
     }
@@ -211,11 +217,11 @@ mod tests {
     #[test]
     fn filter_intersections() {
         let test_data = vec![
-            (Union(), 0, 3),
-            (CSGOperator::Intersection(), 1, 2),
-            (Difference(), 0, 1),
+            ("union", Union(), 0, 3),
+            ("intersection", CSGOperator::Intersection(), 1, 2),
+            ("difference", Difference(), 0, 1),
         ];
-        for (op, x0, x1) in test_data {
+        for (name, op, x0, x1) in test_data {
             let s1 = Box::new(Sphere::new());
             let s2 = Box::new(Cube::new());
             let c = CSG::new(op, s1, s2);
@@ -226,9 +232,10 @@ mod tests {
                 Intersection::new(4., c.s2.as_ref()),
             ];
             let filtered = c.filter_intersections(&xs);
-            assert_eq!(2, filtered.len());
-            assert!(ptr::eq(&filtered[0], &xs[x0]));
-            assert!(ptr::eq(&filtered[1], &xs[x1]));
+            println!("{:?}", filtered);
+            assert_eq!(2, filtered.len(), "case: {}", name);
+            assert_eq!(&filtered[0], &xs[x0], "case: {}", name);
+            assert_eq!(&filtered[1], &xs[x1], "case: {}", name);
         }
     }
 }

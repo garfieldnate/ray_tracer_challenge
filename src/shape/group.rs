@@ -40,6 +40,16 @@ impl Shape for GroupShape {
     fn get_children(&self) -> Option<&Vec<Box<dyn Shape>>> {
         Some(&self.children)
     }
+    fn includes(&self, other: &dyn Shape) -> bool {
+        if self.get_unique_id() == other.get_unique_id() {
+            true
+        } else {
+            match self.get_children() {
+                Some(children) => children.iter().any(|s| s.as_ref().includes(other)),
+                None => false,
+            }
+        }
+    }
     fn set_transformation(&mut self, t: Matrix) {
         // loop over children and undo the previous transformation that was applied to them
         // by multiplying their transform by the inverse of this group's transform. Then
