@@ -40,14 +40,13 @@ mod tests {
     use super::*;
     use crate::shape::shape::Shape;
     use crate::shape::sphere::Sphere;
-    use std::ptr;
 
     #[test]
     fn basic_intersection_creation() {
         let s = Sphere::new();
         let i = Intersection::new(1.0, &s);
         assert_eq!(i.distance, 1.0);
-        assert!(ptr::eq(&s as &dyn Shape, i.object as &dyn Shape));
+        assert_eq!(&s as &dyn Shape, i.object as &dyn Shape);
     }
 
     #[test]
@@ -100,7 +99,7 @@ mod tests {
         let s = Sphere::new();
         let i = Intersection::new_with_uv(1.0, &s, 0.2, 0.4);
         assert_eq!(i.distance, 1.0);
-        assert!(ptr::eq(&s as &dyn Shape, i.object as &dyn Shape));
+        assert_eq!(&s as &dyn Shape, i.object as &dyn Shape);
         assert_eq!(i.u, 0.2);
         assert_eq!(i.v, 0.4);
     }

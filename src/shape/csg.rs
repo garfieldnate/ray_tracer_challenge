@@ -56,19 +56,20 @@ impl CSG {
         let mut filtered = vec![];
 
         for i in intersections {
-            let hit_left = Next: add includes method to shape
-// ​ 	    ​# if i.object is part of the "left" child, then lhit is true​
-// ​ 	    lhit ← csg.left includes i.object
-// ​
-// ​ 	    ​if​ intersection_allowed(csg.operation, lhit, inl, inr) ​then​
-// ​ 	      add i to filtered
-// ​ 	    ​end​ ​if
-// ​ 	    ​# depending on which object was hit, toggle either inl or inr​
-// ​ 	    ​if​ lhit ​then​
-// ​ 	      inl ← not inl
-// ​ 	    ​else​
-// ​ 	      inr ← not inr
-// ​ 	    ​end​ ​if​
+            // Next: add includes method to shape
+            // let hit_s1 = self.s1.includes(i.object);
+            // ​ 	    ​# if i.object is part of the "left" child, then lhit is true​
+            // ​ 	    lhit ← csg.left includes i.object
+            // ​
+            // ​ 	    ​if​ intersection_allowed(csg.operation, lhit, inl, inr) ​then​
+            // ​ 	      add i to filtered
+            // ​ 	    ​end​ ​if
+            // ​ 	    ​# depending on which object was hit, toggle either inl or inr​
+            // ​ 	    ​if​ lhit ​then​
+            // ​ 	      inl ← not inl
+            // ​ 	    ​else​
+            // ​ 	      inr ← not inr
+            // ​ 	    ​end​ ​if​
         }
         filtered
     }

@@ -4,12 +4,19 @@ use crate::matrix::Matrix;
 use crate::ray::Ray;
 use crate::shape::base_shape::BaseShape;
 use crate::tuple::Tuple;
+use downcast_rs::Downcast;
 use std::fmt::Debug;
 use std::hash::Hash;
 use std::hash::Hasher;
-use std::ptr;
 
-use downcast_rs::Downcast;
+use std::sync::atomic::{AtomicUsize, Ordering};
+
+// Shapes are globally unique. We use IDs to simplify their comparison.
+static OBJECT_COUNTER: AtomicUsize = AtomicUsize::new(0);
+
+pub fn get_next_unique_shape_id() -> usize {
+    OBJECT_COUNTER.fetch_add(1, Ordering::SeqCst)
+}
 
 // TODO: update to DowncastSync later when parallelizing
 pub trait Shape: Debug + Downcast {
@@ -22,6 +29,9 @@ pub trait Shape: Debug + Downcast {
 
     // The rest of these should not be overridden by Shape implementers
 
+    fn get_unique_id(&self) -> usize {
+        self.get_base().get_unique_id()
+    }
     fn transformation(&self) -> &Matrix {
         self.get_base().transformation()
     }
@@ -95,25 +105,19 @@ pub trait Shape: Debug + Downcast {
 // TODO: add 'sync' keyword when parallelizing
 impl_downcast!(Shape);
 
-// I don't entirely understand why the lifetime params are required, but the compiler will not let us
-// put shapes with lifetime params into a collection of Borrow values without them.
-// Since Shape extends Downcast, which extends Any, which specifies 'static, we had to
-// switch to that particular lifetime here.
-
-// Shapes are always globally unique. They are only equal if they are the same object
-impl<'a> PartialEq for dyn Shape + 'static {
-    fn eq(&self, other: &dyn Shape) -> bool {
-        ptr::eq(self, other)
+impl PartialEq for dyn Shape {
+    fn eq(&self, other: &Self) -> bool {
+        self.get_unique_id() == other.get_unique_id()
     }
 }
-impl<'a> Hash for dyn Shape + 'a {
+
+impl Eq for dyn Shape {}
+
+impl Hash for dyn Shape {
     fn hash<H: Hasher>(&self, hasher: &mut H) {
-        ptr::hash(self, hasher);
+        self.get_unique_id().hash(hasher);
     }
 }
-
-// Shapes are always globally unique. They are only equal if they are the same object
-impl<'a> Eq for dyn Shape + 'a {}
 
 #[cfg(test)]
 mod tests {
