@@ -2,6 +2,7 @@ use crate::intersection::Intersection;
 use crate::material::Material;
 use crate::matrix::Matrix;
 use crate::ray::Ray;
+use crate::shape::shape::get_next_unique_shape_id;
 use crate::shape::shape::Shape;
 use crate::tuple::Tuple;
 use std::fmt::Debug;
@@ -14,12 +15,14 @@ pub struct BaseShape {
     t_inverse_transpose: Matrix,
     m: Material,
     casts_shadow: bool,
+    id: usize,
 }
 
 impl BaseShape {
     pub fn new() -> Self {
         Self {
             casts_shadow: true,
+            id: get_next_unique_shape_id(),
             ..Default::default()
         }
     }
@@ -32,6 +35,9 @@ impl Shape for BaseShape {
     }
     fn get_base_mut(&mut self) -> &mut BaseShape {
         unimplemented!()
+    }
+    fn get_unique_id(&self) -> usize {
+        self.id
     }
     fn transformation(&self) -> &Matrix {
         &self.t
