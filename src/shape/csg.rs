@@ -8,6 +8,7 @@ use crate::tuple::Tuple;
 pub enum CSGOperator {
     Union(),
     Intersection(),
+    Difference(),
 }
 
 #[derive(Debug)]
@@ -54,12 +55,14 @@ fn intersection_allowed(op: CSGOperator, hit_s1: bool, inside_s1: bool, inside_s
     match op {
         CSGOperator::Union() => (hit_s1 && !inside_s2) || (!hit_s1 && !inside_s1),
         CSGOperator::Intersection() => (hit_s1 && inside_s2) || (!hit_s1 && inside_s1),
+        CSGOperator::Difference() => (hit_s1 && !inside_s2) || (!hit_s1 && inside_s1),
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::shape::csg::CSGOperator::Difference;
     use crate::shape::csg::CSGOperator::Intersection;
     use crate::shape::csg::CSGOperator::Union;
     use crate::shape::cube::Cube;
@@ -99,6 +102,14 @@ mod tests {
             ("intersection5", Intersection(), false, true, false, true),
             ("intersection6", Intersection(), false, false, true, false),
             ("intersection7", Intersection(), false, false, false, false),
+            ("", Difference(), true, true, true, false),
+            ("", Difference(), true, true, false, true),
+            ("", Difference(), true, false, true, false),
+            ("", Difference(), true, false, false, true),
+            ("", Difference(), false, true, true, true),
+            ("", Difference(), false, true, false, true),
+            ("", Difference(), false, false, true, false),
+            ("", Difference(), false, false, false, false),
         ];
         for (name, op, hit_s1, inside_s1, inside_s2, expected) in test_data {
             assert_eq!(
