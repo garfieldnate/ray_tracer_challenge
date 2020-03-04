@@ -13,17 +13,17 @@ pub enum CSGOperator {
 pub struct CSG {
     base: BaseShape,
     op: CSGOperator,
-    s1: Box<dyn Shape>,
-    s2: Box<dyn Shape>,
+    left: Box<dyn Shape>,
+    right: Box<dyn Shape>,
 }
 
 impl CSG {
-    pub fn new(op: CSGOperator, s1: Box<dyn Shape>, s2: Box<dyn Shape>) -> Self {
+    pub fn new(op: CSGOperator, left: Box<dyn Shape>, right: Box<dyn Shape>) -> Self {
         CSG {
             base: BaseShape::new(),
             op,
-            s1,
-            s2,
+            left,
+            right,
         }
     }
 }
@@ -56,15 +56,15 @@ mod tests {
     #[test]
     fn CSG_construction() {
         // TODO: possibly fragile test
-        let s1 = Box::new(Sphere::new());
-        let s1_address = s1.as_ref() as *const dyn Shape;
-        let s2 = Box::new(Cube::new());
-        let s2_address = s2.as_ref() as *const dyn Shape;
+        let left = Box::new(Sphere::new());
+        let left_address = left.as_ref() as *const dyn Shape;
+        let right = Box::new(Cube::new());
+        let right_address = right.as_ref() as *const dyn Shape;
 
-        let c = CSG::new(CSGOperator::Union(), s1, s2);
+        let c = CSG::new(CSGOperator::Union(), left, right);
         assert_eq!(c.op, CSGOperator::Union());
 
-        assert_eq!(c.s1.as_ref() as *const _, s1_address);
-        assert_eq!(c.s2.as_ref() as *const _, s2_address);
+        assert_eq!(c.left.as_ref() as *const _, left_address);
+        assert_eq!(c.right.as_ref() as *const _, right_address);
     }
 }
