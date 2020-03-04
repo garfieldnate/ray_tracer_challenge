@@ -46,15 +46,26 @@ impl Shape for CSG {
     }
 }
 
+fn intersection_allowed(
+    op: CSGOperator,
+    hit_left: bool,
+    inside_left: bool,
+    inside_right: bool,
+) -> bool {
+    match op {
+        CSGOperator::Union() => (hit_left && !inside_right) || (!hit_left && !inside_left),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::shape::csg::CSGOperator::Union;
     use crate::shape::cube::Cube;
     use crate::shape::sphere::Sphere;
-    use crate::test::utils::dummy_intersection;
 
     #[test]
-    fn CSG_construction() {
+    fn csg_construction() {
         // TODO: possibly fragile test
         let left = Box::new(Sphere::new());
         let left_address = left.as_ref() as *const dyn Shape;
@@ -66,5 +77,27 @@ mod tests {
 
         assert_eq!(c.left.as_ref() as *const _, left_address);
         assert_eq!(c.right.as_ref() as *const _, right_address);
+    }
+
+    #[test]
+    fn csg_operation_rule_evaluation() {
+        let test_data = vec![
+            ("1", Union(), true, true, true, false),
+            ("2", Union(), true, true, false, true),
+            ("3", Union(), true, false, true, false),
+            ("4", Union(), true, false, false, true),
+            ("5", Union(), false, true, true, false),
+            ("6", Union(), false, true, false, false),
+            ("7", Union(), false, false, true, true),
+            ("8", Union(), false, false, false, true),
+        ];
+        for (name, op, hit_left, inside_left, inside_right, expected) in test_data {
+            assert_eq!(
+                expected,
+                intersection_allowed(op, hit_left, inside_left, inside_right),
+                "Case {}",
+                name
+            );
+        }
     }
 }
