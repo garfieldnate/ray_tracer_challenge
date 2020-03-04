@@ -7,6 +7,7 @@ use crate::tuple::Tuple;
 #[derive(Debug, PartialEq, Eq)]
 pub enum CSGOperator {
     Union(),
+    Intersection(),
 }
 
 #[derive(Debug)]
@@ -52,12 +53,14 @@ impl Shape for CSG {
 fn intersection_allowed(op: CSGOperator, hit_s1: bool, inside_s1: bool, inside_s2: bool) -> bool {
     match op {
         CSGOperator::Union() => (hit_s1 && !inside_s2) || (!hit_s1 && !inside_s1),
+        CSGOperator::Intersection() => (hit_s1 && inside_s2) || (!hit_s1 && inside_s1),
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::shape::csg::CSGOperator::Intersection;
     use crate::shape::csg::CSGOperator::Union;
     use crate::shape::cube::Cube;
     use crate::shape::sphere::Sphere;
@@ -80,14 +83,22 @@ mod tests {
     #[test]
     fn csg_operation_rule_evaluation() {
         let test_data = vec![
-            ("1", Union(), true, true, true, false),
-            ("2", Union(), true, true, false, true),
-            ("3", Union(), true, false, true, false),
-            ("4", Union(), true, false, false, true),
-            ("5", Union(), false, true, true, false),
-            ("6", Union(), false, true, false, false),
-            ("7", Union(), false, false, true, true),
-            ("8", Union(), false, false, false, true),
+            ("union1", Union(), true, true, true, false),
+            ("union2", Union(), true, true, false, true),
+            ("union3", Union(), true, false, true, false),
+            ("union4", Union(), true, false, false, true),
+            ("union5", Union(), false, true, true, false),
+            ("union6", Union(), false, true, false, false),
+            ("union7", Union(), false, false, true, true),
+            ("union8", Union(), false, false, false, true),
+            ("union9", Intersection(), true, true, true, true),
+            ("intersection1", Intersection(), true, true, false, false),
+            ("intersection2", Intersection(), true, false, true, true),
+            ("intersection3", Intersection(), true, false, false, false),
+            ("intersection4", Intersection(), false, true, true, true),
+            ("intersection5", Intersection(), false, true, false, true),
+            ("intersection6", Intersection(), false, false, true, false),
+            ("intersection7", Intersection(), false, false, false, false),
         ];
         for (name, op, hit_s1, inside_s1, inside_s2, expected) in test_data {
             assert_eq!(
