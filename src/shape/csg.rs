@@ -13,17 +13,17 @@ pub enum CSGOperator {
 pub struct CSG {
     base: BaseShape,
     op: CSGOperator,
-    left: Box<dyn Shape>,
-    right: Box<dyn Shape>,
+    s1: Box<dyn Shape>,
+    s2: Box<dyn Shape>,
 }
 
 impl CSG {
-    pub fn new(op: CSGOperator, left: Box<dyn Shape>, right: Box<dyn Shape>) -> Self {
+    pub fn new(op: CSGOperator, s1: Box<dyn Shape>, s2: Box<dyn Shape>) -> Self {
         CSG {
             base: BaseShape::new(),
             op,
-            left,
-            right,
+            s1,
+            s2,
         }
     }
 }
@@ -46,14 +46,12 @@ impl Shape for CSG {
     }
 }
 
-fn intersection_allowed(
-    op: CSGOperator,
-    hit_left: bool,
-    inside_left: bool,
-    inside_right: bool,
-) -> bool {
+// hit_s1: true if intersection is with a CSG's s1, false if with the s2
+// inside_s1: true if intersection is inside CSG's s1, false otherwise
+// inside_s2: true if intersection is inside CSG's s2, false otherwise
+fn intersection_allowed(op: CSGOperator, hit_s1: bool, inside_s1: bool, inside_s2: bool) -> bool {
     match op {
-        CSGOperator::Union() => (hit_left && !inside_right) || (!hit_left && !inside_left),
+        CSGOperator::Union() => (hit_s1 && !inside_s2) || (!hit_s1 && !inside_s1),
     }
 }
 
@@ -67,16 +65,16 @@ mod tests {
     #[test]
     fn csg_construction() {
         // TODO: possibly fragile test
-        let left = Box::new(Sphere::new());
-        let left_address = left.as_ref() as *const dyn Shape;
-        let right = Box::new(Cube::new());
-        let right_address = right.as_ref() as *const dyn Shape;
+        let s1 = Box::new(Sphere::new());
+        let s1_address = s1.as_ref() as *const dyn Shape;
+        let s2 = Box::new(Cube::new());
+        let s2_address = s2.as_ref() as *const dyn Shape;
 
-        let c = CSG::new(CSGOperator::Union(), left, right);
+        let c = CSG::new(CSGOperator::Union(), s1, s2);
         assert_eq!(c.op, CSGOperator::Union());
 
-        assert_eq!(c.left.as_ref() as *const _, left_address);
-        assert_eq!(c.right.as_ref() as *const _, right_address);
+        assert_eq!(c.s1.as_ref() as *const _, s1_address);
+        assert_eq!(c.s2.as_ref() as *const _, s2_address);
     }
 
     #[test]
@@ -91,10 +89,10 @@ mod tests {
             ("7", Union(), false, false, true, true),
             ("8", Union(), false, false, false, true),
         ];
-        for (name, op, hit_left, inside_left, inside_right, expected) in test_data {
+        for (name, op, hit_s1, inside_s1, inside_s2, expected) in test_data {
             assert_eq!(
                 expected,
-                intersection_allowed(op, hit_left, inside_left, inside_right),
+                intersection_allowed(op, hit_s1, inside_s1, inside_s2),
                 "Case {}",
                 name
             );
