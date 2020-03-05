@@ -54,7 +54,8 @@ impl Shape for CSG {
     }
 
     fn local_norm_at(&self, _object_point: Tuple, _hit: &Intersection) -> Tuple {
-        vector!(0, 0, 0)
+        // intersection objects will always point to s1 and s2, so no need to implement this
+        unimplemented!()
     }
 
     fn includes(&self, other: &dyn Shape) -> bool {
