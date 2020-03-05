@@ -3,6 +3,7 @@ use crate::ray::Ray;
 use crate::shape::base_shape::BaseShape;
 use crate::shape::shape::Shape;
 use crate::tuple::Tuple;
+use std::cmp::Ordering::Equal;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum CSGOperator {
@@ -39,8 +40,17 @@ impl Shape for CSG {
         &mut self.base
     }
 
-    fn local_intersect(&self, _object_ray: Ray) -> Vec<Intersection> {
-        vec![]
+    fn local_intersect(&self, object_ray: Ray) -> Vec<Intersection> {
+        let mut intersections = vec![];
+        for i in self.s1.as_ref().intersect(object_ray) {
+            intersections.push(i);
+        }
+        for i in self.s2.as_ref().intersect(object_ray) {
+            intersections.push(i);
+        }
+        intersections.sort_by(|i1, i2| i1.distance.partial_cmp(&i2.distance).unwrap_or(Equal));
+
+        self.filter_intersections(&intersections)
     }
 
     fn local_norm_at(&self, _object_point: Tuple, _hit: &Intersection) -> Tuple {
@@ -99,11 +109,12 @@ impl CSG {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::material::Material;
     use crate::shape::csg::CSGOperator::Difference;
     use crate::shape::csg::CSGOperator::Union;
     use crate::shape::cube::Cube;
     use crate::shape::sphere::Sphere;
-    use std::ptr;
+    use crate::transformations::translation;
 
     #[test]
     fn csg_construction() {
@@ -237,5 +248,25 @@ mod tests {
             assert_eq!(&filtered[0], &xs[x0], "case: {}", name);
             assert_eq!(&filtered[1], &xs[x1], "case: {}", name);
         }
+    }
+
+    #[test]
+    fn ray_misses_csg_object() {
+        let c = CSG::new(Union(), Box::new(Sphere::new()), Box::new(Cube::new()));
+        let r = Ray::new(point!(0, 2, -5), vector!(0, 0, 1));
+        let xs = c.local_intersect(r);
+        assert!(xs.is_empty());
+    }
+
+    #[test]
+    fn ray_hits_csg_object() {
+        let s1 = Sphere::new();
+        let s2 = Sphere::build(translation(0., 0., 0.5), Material::default());
+        let c = CSG::new(Union(), Box::new(s1), Box::new(s2));
+        let r = Ray::new(point!(0, 0, -5), vector!(0, 0, 1));
+        let xs = c.local_intersect(r);
+        assert_eq!(xs.len(), 2);
+        assert_eq!(xs[0], Intersection::new(4.0, c.s1.as_ref()));
+        assert_eq!(xs[1], Intersection::new(6.5, c.s2.as_ref()));
     }
 }
