@@ -158,7 +158,11 @@ fn get_csg() -> CSG {
     // s1
     let mut s2 = get_cylinder();
     s2.set_transformation(scaling(0.2, 2.0, 0.2));
-    s2.set_material(Material::default());
+    let mut m = Material::default();
+    m.reflective = 0.;
+    m.refractive_index = 1.;
+    m.transparency = 1.;
+    s2.set_material(m);
     s2.set_casts_shadow(false);
     // s2
     let mut c = CSG::new(CSGOperator::Difference(), Box::new(s1), Box::new(s2));
