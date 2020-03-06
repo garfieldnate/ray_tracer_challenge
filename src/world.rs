@@ -57,14 +57,15 @@ impl World {
     }
 
     pub fn shade_hit(&self, comps: PrecomputedValues, remaining_recursive_steps: i16) -> Color {
+        let light = self.light.expect("World light should be set");
         let surface_color = phong_lighting(
             comps.object,
             comps.object.material(),
-            self.light.unwrap(),
+            light,
             comps.over_point,
             comps.eye_vector,
             comps.surface_normal,
-            self.is_shadowed(comps.over_point),
+            self.is_shadowed(light.position, comps.over_point),
         );
         let reflected_color = self.reflected_color(&comps, remaining_recursive_steps);
         let refracted_color = self.refracted_color(&comps, remaining_recursive_steps);
@@ -92,10 +93,10 @@ impl World {
         }
     }
 
-    pub fn is_shadowed(&self, point: Tuple) -> bool {
+    pub fn is_shadowed(&self, light_position: Tuple, point: Tuple) -> bool {
         // create a ray from a point to the light
         // if there's an intersection between the light and the point, then the point is in shadow
-        let light_to_point_vector = self.light.unwrap().position - point;
+        let light_to_point_vector = light_position - point;
         let distance = light_to_point_vector.magnitude();
         let direction = light_to_point_vector.norm();
 
@@ -586,40 +587,18 @@ mod tests {
     }
 
     #[test]
-    fn no_shadow_when_nothing_is_colinear_with_point_and_light() {
+    fn is_shadow_tests_for_occlusion_between_two_points() {
         let w = World::default();
-        let p = point!(0, 10, 0);
-        assert!(!w.is_shadowed(p));
-    }
-
-    #[test]
-    fn shadowed_when_object_is_between_point_and_light() {
-        let w = World::default();
-        let p = point!(10, -10, 10);
-        assert!(w.is_shadowed(p));
-    }
-
-    #[test]
-    fn no_shadow_when_object_does_not_cast_shadow() {
-        let mut w = World::default();
-        w.objects[0].set_casts_shadow(false);
-        w.objects[1].set_casts_shadow(false);
-        let p = point!(10, -10, 10);
-        assert!(!w.is_shadowed(p));
-    }
-
-    #[test]
-    fn no_shadow_when_object_is_behind_light() {
-        let w = World::default();
-        let p = point!(-20, 20, -20);
-        assert!(!w.is_shadowed(p));
-    }
-
-    #[test]
-    fn no_shadow_when_object_is_behind_point() {
-        let w = World::default();
-        let p = point!(-2, 2, -2);
-        assert!(!w.is_shadowed(p));
+        let light_position = point!(-10, -10, -10);
+        let test_data = vec![
+            ("", point!(-10, -10, 10), false),
+            ("", point!(10, 10, 10), true),
+            ("", point!(-20, -20, -20), false),
+            ("", point!(-5, -5, -5), false),
+        ];
+        for (name, p, expected) in test_data {
+            assert_eq!(w.is_shadowed(light_position, p), expected, "{:?}", name);
+        }
     }
 
     #[test]
