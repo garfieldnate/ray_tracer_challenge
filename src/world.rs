@@ -65,7 +65,7 @@ impl World {
             comps.over_point,
             comps.eye_vector,
             comps.surface_normal,
-            self.is_shadowed(light.position, comps.over_point),
+            light.intensity_at(comps.over_point, self),
         );
         let reflected_color = self.reflected_color(&comps, remaining_recursive_steps);
         let refracted_color = self.refracted_color(&comps, remaining_recursive_steps);
@@ -93,6 +93,7 @@ impl World {
         }
     }
 
+    // used only for point lights, where a shadow is a boolean instead of a number
     pub fn is_shadowed(&self, light_position: Tuple, point: Tuple) -> bool {
         // create a ray from a point to the light
         // if there's an intersection between the light and the point, then the point is in shadow
