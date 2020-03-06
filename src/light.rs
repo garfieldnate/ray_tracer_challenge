@@ -4,6 +4,11 @@ use crate::material::Material;
 use crate::ray::Ray;
 use crate::shape::shape::Shape;
 use crate::tuple::Tuple;
+use crate::world::World;
+
+pub trait Light {
+    fn intensity_at(&self, point: Tuple, world: &World) -> f32;
+}
 
 // A point light: has no size and exists at single point.
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -17,6 +22,16 @@ impl PointLight {
         PointLight {
             position,
             intensity,
+        }
+    }
+}
+
+impl Light for PointLight {
+    fn intensity_at(&self, point: Tuple, world: &World) -> f32 {
+        if world.is_shadowed(self.position, point) {
+            0.
+        } else {
+            1.
         }
     }
 }
