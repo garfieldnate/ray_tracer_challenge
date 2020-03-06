@@ -32,6 +32,7 @@ impl CSG {
 }
 
 impl Shape for CSG {
+    // TODO: pass transformation down tree similar to in group
     fn get_base(&self) -> &BaseShape {
         &self.base
     }
