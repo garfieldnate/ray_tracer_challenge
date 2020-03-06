@@ -46,7 +46,7 @@ pub fn phong_lighting(
     point: Tuple,
     eye_vector: Tuple,
     surface_normal: Tuple,
-    in_shadow: bool,
+    light_intensity: f32,
 ) -> Color {
     // mix the surface color with the light's color
     let material_color = match &material.pattern {
@@ -57,7 +57,7 @@ pub fn phong_lighting(
 
     let ambient = effective_color * material.ambient;
 
-    if in_shadow {
+    if light_intensity == 0. {
         return ambient;
     }
 
@@ -86,7 +86,7 @@ pub fn phong_lighting(
     }
 
     // Add the three contributions together to get the final shading
-    ambient + diffuse + specular
+    ambient + (diffuse + specular) * light_intensity
 }
 
 #[cfg(test)]
@@ -126,7 +126,7 @@ mod tests {
             position,
             eye_vector,
             surface_normal,
-            false,
+            1.0,
         );
         assert_eq!(result, color!(1.9, 1.9, 1.9));
     }
@@ -145,7 +145,7 @@ mod tests {
             position,
             eye_vector,
             surface_normal,
-            false,
+            1.0,
         );
         assert_eq!(result, white());
     }
@@ -164,7 +164,7 @@ mod tests {
             position,
             eye_vector,
             surface_normal,
-            false,
+            1.0,
         );
         let expected_intensity = 0.1 + 0.9 * FRAC_1_SQRT_2;
         assert_eq!(
@@ -187,7 +187,7 @@ mod tests {
             position,
             eye_vector,
             surface_normal,
-            false,
+            1.0,
         );
         // 0.1 + 0.9 * FRAC_1_SQRT_2 + 0.9, but with some floating point errors
         assert_abs_diff_eq!(result, color!(1.636_385_3, 1.636_385_3, 1.636_385_3));
@@ -207,7 +207,7 @@ mod tests {
             position,
             eye_vector,
             surface_normal,
-            false,
+            1.0,
         );
         assert_abs_diff_eq!(result, color!(0.1, 0.1, 0.1));
     }
@@ -226,7 +226,7 @@ mod tests {
             position,
             eye_vector,
             surface_normal,
-            true,
+            0.0,
         );
         assert_eq!(result, color!(0.1, 0.1, 0.1));
     }
@@ -256,7 +256,7 @@ mod tests {
             point!(0.9, 0, 0),
             eye_vector,
             surface_normal,
-            false,
+            1.0,
         );
         let c2 = phong_lighting(
             any_shape().as_ref(),
@@ -265,10 +265,62 @@ mod tests {
             point!(1.1, 0, 0),
             eye_vector,
             surface_normal,
-            false,
+            1.0,
         );
 
         assert_eq!(c1, white());
         assert_eq!(c2, black());
     }
+
+    #[test]
+    fn lighting_function_uses_light_intensity_to_attenuate_color() {
+        let mut w = World::default();
+        w.light = Some(PointLight::new(point!(0, 0, -10), color!(1, 1, 1)));
+        let shape = w.objects[0].as_mut();
+        let mut m = shape.material().clone();
+        m.ambient = 0.1;
+        m.diffuse = 0.9;
+        m.specular = 0.0;
+        m.color = color!(1, 1, 1);
+        shape.set_material(m);
+
+        let p = point!(0, 0, -1);
+        let eye_vector = vector!(0, 0, -1);
+        let surface_normal = vector!(0, 0, -1);
+
+        let test_data = vec![
+            ("1", 1.0, color!(1, 1, 1)),
+            ("2", 0.5, color!(0.55, 0.55, 0.55)),
+            ("3", 0.0, color!(0.1, 0.1, 0.1)),
+        ];
+        for (name, intensity, expected) in test_data {
+            println!("{:?}", name);
+            let result = phong_lighting(
+                shape,
+                shape.material(),
+                w.light.unwrap(),
+                p,
+                eye_vector,
+                surface_normal,
+                intensity,
+            );
+            assert_abs_diff_eq!(result, expected);
+        }
+    }
+    //     Scenario Outline: lighting() uses light intensity to attenuate color
+    //   Given w ← default_world()
+    //     And w.light ← point_light(point(0, 0, -10), color(1, 1, 1))
+    //     And shape ← the first object in w
+    //     And shape.material.ambient ← 0.1
+    //     And shape.material.diffuse ← 0.9
+    //     And shape.material.specular ← 0
+    //     And shape.material.color ← color(1, 1, 1)
+    //     And pt ← point(0, 0, -1)
+    //     And eyev ← vector(0, 0, -1)
+    //     And normalv ← vector(0, 0, -1)
+    //   When result ← lighting(shape.material, w.light, pt, eyev, normalv, <intensity>)
+    //   Then result = <result>
+
+    //   Examples:
+    //     | intensity | result                  |
 }
