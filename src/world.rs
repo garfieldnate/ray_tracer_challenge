@@ -3,7 +3,7 @@ use crate::constants::white;
 use crate::constants::REFRACTION_VACCUM;
 use crate::intersection::Intersection;
 use crate::light::phong_lighting;
-use crate::light::PointLight;
+use crate::light::{Light, PointLight};
 use crate::material::Material;
 use crate::matrix::identity_4x4;
 use crate::ray::Ray;
@@ -591,13 +591,38 @@ mod tests {
         let w = World::default();
         let light_position = point!(-10, -10, -10);
         let test_data = vec![
-            ("", point!(-10, -10, 10), false),
-            ("", point!(10, 10, 10), true),
-            ("", point!(-20, -20, -20), false),
-            ("", point!(-5, -5, -5), false),
+            ("1", point!(-10, -10, 10), false),
+            ("2", point!(10, 10, 10), true),
+            ("3", point!(-20, -20, -20), false),
+            ("4", point!(-5, -5, -5), false),
         ];
         for (name, p, expected) in test_data {
-            assert_eq!(w.is_shadowed(light_position, p), expected, "{:?}", name);
+            assert_eq!(
+                w.is_shadowed(light_position, p),
+                expected,
+                "case {:?}",
+                name
+            );
+        }
+    }
+
+    #[test]
+    fn point_lights_evaluate_light_intensity_at_point() {
+        let w = World::default();
+        let light = w.light.unwrap();
+        let test_data = vec![
+            ("1", point!(0, 1.0001, 0), 1.0),
+            ("2", point!(-1.0001, 0, 0), 1.0),
+            ("3", point!(0, 0, -1.0001), 1.0),
+            ("4", point!(0, 0, 1.0001), 0.0),
+            ("5", point!(1.0001, 0, 0), 0.0),
+            ("6", point!(0, -1.0001, 0), 0.0),
+            ("7", point!(0, 0, 0), 0.0),
+        ];
+        for (name, p, expected) in test_data {
+            let intensity = light.intensity_at(p, &w);
+            println!("Case {:?}", name);
+            assert_abs_diff_eq!(intensity, expected);
         }
     }
 
