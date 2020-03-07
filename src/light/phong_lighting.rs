@@ -1,40 +1,10 @@
 use crate::color::Color;
 use crate::constants::black;
+use crate::light::point_light::PointLight;
 use crate::material::Material;
 use crate::ray::Ray;
 use crate::shape::shape::Shape;
 use crate::tuple::Tuple;
-use crate::world::World;
-
-pub trait Light {
-    fn intensity_at(&self, point: Tuple, world: &World) -> f32;
-}
-
-// A point light: has no size and exists at single point.
-#[derive(Copy, Clone, Debug, PartialEq)]
-pub struct PointLight {
-    pub position: Tuple,
-    pub intensity: Color,
-}
-
-impl PointLight {
-    pub fn new(position: Tuple, intensity: Color) -> PointLight {
-        PointLight {
-            position,
-            intensity,
-        }
-    }
-}
-
-impl Light for PointLight {
-    fn intensity_at(&self, point: Tuple, world: &World) -> f32 {
-        if world.is_shadowed(self.position, point) {
-            0.
-        } else {
-            1.
-        }
-    }
-}
 
 // Given scene parameters, determine the lighting at a given point assuming
 // the Phong model of lighting: the result color is the sum of colors produced
@@ -94,23 +64,12 @@ mod tests {
     use super::*;
     use crate::color::Color;
     use crate::constants::white;
+    use crate::light::point_light::PointLight;
     use crate::material::Material;
     use crate::pattern::stripes::Stripes;
-    use crate::shape::sphere::Sphere;
+    use crate::test::utils::any_shape;
+    use crate::world::World;
     use std::f32::consts::FRAC_1_SQRT_2;
-
-    fn any_shape() -> Box<dyn Shape> {
-        Box::new(Sphere::new())
-    }
-
-    #[test]
-    fn point_light_has_position_and_intensity() {
-        let position = point!(0, 0, 0);
-        let intensity = white();
-        let light = PointLight::new(position, intensity);
-        assert_eq!(light.position, position);
-        assert_eq!(light.intensity, intensity);
-    }
 
     #[test]
     fn lighting_eye_between_light_and_surface() {
@@ -194,7 +153,7 @@ mod tests {
     }
 
     #[test]
-    fn light_behind_surface() {
+    fn phong_light_behind_surface() {
         let m = Material::default();
         let position = point!(0, 0, 0);
         let eye_vector = vector!(0, 0, -1);
@@ -213,7 +172,7 @@ mod tests {
     }
 
     #[test]
-    fn lighting_shadowed_surface() {
+    fn phong_lighting_shadowed_surface() {
         let material = Material::default();
         let position = point!(0, 0, 0);
         let eye_vector = vector!(0, 0, -1);
@@ -232,7 +191,7 @@ mod tests {
     }
 
     #[test]
-    fn lighting_with_pattern_applied() {
+    fn phong_lighting_with_pattern_applied() {
         let pattern = Stripes::new(white(), black());
         let m = Material {
             ambient: 1.0,
@@ -273,7 +232,7 @@ mod tests {
     }
 
     #[test]
-    fn lighting_function_uses_light_intensity_to_attenuate_color() {
+    fn phong_lighting_uses_light_intensity_to_attenuate_color() {
         let mut w = World::default();
         w.light = Some(PointLight::new(point!(0, 0, -10), color!(1, 1, 1)));
         let shape = w.objects[0].as_mut();
@@ -307,20 +266,4 @@ mod tests {
             assert_abs_diff_eq!(result, expected);
         }
     }
-    //     Scenario Outline: lighting() uses light intensity to attenuate color
-    //   Given w ← default_world()
-    //     And w.light ← point_light(point(0, 0, -10), color(1, 1, 1))
-    //     And shape ← the first object in w
-    //     And shape.material.ambient ← 0.1
-    //     And shape.material.diffuse ← 0.9
-    //     And shape.material.specular ← 0
-    //     And shape.material.color ← color(1, 1, 1)
-    //     And pt ← point(0, 0, -1)
-    //     And eyev ← vector(0, 0, -1)
-    //     And normalv ← vector(0, 0, -1)
-    //   When result ← lighting(shape.material, w.light, pt, eyev, normalv, <intensity>)
-    //   Then result = <result>
-
-    //   Examples:
-    //     | intensity | result                  |
 }

@@ -53,7 +53,7 @@ fn main() {
                     hit_point,
                     eye,
                     normal,
-                    false,
+                    1.0,
                 );
                 canvas.write_pixel(x, y, color)
             }
