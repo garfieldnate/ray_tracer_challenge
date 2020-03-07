@@ -2,8 +2,8 @@
 use ray_tracer_challenge::canvas::Canvas;
 use ray_tracer_challenge::color::Color;
 use ray_tracer_challenge::intersection::Intersection;
-use ray_tracer_challenge::light::phong_lighting;
-use ray_tracer_challenge::light::PointLight;
+use ray_tracer_challenge::light::phong_lighting::phong_lighting;
+use ray_tracer_challenge::light::point_light::PointLight;
 use ray_tracer_challenge::material::Material;
 use ray_tracer_challenge::ray::Ray;
 use ray_tracer_challenge::shape::shape::Shape;
@@ -28,7 +28,7 @@ fn main() {
     material.color = color!(1, 0.2, 1);
     let mut shape = Sphere::new();
     shape.set_material(material);
-    let light = PointLight::new(point!(-10, 10, -10), white());
+    let light = Box::new(PointLight::new(point!(-10, 10, -10), white()));
 
     shape.set_transformation(&shearing(1.0, 0.0, 0.0, 0.0, 0.0, 0.0) * &scaling(0.5, 1.0, 1.0));
     // for each row of pixels in the canvas

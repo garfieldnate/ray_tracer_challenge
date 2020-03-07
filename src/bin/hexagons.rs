@@ -3,7 +3,7 @@ use ray_tracer_challenge::color::Color;
 use ray_tracer_challenge::constants::glass;
 use ray_tracer_challenge::constants::white;
 use ray_tracer_challenge::constants::DEFAULT_RAY_RECURSION_DEPTH;
-use ray_tracer_challenge::light::PointLight;
+use ray_tracer_challenge::light::point_light::PointLight;
 use ray_tracer_challenge::material::Material;
 use ray_tracer_challenge::pattern::checkers::Checkers;
 use ray_tracer_challenge::shape::cylinder::Cylinder;
@@ -51,7 +51,7 @@ fn main() {
     let world = World {
         objects: vec![floor, Box::new(hex1)],
         // The light source is white, shining from above and to the left
-        light: Some(PointLight::new(point!(-10, 10, -10), white())),
+        light: Some(Box::new(PointLight::new(point!(-10, 10, -10), white()))),
     };
 
     let camera = Camera::new(

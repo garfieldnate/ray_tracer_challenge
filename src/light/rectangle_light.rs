@@ -41,6 +41,9 @@ impl RectangleLight {
             position: corner + (full_u / 2.) + (full_v / 2.),
         }
     }
+    pub fn point_on_light(&self, u: i32, v: i32) -> Tuple {
+        self.corner + self.u * (u as f32 + 0.5) + self.v * (v as f32 + 0.5)
+    }
 }
 
 impl Light for RectangleLight {
@@ -56,9 +59,9 @@ mod tests {
     #[test]
     fn rectangle_light_construction() {
         let corner = point!(0, 0, 0);
-        let v1 = vector!(2, 0, 0);
-        let v2 = vector!(0, 0, 1);
-        let light = RectangleLight::new(white(), corner, v1, 4, v2, 2);
+        let u = vector!(2, 0, 0);
+        let v = vector!(0, 0, 1);
+        let light = RectangleLight::new(white(), corner, u, 4, v, 2);
 
         assert_eq!(light.u, vector!(0.5, 0, 0));
         assert_eq!(light.u_steps, 4);
@@ -66,5 +69,24 @@ mod tests {
         assert_eq!(light.v_steps, 2);
         assert_eq!(light.cells, 8);
         assert_eq!(light.position, point!(1, 0, 0.5));
+    }
+
+    #[test]
+    fn finding_single_point_on_rectangle_light() {
+        let corner = point!(0, 0, 0);
+        let u = vector!(2, 0, 0);
+        let v = vector!(0, 0, 1);
+        let light = RectangleLight::new(white(), corner, u, 4, v, 2);
+        let test_data = vec![
+            ("", 0, 0, point!(0.25, 0, 0.25)),
+            ("", 1, 0, point!(0.75, 0, 0.25)),
+            ("", 0, 1, point!(0.25, 0, 0.75)),
+            ("", 2, 0, point!(1.25, 0, 0.25)),
+            ("", 3, 1, point!(1.75, 0, 0.75)),
+        ];
+        for (name, u, v, expected) in test_data {
+            let p = light.point_on_light(u, v);
+            assert_eq!(p, expected, "case: {:?}", name);
+        }
     }
 }
