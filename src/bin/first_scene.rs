@@ -2,7 +2,7 @@ use ray_tracer_challenge::camera::Camera;
 use ray_tracer_challenge::color::Color;
 use ray_tracer_challenge::constants::white;
 use ray_tracer_challenge::constants::DEFAULT_RAY_RECURSION_DEPTH;
-use ray_tracer_challenge::light::PointLight;
+use ray_tracer_challenge::light::point_light::PointLight;
 use ray_tracer_challenge::material::Material;
 use ray_tracer_challenge::shape::sphere::Sphere;
 use ray_tracer_challenge::transformations::rotation_x;
@@ -83,7 +83,7 @@ fn main() {
             Box::new(right),
         ],
         // The light source is white, shining from above and to the left
-        light: Some(PointLight::new(point!(-10, 10, -10), white())),
+        light: Some(Box::new(PointLight::new(point!(-10, 10, -10), white()))),
     };
 
     let camera = Camera::new(

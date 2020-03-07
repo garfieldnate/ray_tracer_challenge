@@ -2,7 +2,7 @@ use ray_tracer_challenge::camera::Camera;
 use ray_tracer_challenge::color::Color;
 use ray_tracer_challenge::constants::metal;
 use ray_tracer_challenge::constants::{white, yellow, REFRACTION_GLASS};
-use ray_tracer_challenge::light::PointLight;
+use ray_tracer_challenge::light::point_light::PointLight;
 use ray_tracer_challenge::material::Material;
 use ray_tracer_challenge::pattern::pattern::Pattern;
 use ray_tracer_challenge::pattern::rings::Rings;
@@ -102,15 +102,15 @@ fn main() {
     let world = World {
         objects: vec![
             Box::new(floor),
-            // Box::new(left),
-            // Box::new(middle),
-            // Box::new(right),
-            // Box::new(cylinder),
-            // Box::new(cone),
-            Box::new(get_csg()),
+            Box::new(left),
+            Box::new(middle),
+            Box::new(right),
+            Box::new(cylinder),
+            Box::new(cone),
+            // Box::new(get_csg()),
         ],
         // The light source is white, shining from above and to the left
-        light: Some(PointLight::new(point!(-10, 10, -10), white())),
+        light: Some(Box::new(PointLight::new(point!(-10, 10, -10), white()))),
     };
 
     let camera = Camera::new(
