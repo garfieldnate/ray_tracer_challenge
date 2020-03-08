@@ -17,7 +17,7 @@ use std::f32;
 // TODO: book said no light by default, but that seems weird. We always have a light, otherwise we can't see anything! Plus using Option complicates/makes dangerous everything.
 pub struct World {
     pub objects: Vec<Box<dyn Shape>>,
-    pub light: Option<PointLight>,
+    pub light: Option<Box<dyn Light>>,
 }
 
 impl World {
@@ -39,7 +39,10 @@ impl Default for World {
         let s2 = Sphere::build(scaling(0.5, 0.5, 0.5), Material::default());
         World {
             objects: vec![Box::new(s1), Box::new(s2)],
-            light: Some(PointLight::new(point!(-10.0, 10.0, -10.0), white())),
+            light: Some(Box::new(PointLight::new(
+                point!(-10.0, 10.0, -10.0),
+                white(),
+            ))),
         }
     }
 }
@@ -56,7 +59,11 @@ impl World {
     }
 
     pub fn shade_hit(&self, comps: PrecomputedValues, remaining_recursive_steps: i16) -> Color {
-        let light = self.light.expect("World light should be set");
+        let light = self
+            .light
+            .as_ref()
+            .expect("World light should be set")
+            .as_ref();
         let surface_color = phong_lighting(
             comps.object,
             comps.object.material(),
@@ -504,7 +511,7 @@ mod tests {
     #[test]
     fn shade_hit_with_mutually_reflective_surfaces() {
         let mut w = World::new();
-        w.light = Some(PointLight::new(point!(0, 0, 0), color!(0, 0, 0)));
+        w.light = Some(Box::new(PointLight::new(point!(0, 0, 0), color!(0, 0, 0))));
         let mut m = Material::default();
         m.reflective = 1.0;
         let lower = Plane::build(translation(0.0, -1.0, 0.0), m.clone());
@@ -546,7 +553,7 @@ mod tests {
     #[test]
     fn shade_intersection_from_inside() {
         let mut w = World::default();
-        w.light = Some(PointLight::new(point!(0, 0.25, 0), white()));
+        w.light = Some(Box::new(PointLight::new(point!(0, 0.25, 0), white())));
         let r = Ray::new(point!(0, 0, 0), vector!(0, 0, 1));
         let shape = &w.objects[1];
         let i = Intersection::new(0.5, shape.as_ref());
@@ -609,7 +616,7 @@ mod tests {
     #[test]
     fn point_lights_evaluate_light_intensity_at_point() {
         let w = World::default();
-        let light = w.light.unwrap();
+        let light = w.light.as_ref().unwrap();
         let test_data = vec![
             ("1", point!(0, 1.0001, 0), 1.0),
             ("2", point!(-1.0001, 0, 0), 1.0),
@@ -642,7 +649,7 @@ mod tests {
     #[test]
     fn shade_hit_for_intersection_in_shadow() {
         let mut w = World::new();
-        w.light = Some(PointLight::new(point!(0, 0, -10), white()));
+        w.light = Some(Box::new(PointLight::new(point!(0, 0, -10), white())));
         let s1 = Sphere::new();
         let s2 = Sphere::build(translation(0.0, 0.0, 10.0), Material::default());
         w.objects.push(Box::new(s1));

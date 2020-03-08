@@ -1,6 +1,6 @@
 use crate::color::Color;
 use crate::constants::black;
-use crate::light::point_light::PointLight;
+use crate::light::light::Light;
 use crate::material::Material;
 use crate::ray::Ray;
 use crate::shape::shape::Shape;
@@ -12,10 +12,11 @@ use crate::tuple::Tuple;
 pub fn phong_lighting(
     object: &dyn Shape,
     material: &Material,
-    light: PointLight,
+    light: &dyn Light,
     point: Tuple,
     eye_vector: Tuple,
     surface_normal: Tuple,
+    // this refers to how shadowed/unshadowed the light is at this point
     light_intensity: f32,
 ) -> Color {
     // mix the surface color with the light's color
@@ -23,7 +24,7 @@ pub fn phong_lighting(
         Some(p) => p.color_at_object(point, object),
         None => material.color,
     };
-    let effective_color = material_color * light.intensity;
+    let effective_color = material_color * light.intensity();
 
     let ambient = effective_color * material.ambient;
 
@@ -31,7 +32,7 @@ pub fn phong_lighting(
         return ambient;
     }
 
-    let direction_point_to_light = (light.position - point).norm();
+    let direction_point_to_light = (light.position() - point).norm();
     let light_normal_cosine = direction_point_to_light.dot(surface_normal);
 
     let diffuse: Color;
@@ -51,7 +52,7 @@ pub fn phong_lighting(
             // Assumes microfacet normals are approximately Gaussian
             // https://en.wikipedia.org/wiki/Specular_highlight#Phong_distribution
             let factor = reflection_eye_cosine.powf(material.shininess);
-            specular = light.intensity * material.specular * factor;
+            specular = light.intensity() * material.specular * factor;
         }
     }
 
@@ -81,7 +82,7 @@ mod tests {
         let result = phong_lighting(
             any_shape().as_ref(),
             &m,
-            light,
+            &light,
             position,
             eye_vector,
             surface_normal,
@@ -100,7 +101,7 @@ mod tests {
         let result = phong_lighting(
             any_shape().as_ref(),
             &m,
-            light,
+            &light,
             position,
             eye_vector,
             surface_normal,
@@ -119,7 +120,7 @@ mod tests {
         let result = phong_lighting(
             any_shape().as_ref(),
             &m,
-            light,
+            &light,
             position,
             eye_vector,
             surface_normal,
@@ -142,7 +143,7 @@ mod tests {
         let result = phong_lighting(
             any_shape().as_ref(),
             &m,
-            light,
+            &light,
             position,
             eye_vector,
             surface_normal,
@@ -162,7 +163,7 @@ mod tests {
         let result = phong_lighting(
             any_shape().as_ref(),
             &m,
-            light,
+            &light,
             position,
             eye_vector,
             surface_normal,
@@ -181,7 +182,7 @@ mod tests {
         let result = phong_lighting(
             any_shape().as_ref(),
             &material,
-            light,
+            &light,
             position,
             eye_vector,
             surface_normal,
@@ -211,7 +212,7 @@ mod tests {
         let c1 = phong_lighting(
             any_shape().as_ref(),
             &m,
-            light,
+            &light,
             point!(0.9, 0, 0),
             eye_vector,
             surface_normal,
@@ -220,7 +221,7 @@ mod tests {
         let c2 = phong_lighting(
             any_shape().as_ref(),
             &m,
-            light,
+            &light,
             point!(1.1, 0, 0),
             eye_vector,
             surface_normal,
@@ -234,7 +235,10 @@ mod tests {
     #[test]
     fn phong_lighting_uses_light_intensity_to_attenuate_color() {
         let mut w = World::default();
-        w.light = Some(PointLight::new(point!(0, 0, -10), color!(1, 1, 1)));
+        w.light = Some(Box::new(PointLight::new(
+            point!(0, 0, -10),
+            color!(1, 1, 1),
+        )));
         let shape = w.objects[0].as_mut();
         let mut m = shape.material().clone();
         m.ambient = 0.1;
@@ -257,7 +261,7 @@ mod tests {
             let result = phong_lighting(
                 shape,
                 shape.material(),
-                w.light.unwrap(),
+                w.light.as_ref().unwrap().as_ref(),
                 p,
                 eye_vector,
                 surface_normal,
