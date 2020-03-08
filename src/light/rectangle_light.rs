@@ -2,9 +2,15 @@ use crate::color::Color;
 use crate::light::light::Light;
 use crate::tuple::Tuple;
 use crate::world::World;
+use derivative::Derivative;
+use rand::RngCore;
+use std::cell::RefCell;
+use std::rc::Rc;
 // A point light: has no size and exists at single point.
-#[derive(Copy, Clone, Debug, PartialEq)]
-pub struct RectangleLight {
+#[derive(Derivative)]
+#[derivative(Debug, PartialEq)]
+// #[derivative(Clone, Copy, Debug, PartialEq)]
+pub struct RectangleLight<'a> {
     // TODO: in real life, don't lights come in non-uniform colors and intensities?
     pub intensity: Color,
     //  the position of one corner of the light source; u and v start here
@@ -16,20 +22,27 @@ pub struct RectangleLight {
     pub v: Tuple,
     pub v_steps: i32,
     pub cells: i32,
+    // for random light sampling
+    #[derivative(Debug = "ignore")]
+    #[derivative(PartialEq = "ignore")]
+    // TODO: is there a built-in Iterator<f32> impl for Rng already?
+    // TODO: technically not as correct, since an iter can return a None
+    jitter_rng_iter: Rc<RefCell<dyn Iterator<Item = f32> + 'a>>,
     // TODO: remove
     // the very center of the rectangle
     pub position: Tuple,
 }
 
-impl RectangleLight {
-    pub fn new(
+impl RectangleLight<'_> {
+    pub fn new<'a>(
         intensity: Color,
         corner: Tuple,
         full_u: Tuple,
         u_steps: i32,
         full_v: Tuple,
         v_steps: i32,
-    ) -> RectangleLight {
+        jitter_rng_iter: Rc<RefCell<dyn Iterator<Item = f32> + 'a>>,
+    ) -> RectangleLight<'a> {
         RectangleLight {
             intensity,
             corner,
@@ -38,17 +51,38 @@ impl RectangleLight {
             u_steps,
             v_steps,
             cells: u_steps * v_steps,
+            jitter_rng_iter,
             position: corner + (full_u / 2.) + (full_v / 2.),
         }
     }
     pub fn point_on_light(&self, u: i32, v: i32) -> Tuple {
-        self.corner + self.u * (u as f32 + 0.5) + self.v * (v as f32 + 0.5)
+        let mut jitterer = self.jitter_rng_iter.borrow_mut();
+        let jitter1 = jitterer.next().unwrap();
+        let jitter2 = jitterer.next().unwrap();
+        println!("Jittering u by {} and v by {}", jitter1, jitter2);
+        self.corner + self.u * (u as f32 + jitter1) + self.v * (v as f32 + jitter2)
     }
 }
 
-impl Light for RectangleLight {
+impl Light for RectangleLight<'_> {
+    fn position(&self) -> Tuple {
+        self.position
+    }
+    fn intensity(&self) -> Color {
+        self.intensity
+    }
     fn intensity_at(&self, point: Tuple, world: &World) -> f32 {
-        1.
+        let mut total = 0.;
+        for v in 0..self.v_steps {
+            for u in 0..self.u_steps {
+                let light_position = self.point_on_light(u, v);
+                if !world.is_shadowed(light_position, point) {
+                    total += 1.0;
+                }
+            }
+        }
+
+        return total / self.cells as f32;
     }
 }
 
@@ -56,12 +90,26 @@ impl Light for RectangleLight {
 mod tests {
     use super::*;
     use crate::constants::white;
+    use std::iter;
+
+    fn constant_jitter_rng_iter() -> Rc<RefCell<dyn Iterator<Item = f32>>> {
+        Rc::new(RefCell::new(iter::repeat(0.5)))
+        // RefCell::new((0..100).map(|i| i as f32 / 100.))
+    }
+
+    fn fake_jitter_rng_iter() -> Rc<RefCell<dyn Iterator<Item = f32>>> {
+        Rc::new(RefCell::new(
+            vec![0.3, 0.7, 0.4, 0.5, 0.0, 0.6, 0.1, 0.9].into_iter(),
+        ))
+        // RefCell::new((0..100).map(|i| i as f32 / 100.))
+    }
+
     #[test]
     fn rectangle_light_construction() {
         let corner = point!(0, 0, 0);
         let u = vector!(2, 0, 0);
         let v = vector!(0, 0, 1);
-        let light = RectangleLight::new(white(), corner, u, 4, v, 2);
+        let light = RectangleLight::new(white(), corner, u, 4, v, 2, constant_jitter_rng_iter());
 
         assert_eq!(light.u, vector!(0.5, 0, 0));
         assert_eq!(light.u_steps, 4);
@@ -71,20 +119,77 @@ mod tests {
         assert_eq!(light.position, point!(1, 0, 0.5));
     }
 
+    // TODO: delete
     #[test]
     fn finding_single_point_on_rectangle_light() {
         let corner = point!(0, 0, 0);
-        let u = vector!(2, 0, 0);
-        let v = vector!(0, 0, 1);
-        let light = RectangleLight::new(white(), corner, u, 4, v, 2);
+        let u_vec = vector!(2, 0, 0);
+        let v_vec = vector!(0, 0, 1);
         let test_data = vec![
-            ("", 0, 0, point!(0.25, 0, 0.25)),
-            ("", 1, 0, point!(0.75, 0, 0.25)),
-            ("", 0, 1, point!(0.25, 0, 0.75)),
-            ("", 2, 0, point!(1.25, 0, 0.25)),
-            ("", 3, 1, point!(1.75, 0, 0.75)),
+            ("1", 0, 0, point!(0.25, 0, 0.25)),
+            ("2", 1, 0, point!(0.75, 0, 0.25)),
+            ("3", 0, 1, point!(0.25, 0, 0.75)),
+            ("4", 2, 0, point!(1.25, 0, 0.25)),
+            ("5", 3, 1, point!(1.75, 0, 0.75)),
         ];
         for (name, u, v, expected) in test_data {
+            let mut light = RectangleLight::new(
+                white(),
+                corner,
+                u_vec,
+                4,
+                v_vec,
+                2,
+                constant_jitter_rng_iter(),
+            );
+            let p = light.point_on_light(u, v);
+            assert_eq!(p, expected, "case: {:?}", name);
+        }
+    }
+
+    #[test]
+    fn intensity_at() {
+        let test_data = vec![
+            ("1", point!(0, 0, 2), 0.0),
+            ("2", point!(1, -1, 2), 0.25),
+            ("3", point!(1.5, 0, 2), 0.5),
+            ("4", point!(1.25, 1.25, 3), 0.75),
+            ("5", point!(0, 0, -2), 1.0),
+        ];
+        let w = World::default();
+        let corner = point!(-0.5, -0.5, -5);
+        let u_vec = vector!(1, 0, 0);
+        let v_vec = vector!(0, 1, 0);
+        for (name, p, expected) in test_data {
+            let mut light = RectangleLight::new(
+                white(),
+                corner,
+                u_vec,
+                2,
+                v_vec,
+                2,
+                constant_jitter_rng_iter(),
+            );
+            let intensity = light.intensity_at(p, &w);
+            assert_eq!(intensity, expected, "case: {:?}", name);
+        }
+    }
+
+    #[test]
+    fn find_single_point_on_randomized_rectangle_light() {
+        let corner = point!(0, 0, 0);
+        let u_vec = vector!(2, 0, 0);
+        let v_vec = vector!(0, 0, 1);
+        let test_data = vec![
+            ("1", 0, 0, point!(0.15, 0, 0.35)),
+            ("2", 1, 0, point!(0.65, 0, 0.35)),
+            ("3", 0, 1, point!(0.15, 0, 0.85)),
+            ("4", 2, 0, point!(1.15, 0, 0.35)),
+            ("5", 3, 1, point!(1.65, 0, 0.85)),
+        ];
+        for (name, u, v, expected) in test_data {
+            let mut light =
+                RectangleLight::new(white(), corner, u_vec, 4, v_vec, 2, fake_jitter_rng_iter());
             let p = light.point_on_light(u, v);
             assert_eq!(p, expected, "case: {:?}", name);
         }

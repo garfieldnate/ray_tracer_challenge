@@ -19,6 +19,12 @@ impl PointLight {
 }
 
 impl Light for PointLight {
+    fn position(&self) -> Tuple {
+        self.position
+    }
+    fn intensity(&self) -> Color {
+        self.intensity
+    }
     fn intensity_at(&self, point: Tuple, world: &World) -> f32 {
         if world.is_shadowed(self.position, point) {
             0.

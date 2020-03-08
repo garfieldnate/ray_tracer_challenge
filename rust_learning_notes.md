@@ -24,6 +24,7 @@
 * Just realized I've been glossing over generics and using dynamics traits everywhere when I really shouldn't. Generics allow the compiler to specialize our code, like C++ templates! Trait objects, on the other hand, cause dynamic dispatch, which is more expensive. http://blog.metrink.com/blog/2018/03/30/rust-trait-objects-vs-generics/
 * cargo-flamegraph is freaking AWESOME! I never found it this easy to profile code before! One problem: on Mac you have to run it with sudo because of permissions that dtrace needs. This can also lead to the build directory being owned by a superuser, so you have to chown it back after profiling.
 * Man I wish contain-rs were maintained! That's a seriously important project. LinkedHashMap, etc.
+* Need better testing method for RNG-seeded operations;rand::rngs::mock::StepRng::new(0, step) is fine if using gen<i32> or something; but get<f32> gives an exact spread over all possible f32 values, which are not conducive to manual testing. I'd rather be able to write `float_rng(0., 0.1)` and have it generate .1, , .2, etc. Even better would be a test RNG that takes a sequence from the user.
 
 ### VS Code Wishes
 * I wish that VSCode could auto-format macros. Doesn't seem to do indenting automatically.
