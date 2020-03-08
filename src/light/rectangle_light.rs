@@ -98,9 +98,8 @@ mod tests {
         Some(Box::new(|| 0.5))
     }
 
-    fn hardcoded_jitter() -> Option<Box<dyn Fn() -> f32>> {
-        let hardcoded_sequence =
-            RefCell::new(vec![0.3, 0.7, 0.4, 0.5, 0.0, 0.6, 0.1, 0.9].into_iter());
+    fn hardcoded_jitter(sequence: Vec<f32>) -> Option<Box<dyn Fn() -> f32>> {
+        let hardcoded_sequence = RefCell::new(sequence.into_iter().cycle());
         Some(Box::new(move || {
             hardcoded_sequence.borrow_mut().next().unwrap()
         }))
@@ -134,8 +133,15 @@ mod tests {
             ("5", 3, 1, point!(1.65, 0, 0.85)),
         ];
         for (name, u, v, expected) in test_data {
-            let light =
-                RectangleLight::new(white(), corner, u_vec, 4, v_vec, 2, hardcoded_jitter());
+            let light = RectangleLight::new(
+                white(),
+                corner,
+                u_vec,
+                4,
+                v_vec,
+                2,
+                hardcoded_jitter(vec![0.3, 0.7]),
+            );
             let p = light.point_on_light(u, v);
             assert_eq!(p, expected, "case: {:?}", name);
         }
@@ -145,8 +151,8 @@ mod tests {
     fn intensity_at() {
         let test_data = vec![
             ("1", point!(0, 0, 2), 0.0),
-            ("2", point!(1, -1, 2), 0.25),
-            ("3", point!(1.5, 0, 2), 0.5),
+            ("2", point!(1, -1, 2), 0.5),
+            ("3", point!(1.5, 0, 2), 0.75),
             ("4", point!(1.25, 1.25, 3), 0.75),
             ("5", point!(0, 0, -2), 1.0),
         ];
@@ -155,7 +161,15 @@ mod tests {
         let u_vec = vector!(1, 0, 0);
         let v_vec = vector!(0, 1, 0);
         for (name, p, expected) in test_data {
-            let light = RectangleLight::new(white(), corner, u_vec, 2, v_vec, 2, constant_jitter());
+            let light = RectangleLight::new(
+                white(),
+                corner,
+                u_vec,
+                2,
+                v_vec,
+                2,
+                hardcoded_jitter(vec![0.7, 0.3, 0.9, 0.1, 0.5]),
+            );
             let intensity = light.intensity_at(p, &w);
             assert_eq!(intensity, expected, "case: {:?}", name);
         }
