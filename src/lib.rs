@@ -6,7 +6,6 @@ extern crate approx;
 extern crate linked_hash_set;
 #[macro_use]
 extern crate downcast_rs;
-#[macro_use]
 extern crate derivative;
 
 // It's important that mods with macros come first so that they are available in other mods.

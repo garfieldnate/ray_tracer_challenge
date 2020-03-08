@@ -3,13 +3,13 @@ use crate::light::light::Light;
 use crate::tuple::Tuple;
 use crate::world::World;
 use derivative::Derivative;
-use rand::distributions::Distribution;
+use rand::distributions::OpenClosed01;
 use rand::{thread_rng, Rng};
 // A point light: has no size and exists at single point.
 #[derive(Derivative)]
 #[derivative(Debug, PartialEq)]
 // #[derivative(Clone, Copy, Debug, PartialEq)]
-pub struct RectangleLight {
+pub struct RectangleLight<'a> {
     // TODO: in real life, don't lights come in non-uniform colors and intensities?
     pub intensity: Color,
     //  the position of one corner of the light source; u and v start here
@@ -24,22 +24,27 @@ pub struct RectangleLight {
     // for random light sampling
     #[derivative(Debug = "ignore")]
     #[derivative(PartialEq = "ignore")]
-    jitter_distribution: Box<dyn Distribution<f32>>,
+    jitter_fn: Box<dyn Fn() -> f32 + 'a>,
     // TODO: remove
     // the very center of the rectangle
     pub position: Tuple,
 }
 
-impl RectangleLight {
-    pub fn new(
+impl RectangleLight<'_> {
+    pub fn new<'a>(
         intensity: Color,
         corner: Tuple,
         full_u: Tuple,
         u_steps: i32,
         full_v: Tuple,
         v_steps: i32,
-        jitter_distribution: Box<dyn Distribution<f32>>,
+        // TODO: could probably be simplified with builder macros or something
+        jitter_fn_opt: Option<Box<dyn Fn() -> f32 + 'a>>,
     ) -> RectangleLight {
+        let jitter_fn = match jitter_fn_opt {
+            Some(boxed_fn) => boxed_fn,
+            None => Box::new(|| thread_rng().sample(OpenClosed01)),
+        };
         RectangleLight {
             intensity,
             corner,
@@ -48,20 +53,20 @@ impl RectangleLight {
             u_steps,
             v_steps,
             cells: u_steps * v_steps,
-            jitter_distribution,
+            jitter_fn,
             position: corner + (full_u / 2.) + (full_v / 2.),
         }
     }
     pub fn point_on_light(&self, u: i32, v: i32) -> Tuple {
-        let rng = thread_rng();
-        let jitter1 = rng.sample(self.jitter_distribution);
-        let jitter2 = rng.sample(self.jitter_distribution);
+        // let rng = thread_rng();
+        let jitter1 = (self.jitter_fn)();
+        let jitter2 = (self.jitter_fn)();
         println!("Jittering u by {} and v by {}", jitter1, jitter2);
         self.corner + self.u * (u as f32 + jitter1) + self.v * (v as f32 + jitter2)
     }
 }
 
-impl Light for RectangleLight {
+impl Light for RectangleLight<'_> {
     fn position(&self) -> Tuple {
         self.position
     }
@@ -87,10 +92,18 @@ impl Light for RectangleLight {
 mod tests {
     use super::*;
     use crate::constants::white;
-    use crate::test::utils::{ConstantDistribution, HardcodedDistribution};
+    use std::cell::RefCell;
 
-    fn fake_jitter_data() -> Vec<f32> {
-        vec![0.3, 0.7, 0.4, 0.5, 0.0, 0.6, 0.1, 0.9]
+    fn constant_jitter() -> Option<Box<dyn Fn() -> f32>> {
+        Some(Box::new(|| 0.5))
+    }
+
+    fn hardcoded_jitter() -> Option<Box<dyn Fn() -> f32>> {
+        let hardcoded_sequence =
+            RefCell::new(vec![0.3, 0.7, 0.4, 0.5, 0.0, 0.6, 0.1, 0.9].into_iter());
+        Some(Box::new(move || {
+            hardcoded_sequence.borrow_mut().next().unwrap()
+        }))
     }
 
     #[test]
@@ -98,8 +111,7 @@ mod tests {
         let corner = point!(0, 0, 0);
         let u = vector!(2, 0, 0);
         let v = vector!(0, 0, 1);
-        let light =
-            RectangleLight::new(white(), corner, u, 4, v, 2, Box::new(ConstantDistribution));
+        let light = RectangleLight::new(white(), corner, u, 4, v, 2, constant_jitter());
 
         assert_eq!(light.u, vector!(0.5, 0, 0));
         assert_eq!(light.u_steps, 4);
@@ -109,29 +121,21 @@ mod tests {
         assert_eq!(light.position, point!(1, 0, 0.5));
     }
 
-    // TODO: delete
     #[test]
-    fn finding_single_point_on_rectangle_light() {
+    fn find_single_point_on_rectangle_light() {
         let corner = point!(0, 0, 0);
         let u_vec = vector!(2, 0, 0);
         let v_vec = vector!(0, 0, 1);
         let test_data = vec![
-            ("1", 0, 0, point!(0.25, 0, 0.25)),
-            ("2", 1, 0, point!(0.75, 0, 0.25)),
-            ("3", 0, 1, point!(0.25, 0, 0.75)),
-            ("4", 2, 0, point!(1.25, 0, 0.25)),
-            ("5", 3, 1, point!(1.75, 0, 0.75)),
+            ("1", 0, 0, point!(0.15, 0, 0.35)),
+            ("2", 1, 0, point!(0.65, 0, 0.35)),
+            ("3", 0, 1, point!(0.15, 0, 0.85)),
+            ("4", 2, 0, point!(1.15, 0, 0.35)),
+            ("5", 3, 1, point!(1.65, 0, 0.85)),
         ];
         for (name, u, v, expected) in test_data {
-            let light = RectangleLight::new(
-                white(),
-                corner,
-                u_vec,
-                4,
-                v_vec,
-                2,
-                Box::new(ConstantDistribution),
-            );
+            let light =
+                RectangleLight::new(white(), corner, u_vec, 4, v_vec, 2, hardcoded_jitter());
             let p = light.point_on_light(u, v);
             assert_eq!(p, expected, "case: {:?}", name);
         }
@@ -151,44 +155,9 @@ mod tests {
         let u_vec = vector!(1, 0, 0);
         let v_vec = vector!(0, 1, 0);
         for (name, p, expected) in test_data {
-            let light = RectangleLight::new(
-                white(),
-                corner,
-                u_vec,
-                2,
-                v_vec,
-                2,
-                Box::new(ConstantDistribution),
-            );
+            let light = RectangleLight::new(white(), corner, u_vec, 2, v_vec, 2, constant_jitter());
             let intensity = light.intensity_at(p, &w);
             assert_eq!(intensity, expected, "case: {:?}", name);
-        }
-    }
-
-    #[test]
-    fn find_single_point_on_randomized_rectangle_light() {
-        let corner = point!(0, 0, 0);
-        let u_vec = vector!(2, 0, 0);
-        let v_vec = vector!(0, 0, 1);
-        let test_data = vec![
-            ("1", 0, 0, point!(0.15, 0, 0.35)),
-            ("2", 1, 0, point!(0.65, 0, 0.35)),
-            ("3", 0, 1, point!(0.15, 0, 0.85)),
-            ("4", 2, 0, point!(1.15, 0, 0.35)),
-            ("5", 3, 1, point!(1.65, 0, 0.85)),
-        ];
-        for (name, u, v, expected) in test_data {
-            let light = RectangleLight::new(
-                white(),
-                corner,
-                u_vec,
-                4,
-                v_vec,
-                2,
-                Box::new(HardcodedDistribution::new(fake_jitter_data())),
-            );
-            let p = light.point_on_light(u, v);
-            assert_eq!(p, expected, "case: {:?}", name);
         }
     }
 }

@@ -28,7 +28,7 @@ fn main() {
     material.color = color!(1, 0.2, 1);
     let mut shape = Sphere::new();
     shape.set_material(material);
-    let light = Box::new(PointLight::new(point!(-10, 10, -10), white()));
+    let light = PointLight::new(point!(-10, 10, -10), white());
 
     shape.set_transformation(&shearing(1.0, 0.0, 0.0, 0.0, 0.0, 0.0) * &scaling(0.5, 1.0, 1.0));
     // for each row of pixels in the canvas
@@ -49,7 +49,7 @@ fn main() {
                 let color = phong_lighting(
                     hit.object,
                     hit.object.material(),
-                    light,
+                    &light,
                     hit_point,
                     eye,
                     normal,
