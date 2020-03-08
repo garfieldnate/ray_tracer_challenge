@@ -61,7 +61,7 @@ impl RectangleLight<'_> {
         // let rng = thread_rng();
         let jitter1 = (self.jitter_fn)();
         let jitter2 = (self.jitter_fn)();
-        println!("Jittering u by {} and v by {}", jitter1, jitter2);
+        // println!("Jittering u by {} and v by {}", jitter1, jitter2);
         self.corner + self.u * (u as f32 + jitter1) + self.v * (v as f32 + jitter2)
     }
 }
