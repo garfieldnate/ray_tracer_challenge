@@ -19,6 +19,7 @@ pub fn phong_lighting(
     // this refers to how shadowed/unshadowed the light is at this point
     light_intensity: f32,
 ) -> Color {
+    // TODO: would be more elegant for material to have the color_at_object method
     // mix the surface color with the light's color
     let material_color = match &material.pattern {
         Some(p) => p.color_at_object(point, object),
@@ -66,8 +67,10 @@ mod tests {
     use crate::color::Color;
     use crate::constants::white;
     use crate::light::point_light::PointLight;
+    use crate::light::rectangle_light::RectangleLight;
     use crate::material::Material;
     use crate::pattern::stripes::Stripes;
+    use crate::shape::sphere::Sphere;
     use crate::test::utils::any_shape;
     use crate::world::World;
     use std::f32::consts::FRAC_1_SQRT_2;
@@ -235,16 +238,13 @@ mod tests {
     #[test]
     fn phong_lighting_uses_light_intensity_to_attenuate_color() {
         let mut w = World::default();
-        w.light = Some(Box::new(PointLight::new(
-            point!(0, 0, -10),
-            color!(1, 1, 1),
-        )));
+        w.light = Some(Box::new(PointLight::new(point!(0, 0, -10), white())));
         let shape = w.objects[0].as_mut();
         let mut m = shape.material().clone();
         m.ambient = 0.1;
         m.diffuse = 0.9;
         m.specular = 0.0;
-        m.color = color!(1, 1, 1);
+        m.color = white();
         shape.set_material(m);
 
         let p = point!(0, 0, -1);
@@ -252,7 +252,7 @@ mod tests {
         let surface_normal = vector!(0, 0, -1);
 
         let test_data = vec![
-            ("1", 1.0, color!(1, 1, 1)),
+            ("1", 1.0, white()),
             ("2", 0.5, color!(0.55, 0.55, 0.55)),
             ("3", 0.0, color!(0.1, 0.1, 0.1)),
         ];
@@ -268,6 +268,50 @@ mod tests {
                 intensity,
             );
             assert_abs_diff_eq!(result, expected);
+        }
+    }
+
+    use crate::test::utils::constant_jitter;
+    use crate::test::utils::hardcoded_jitter;
+    #[test]
+    fn lighting_samples_rectangle_light() {
+        let corner = point!(-0.5, -0.5, -5);
+        let u = vector!(1, 0, 0);
+        let v = vector!(0, 1, 0);
+        let light = RectangleLight::new(white(), corner, u, 2, v, 2, None);
+        let shape = {
+            let mut s = Sphere::new();
+            let mut m = Material::default();
+            m.ambient = 0.1;
+            m.diffuse = 0.9;
+            m.specular = 0.0;
+            m.color = white();
+            s.set_material(m);
+            s
+        };
+        let eye = point!(0, 0, -5);
+        let test_data = vec![
+            ("1", point!(0, 0, -1), color!(0.9965, 0.9965, 0.9965)),
+            (
+                "2",
+                point!(0, 0.7071, -0.7071),
+                color!(0.6232, 0.6232, 0.6232),
+            ),
+        ];
+        for (name, p, expected) in test_data {
+            let eye_vector = (eye - p).norm();
+            let surface_normal = vector!(p.x, p.y, p.z);
+            let result = phong_lighting(
+                &shape,
+                shape.material(),
+                &light,
+                p,
+                eye_vector,
+                surface_normal,
+                1.,
+            );
+            println!("case: {}", name);
+            assert_abs_diff_eq!(expected, result);
         }
     }
 }

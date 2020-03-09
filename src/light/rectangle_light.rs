@@ -92,18 +92,8 @@ impl Light for RectangleLight<'_> {
 mod tests {
     use super::*;
     use crate::constants::white;
-    use std::cell::RefCell;
-
-    fn constant_jitter() -> Option<Box<dyn Fn() -> f32>> {
-        Some(Box::new(|| 0.5))
-    }
-
-    fn hardcoded_jitter(sequence: Vec<f32>) -> Option<Box<dyn Fn() -> f32>> {
-        let hardcoded_sequence = RefCell::new(sequence.into_iter().cycle());
-        Some(Box::new(move || {
-            hardcoded_sequence.borrow_mut().next().unwrap()
-        }))
-    }
+    use crate::test::utils::constant_jitter;
+    use crate::test::utils::hardcoded_jitter;
 
     #[test]
     fn rectangle_light_construction() {
