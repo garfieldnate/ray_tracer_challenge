@@ -84,7 +84,7 @@ impl BoundingBox {
     }
 
     pub fn intersects(&self, r: Ray) -> bool {
-        aabb_intersection(r).is_some()
+        aabb_intersection(r, self.min, self.max).is_some()
     }
 }
 
