@@ -20,6 +20,14 @@ impl Cube {
         Self::default()
     }
 
+    pub fn min_point() -> Tuple {
+        point!(-1, -1, -1)
+    }
+
+    pub fn max_point() -> Tuple {
+        point!(1, 1, 1)
+    }
+
     pub fn build(transform: Matrix, material: Material) -> Self {
         let mut s = Cube::new();
         s.set_transformation(transform);
@@ -45,7 +53,7 @@ impl Shape for Cube {
     }
     // uses AABB. TODO: more documentation
     fn local_intersect(&self, object_ray: Ray) -> Vec<Intersection> {
-        match aabb_intersection(object_ray) {
+        match aabb_intersection(object_ray, Cube::min_point(), Cube::max_point()) {
             Some((min_distance, max_distance)) => vec![
                 Intersection::new(min_distance, self),
                 Intersection::new(max_distance, self),
@@ -79,12 +87,15 @@ impl Shape for Cube {
     }
 }
 
-pub fn aabb_intersection(object_ray: Ray) -> Option<(f32, f32)> {
+pub fn aabb_intersection(object_ray: Ray, min: Tuple, max: Tuple) -> Option<(f32, f32)> {
     // TODO: book says it's possible to return early sometimes
     // TODO: make it faster by replacing with this implementation: https://tavianator.com/fast-branchless-raybounding-box-intersections/
-    let (min_x_distance, max_x_distance) = check_axis(object_ray.origin.x, object_ray.direction.x);
-    let (min_y_distance, max_y_distance) = check_axis(object_ray.origin.y, object_ray.direction.y);
-    let (min_z_distance, max_z_distance) = check_axis(object_ray.origin.z, object_ray.direction.z);
+    let (min_x_distance, max_x_distance) =
+        check_axis(object_ray.origin.x, object_ray.direction.x, min.x, max.x);
+    let (min_y_distance, max_y_distance) =
+        check_axis(object_ray.origin.y, object_ray.direction.y, min.y, max.y);
+    let (min_z_distance, max_z_distance) =
+        check_axis(object_ray.origin.z, object_ray.direction.z, min.z, max.z);
 
     // max of minimum and min of maximum plane intersections are
     // the actual cube intersections
@@ -101,10 +112,10 @@ pub fn aabb_intersection(object_ray: Ray) -> Option<(f32, f32)> {
 
 // return pair of distance values for intersecting two parallel planes of the cube;
 // note that values can also be + and - infinity
-fn check_axis(origin: f32, direction: f32) -> (f32, f32) {
+fn check_axis(origin: f32, direction: f32, min: f32, max: f32) -> (f32, f32) {
     // the planes are offset at origin + and - 1
-    let tmin_numerator = -1.0 - origin;
-    let tmax_numerator = 1.0 - origin;
+    let tmin_numerator = min - origin;
+    let tmax_numerator = max - origin;
 
     let (tmin, tmax) = (tmin_numerator / direction, tmax_numerator / direction);
 
