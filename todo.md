@@ -72,3 +72,4 @@ Notes from book about reflection/refraction:
 * Had to change point value in one cone test from -5 to -4.999999 to get it to work right
 * Test converting_point_in_child_from_world_to_object_space should use 1,2,3 instead of 2,2,2 to catch more errors.
 * Bonus chapter on bounding boxes: no bounding box specified for smooth triangles (should be different from normal ones, right?)
+* Typo in bounding boxes chapter: inculde -> include
