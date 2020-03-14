@@ -1,4 +1,5 @@
 use crate::matrix::Matrix;
+use crate::ray::Ray;
 use crate::tuple::Tuple;
 use std::f32;
 
@@ -80,6 +81,10 @@ impl BoundingBox {
 
         new_box
     }
+
+    pub fn intersects(&self, r: &Ray) -> bool {
+        false
+    }
 }
 
 #[cfg(test)]
@@ -150,5 +155,56 @@ mod tests {
         let box2 = box1.transform(&matrix);
         assert_abs_diff_eq!(box2.min, point!(-1.4142135, -1.7071067, -1.7071067));
         assert_abs_diff_eq!(box2.max, point!(1.4142135, 1.7071067, 1.7071067));
+    }
+
+    #[test]
+    fn intersecting_ray_with_bounding_box_at_origin() {
+        let b = BoundingBox::with_bounds(point!(-1, -1, -1), point!(1, 1, 1));
+        let test_data = vec![
+            ("1", point!(5, 0.5, 0), vector!(-1, 0, 0), true),
+            ("2", point!(-5, 0.5, 0), vector!(1, 0, 0), true),
+            ("3", point!(0.5, 5, 0), vector!(0, -1, 0), true),
+            ("4", point!(0.5, -5, 0), vector!(0, 1, 0), true),
+            ("5", point!(0.5, 0, 5), vector!(0, 0, -1), true),
+            ("6", point!(0.5, 0, -5), vector!(0, 0, 1), true),
+            ("7", point!(0, 0.5, 0), vector!(0, 0, 1), true),
+            ("8", point!(-2, 0, 0), vector!(2, 4, 6), false),
+            ("9", point!(0, -2, 0), vector!(6, 2, 4), false),
+            ("10", point!(0, 0, -2), vector!(4, 6, 2), false),
+            ("11", point!(2, 0, 2), vector!(0, 0, -1), false),
+            ("12", point!(0, 2, 2), vector!(0, -1, 0), false),
+            ("13", point!(2, 2, 0), vector!(-1, 0, 0), false),
+        ];
+        for (name, origin, direction, expected) in test_data {
+            // let direction = direciton.normalize();
+            let r = Ray::new(origin, direction.norm());
+            assert_eq!(expected, b.intersects(&r), "Case {}", name);
+        }
+    }
+
+    #[test]
+    fn intersecting_ray_with_non_cubic_bounding_box() {
+        let b = BoundingBox::with_bounds(point!(5, -2, 0), point!(11, 4, 7));
+        let test_data = vec![
+            ("1", point!(15, 1, 2), vector!(-1, 0, 0), true),
+            ("2", point!(-5, -1, 4), vector!(1, 0, 0), true),
+            ("3", point!(7, 6, 5), vector!(0, -1, 0), true),
+            ("4", point!(9, -5, 6), vector!(0, 1, 0), true),
+            ("5", point!(8, 2, 12), vector!(0, 0, -1), true),
+            ("6", point!(6, 0, -5), vector!(0, 0, 1), true),
+            ("7", point!(8, 1, 3.5), vector!(0, 0, 1), true),
+            ("8", point!(9, -1, -8), vector!(2, 4, 6), false),
+            ("9", point!(8, 3, -4), vector!(6, 2, 4), false),
+            ("10", point!(9, -1, -2), vector!(4, 6, 2), false),
+            ("11", point!(4, 0, 9), vector!(0, 0, -1), false),
+            ("12", point!(8, 6, -1), vector!(0, -1, 0), false),
+            ("13", point!(12, 5, 4), vector!(-1, 0, 0), false),
+        ];
+
+        for (name, origin, direction, expected) in test_data {
+            // let direction = direciton.normalize();
+            let r = Ray::new(origin, direction.norm());
+            assert_eq!(expected, b.intersects(&r), "Case {}", name);
+        }
     }
 }
