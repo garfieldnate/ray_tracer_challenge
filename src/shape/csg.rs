@@ -108,11 +108,12 @@ impl Shape for CSG {
     }
 
     fn bounding_box(&self) -> BoundingBox {
-        //TODO
-        BoundingBox {
-            min: point!(-1, -1, -1),
-            max: point!(1, 1, 1),
-        }
+        let mut b = BoundingBox::empty();
+
+        b.add_bounding_box(self.s1.parent_space_bounding_box());
+        b.add_bounding_box(self.s2.parent_space_bounding_box());
+
+        b
     }
 }
 
@@ -278,5 +279,19 @@ mod tests {
         assert_eq!(xs.len(), 2);
         assert_eq!(xs[0], Intersection::new(4.0, c.s1.as_ref()));
         assert_eq!(xs[1], Intersection::new(6.5, c.s2.as_ref()));
+    }
+
+    #[test]
+    fn csg_bounding_box_contains_children() {
+        let left = Sphere::new();
+        let right = {
+            let mut s = Sphere::new();
+            s.set_transformation(translation(2., 3., 4.));
+            s
+        };
+        let shape = CSG::new(CSGOperator::Difference(), Box::new(left), Box::new(right));
+        let b = shape.bounding_box();
+        assert_eq!(b.min, point!(-1, -1, -1));
+        assert_eq!(b.max, point!(3, 4, 5));
     }
 }
