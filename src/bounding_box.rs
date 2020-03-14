@@ -1,6 +1,8 @@
+use crate::matrix::Matrix;
 use crate::tuple::Tuple;
 use std::f32;
 
+// TODO: wouldn't it be better to have a tighter, non-axis-aligned bounding box?
 #[derive(Copy, Clone, PartialEq, Debug)]
 pub struct BoundingBox {
     pub min: Tuple,
@@ -59,11 +61,33 @@ impl BoundingBox {
     pub fn contains_bounding_box(&self, other: BoundingBox) -> bool {
         self.contains_point(other.min) && self.contains_point(other.max)
     }
+
+    pub fn transform(&self, m: &Matrix) -> BoundingBox {
+        let mut new_box = BoundingBox::empty();
+        // transform all 8 corners of self and add them to the new bounding box
+        let p1 = self.min;
+        let p2 = point!(self.min.x, self.min.y, self.max.z);
+        let p3 = point!(self.min.x, self.max.y, self.min.z);
+        let p4 = point!(self.min.x, self.max.y, self.max.z);
+        let p5 = point!(self.max.x, self.min.y, self.min.z);
+        let p6 = point!(self.max.x, self.min.y, self.max.z);
+        let p7 = point!(self.max.x, self.max.y, self.min.z);
+        let p8 = self.max;
+
+        for p in vec![p1, p2, p3, p4, p5, p6, p7, p8] {
+            new_box.add_point(m * &p);
+        }
+
+        new_box
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::transformations::rotation_x;
+    use crate::transformations::rotation_y;
+    use std::f32::consts::PI;
 
     #[test]
     fn adding_points_to_empty_bounding_box() {
@@ -117,5 +141,14 @@ mod tests {
             let box2 = BoundingBox::with_bounds(min, max);
             assert_eq!(box1.contains_bounding_box(box2), expected, "Case {}", name);
         }
+    }
+
+    #[test]
+    fn transform_bounding_box() {
+        let box1 = BoundingBox::with_bounds(point!(-1, -1, -1), point!(1, 1, 1));
+        let matrix = &rotation_x(PI / 4.) * &rotation_y(PI / 4.);
+        let box2 = box1.transform(&matrix);
+        assert_abs_diff_eq!(box2.min, point!(-1.4142135, -1.7071067, -1.7071067));
+        assert_abs_diff_eq!(box2.max, point!(1.4142135, 1.7071067, 1.7071067));
     }
 }
