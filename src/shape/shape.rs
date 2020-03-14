@@ -109,6 +109,10 @@ pub trait Shape: Debug + Downcast {
         // TODO: how to unify this with the PartialEq implementation
         self.get_unique_id() == other.get_unique_id()
     }
+
+    fn parent_space_bounding_box(&self) -> BoundingBox {
+        self.bounding_box().transform(self.transformation())
+    }
 }
 
 // TODO: add 'sync' keyword when parallelizing
@@ -216,5 +220,14 @@ mod tests {
 
         let n = s.normal_to_world(&object_normal);
         assert_abs_diff_eq!(n, vector!(0.28571427, 0.42857143, -0.85714287));
+    }
+
+    #[test]
+    fn querying_shape_boundary_box_in_parent_space() {
+        let mut s = Sphere::new();
+        s.set_transformation(&translation(1., -3., 5.) * &scaling(0.5, 2., 4.));
+        let b = s.parent_space_bounding_box();
+        assert_eq!(b.min, point!(0.5, -5, 1));
+        assert_eq!(b.max, point!(1.5, -1, 9.));
     }
 }

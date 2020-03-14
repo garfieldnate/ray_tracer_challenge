@@ -84,11 +84,14 @@ impl Shape for GroupShape {
     }
 
     fn bounding_box(&self) -> BoundingBox {
-        // TODO
-        BoundingBox {
-            min: point!(-1, -1, -1),
-            max: point!(1, 1, 1),
+        let mut b = BoundingBox::empty();
+
+        for child in &mut self.children.iter() {
+            let child_box = child.parent_space_bounding_box();
+            b.add_bounding_box(child_box);
         }
+
+        b
     }
 }
 
@@ -96,6 +99,7 @@ impl Shape for GroupShape {
 mod tests {
     use super::*;
     use crate::shape::base_shape::BaseShape;
+    use crate::shape::cylinder::Cylinder;
     use crate::shape::sphere::Sphere;
     use crate::test::utils::dummy_intersection;
     use crate::transformations::rotation_y;
@@ -271,5 +275,25 @@ mod tests {
 
         let n = s.normal_at(&world_point, &dummy_intersection(&g1));
         assert_abs_diff_eq!(n, vector!(0.2857036, 0.42854306, -0.8571606));
+    }
+
+    #[test]
+    fn group_bounding_box_contains_children() {
+        let mut s = Sphere::new();
+        s.set_transformation(&translation(2., 5., -3.) * &scaling(2., 2., 2.));
+
+        let mut c = Cylinder::new();
+        c.minimum_y = -2.;
+        c.maximum_y = 2.;
+        c.set_transformation(&translation(-4., -1., 4.) * &scaling(0.5, 1., 0.5));
+
+        let mut shape = GroupShape::new();
+        shape.add_child(Box::new(s));
+        shape.add_child(Box::new(c));
+
+        let b = shape.bounding_box();
+
+        assert_eq!(b.min, point!(-4.5, -3, -5));
+        assert_eq!(b.max, point!(4, 7, 4.5));
     }
 }
