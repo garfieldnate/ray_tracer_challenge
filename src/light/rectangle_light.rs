@@ -16,9 +16,9 @@ pub struct RectangleLight<'a> {
     pub corner: Tuple,
     // u and v are edges of one rectangular cell of the light; u_step and v_step specify
     // the number of cells in each direction.
-    pub u: Tuple,
+    pub u_vec: Tuple,
     pub u_steps: i32,
-    pub v: Tuple,
+    pub v_vec: Tuple,
     pub v_steps: i32,
     pub cells: i32,
     // for random light sampling
@@ -34,9 +34,9 @@ impl RectangleLight<'_> {
     pub fn new<'a>(
         intensity: Color,
         corner: Tuple,
-        full_u: Tuple,
+        u_vec: Tuple,
         u_steps: i32,
-        full_v: Tuple,
+        v_vec: Tuple,
         v_steps: i32,
         // TODO: could probably be simplified with builder macros or something
         jitter_fn_opt: Option<Box<dyn Fn() -> f32 + 'a>>,
@@ -48,13 +48,13 @@ impl RectangleLight<'_> {
         RectangleLight {
             intensity,
             corner,
-            u: full_u / u_steps as f32,
-            v: full_v / v_steps as f32,
+            u_vec: u_vec / u_steps as f32,
+            v_vec: v_vec / v_steps as f32,
             u_steps,
             v_steps,
             cells: u_steps * v_steps,
             jitter_fn,
-            position: corner + (full_u / 2.) + (full_v / 2.),
+            position: corner + (u_vec / 2.) + (v_vec / 2.),
         }
     }
     pub fn point_on_light(&self, u: i32, v: i32) -> Tuple {
@@ -62,7 +62,7 @@ impl RectangleLight<'_> {
         let jitter1 = (self.jitter_fn)();
         let jitter2 = (self.jitter_fn)();
         // println!("Jittering u by {} and v by {}", jitter1, jitter2);
-        self.corner + self.u * (u as f32 + jitter1) + self.v * (v as f32 + jitter2)
+        self.corner + self.u_vec * (u as f32 + jitter1) + self.v_vec * (v as f32 + jitter2)
     }
 }
 
@@ -102,9 +102,9 @@ mod tests {
         let v = vector!(0, 0, 1);
         let light = RectangleLight::new(white(), corner, u, 4, v, 2, constant_jitter());
 
-        assert_eq!(light.u, vector!(0.5, 0, 0));
+        assert_eq!(light.u_vec, vector!(0.5, 0, 0));
         assert_eq!(light.u_steps, 4);
-        assert_eq!(light.v, vector!(0, 0, 0.5));
+        assert_eq!(light.v_vec, vector!(0, 0, 0.5));
         assert_eq!(light.v_steps, 2);
         assert_eq!(light.cells, 8);
         assert_eq!(light.position, point!(1, 0, 0.5));
