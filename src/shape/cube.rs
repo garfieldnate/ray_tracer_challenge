@@ -79,7 +79,7 @@ impl Shape for Cube {
     }
 }
 
-fn aabb_intersection(object_ray: Ray) -> Option<(f32, f32)> {
+pub fn aabb_intersection(object_ray: Ray) -> Option<(f32, f32)> {
     // TODO: book says it's possible to return early sometimes
     // TODO: make it faster by replacing with this implementation: https://tavianator.com/fast-branchless-raybounding-box-intersections/
     let (min_x_distance, max_x_distance) = check_axis(object_ray.origin.x, object_ray.direction.x);

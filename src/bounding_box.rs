@@ -1,5 +1,6 @@
 use crate::matrix::Matrix;
 use crate::ray::Ray;
+use crate::shape::cube::aabb_intersection;
 use crate::tuple::Tuple;
 use std::f32;
 
@@ -82,8 +83,8 @@ impl BoundingBox {
         new_box
     }
 
-    pub fn intersects(&self, r: &Ray) -> bool {
-        false
+    pub fn intersects(&self, r: Ray) -> bool {
+        aabb_intersection(r).is_some()
     }
 }
 
@@ -178,12 +179,12 @@ mod tests {
         for (name, origin, direction, expected) in test_data {
             // let direction = direciton.normalize();
             let r = Ray::new(origin, direction.norm());
-            assert_eq!(expected, b.intersects(&r), "Case {}", name);
+            assert_eq!(expected, b.intersects(r), "Case {}", name);
         }
     }
 
     #[test]
-    fn intersecting_ray_with_non_cubic_bounding_box() {
+    fn intersecting_ray_with_bounding_box_not_at_origin() {
         let b = BoundingBox::with_bounds(point!(5, -2, 0), point!(11, 4, 7));
         let test_data = vec![
             ("1", point!(15, 1, 2), vector!(-1, 0, 0), true),
@@ -204,7 +205,7 @@ mod tests {
         for (name, origin, direction, expected) in test_data {
             // let direction = direciton.normalize();
             let r = Ray::new(origin, direction.norm());
-            assert_eq!(expected, b.intersects(&r), "Case {}", name);
+            assert_eq!(expected, b.intersects(r), "Case {}", name);
         }
     }
 }
