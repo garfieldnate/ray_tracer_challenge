@@ -1,3 +1,4 @@
+use crate::bounding_box::BoundingBox;
 use crate::intersection::Intersection;
 use crate::material::Material;
 use crate::matrix::Matrix;
@@ -55,6 +56,13 @@ impl Shape for Plane {
     }
     fn local_norm_at(&self, _object_point: Tuple, _hit: &Intersection) -> Tuple {
         vector!(0, 1, 0)
+    }
+
+    fn bounding_box(&self) -> BoundingBox {
+        BoundingBox {
+            min: point!(f32::NEG_INFINITY, 0, f32::NEG_INFINITY),
+            max: point!(f32::INFINITY, 0, f32::INFINITY),
+        }
     }
 }
 

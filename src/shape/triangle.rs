@@ -1,3 +1,4 @@
+use crate::bounding_box::BoundingBox;
 use crate::intersection::Intersection;
 use crate::ray::Ray;
 use crate::shape::base_shape::BaseShape;
@@ -78,6 +79,14 @@ impl Shape for Triangle {
         // Normal is always the same, regardless of point on triangle
         self.normal
     }
+
+    fn bounding_box(&self) -> BoundingBox {
+        let mut b = BoundingBox::empty();
+        b.add_point(self.p1);
+        b.add_point(self.p2);
+        b.add_point(self.p3);
+        b
+    }
 }
 
 #[cfg(test)]
@@ -153,5 +162,16 @@ mod tests {
         let xs = t.local_intersect(r);
         assert_eq!(xs.len(), 1);
         assert_eq!(xs[0].distance, 2.0);
+    }
+
+    #[test]
+    fn triangle_bounding_box() {
+        let p1 = point!(-3, 7, 2);
+        let p2 = point!(6, 2, -4);
+        let p3 = point!(2, -1, -1);
+        let t = Triangle::new(p1, p2, p3);
+        let b = t.bounding_box();
+        assert_eq!(b.min, point!(-3, -1, -4));
+        assert_eq!(b.max, point!(6, 7, 2));
     }
 }

@@ -1,3 +1,4 @@
+use crate::bounding_box::BoundingBox;
 use crate::intersection::Intersection;
 use crate::ray::Ray;
 use crate::shape::base_shape::BaseShape;
@@ -27,6 +28,45 @@ impl CSG {
             op,
             s1,
             s2,
+        }
+    }
+
+    fn filter_intersections<'a>(
+        &self,
+        intersections: &Vec<Intersection<'a>>,
+    ) -> Vec<Intersection<'a>> {
+        // begin outside of both children
+        let mut inside_s1 = false;
+        let mut inside_s2 = false;
+        let mut filtered: Vec<Intersection> = vec![];
+
+        for i in intersections {
+            let hit_s1 = self.s1.includes(i.object);
+            if CSG::intersection_allowed(self.op, hit_s1, inside_s1, inside_s2) {
+                filtered.push(*i);
+            }
+            if hit_s1 {
+                inside_s1 = !inside_s1;
+            } else {
+                inside_s2 = !inside_s2;
+            }
+        }
+        filtered
+    }
+
+    // hit_s1: true if intersection is with a CSG's s1, false if with the s2
+    // inside_s1: true if intersection is inside CSG's s1, false otherwise
+    // inside_s2: true if intersection is inside CSG's s2, false otherwise
+    fn intersection_allowed(
+        op: CSGOperator,
+        hit_s1: bool,
+        inside_s1: bool,
+        inside_s2: bool,
+    ) -> bool {
+        match op {
+            CSGOperator::Union() => (hit_s1 && !inside_s2) || (!hit_s1 && !inside_s1),
+            CSGOperator::Intersection() => (hit_s1 && inside_s2) || (!hit_s1 && inside_s1),
+            CSGOperator::Difference() => (hit_s1 && !inside_s2) || (!hit_s1 && inside_s1),
         }
     }
 }
@@ -66,44 +106,12 @@ impl Shape for CSG {
             self.s1.includes(other) || self.s2.includes(other)
         }
     }
-}
 
-impl CSG {
-    fn filter_intersections<'a>(
-        &self,
-        intersections: &Vec<Intersection<'a>>,
-    ) -> Vec<Intersection<'a>> {
-        // begin outside of both children
-        let mut inside_s1 = false;
-        let mut inside_s2 = false;
-        let mut filtered: Vec<Intersection> = vec![];
-
-        for i in intersections {
-            let hit_s1 = self.s1.includes(i.object);
-            if CSG::intersection_allowed(self.op, hit_s1, inside_s1, inside_s2) {
-                filtered.push(*i);
-            }
-            if hit_s1 {
-                inside_s1 = !inside_s1;
-            } else {
-                inside_s2 = !inside_s2;
-            }
-        }
-        filtered
-    }
-    // hit_s1: true if intersection is with a CSG's s1, false if with the s2
-    // inside_s1: true if intersection is inside CSG's s1, false otherwise
-    // inside_s2: true if intersection is inside CSG's s2, false otherwise
-    fn intersection_allowed(
-        op: CSGOperator,
-        hit_s1: bool,
-        inside_s1: bool,
-        inside_s2: bool,
-    ) -> bool {
-        match op {
-            CSGOperator::Union() => (hit_s1 && !inside_s2) || (!hit_s1 && !inside_s1),
-            CSGOperator::Intersection() => (hit_s1 && inside_s2) || (!hit_s1 && inside_s1),
-            CSGOperator::Difference() => (hit_s1 && !inside_s2) || (!hit_s1 && inside_s1),
+    fn bounding_box(&self) -> BoundingBox {
+        //TODO
+        BoundingBox {
+            min: point!(-1, -1, -1),
+            max: point!(1, 1, 1),
         }
     }
 }
