@@ -55,6 +55,10 @@ impl BoundingBox {
             && p.y.between_inclusive(self.min.y, self.max.y)
             && p.z.between_inclusive(self.min.z, self.max.z)
     }
+
+    pub fn contains_bounding_box(&self, other: BoundingBox) -> bool {
+        self.contains_point(other.min) && self.contains_point(other.max)
+    }
 }
 
 #[cfg(test)]
@@ -97,6 +101,21 @@ mod tests {
         ];
         for (name, p, expected) in test_data {
             assert_eq!(b.contains_point(p), expected, "Case {}", name);
+        }
+    }
+
+    #[test]
+    fn check_if_bounding_box_contains_other_box() {
+        let box1 = BoundingBox::with_bounds(point!(5, -2, 0), point!(11, 4, 7));
+        let test_data = vec![
+            ("1", point!(5, -2, 0), point!(11, 4, 7), true),
+            ("2", point!(6, -1, 1), point!(10, 3, 6), true),
+            ("3", point!(4, -3, -1), point!(10, 3, 6), false),
+            ("4", point!(6, -1, 1), point!(12, 5, 8), false),
+        ];
+        for (name, min, max, expected) in test_data {
+            let box2 = BoundingBox::with_bounds(min, max);
+            assert_eq!(box1.contains_bounding_box(box2), expected, "Case {}", name);
         }
     }
 }
