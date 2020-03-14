@@ -20,6 +20,7 @@ pub mod tuple;
 #[macro_use]
 pub mod color;
 
+pub mod bounding_box;
 pub mod camera;
 pub mod canvas;
 pub mod constants;
