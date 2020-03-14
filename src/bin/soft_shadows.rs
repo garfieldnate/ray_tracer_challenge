@@ -20,7 +20,7 @@ use ray_tracer_challenge::world::World;
 use ray_tracer_challenge::{color, point, vector};
 use std::f32::consts::PI;
 
-// To render larger, be sure to use an optimized (release) build and give it several seconds to finish
+// To render larger, be sure to use an optimized (release) build and give it up to a minute to finish
 const CANVAS_WIDTH: u32 = 1000;
 const CANVAS_HEIGHT: u32 = 400;
 // const CANVAS_WIDTH: u32 = 400;
