@@ -45,28 +45,12 @@ impl Shape for Cube {
     }
     // uses AABB. TODO: more documentation
     fn local_intersect(&self, object_ray: Ray) -> Vec<Intersection> {
-        // TODO: book says it's possible to return early sometimes
-        // TODO: make it faster by replacing with this implementation: https://tavianator.com/fast-branchless-raybounding-box-intersections/
-        let (min_x_distance, max_x_distance) =
-            check_axis(object_ray.origin.x, object_ray.direction.x);
-        let (min_y_distance, max_y_distance) =
-            check_axis(object_ray.origin.y, object_ray.direction.y);
-        let (min_z_distance, max_z_distance) =
-            check_axis(object_ray.origin.z, object_ray.direction.z);
-
-        // max of minimum and min of maximum plane intersections are
-        // the actual cube intersections
-        let min_distance = min_x_distance.max(min_y_distance.max(min_z_distance));
-        let max_distance = max_x_distance.min(max_y_distance.min(max_z_distance));
-
-        if min_distance > max_distance {
-            // the min/max values get reversed only when the ray misses the cube
-            vec![]
-        } else {
-            vec![
+        match aabb_intersection(object_ray) {
+            Some((min_distance, max_distance)) => vec![
                 Intersection::new(min_distance, self),
                 Intersection::new(max_distance, self),
-            ]
+            ],
+            None => vec![],
         }
     }
 
@@ -92,6 +76,26 @@ impl Shape for Cube {
             min: point!(-1, -1, -1),
             max: point!(1, 1, 1),
         }
+    }
+}
+
+fn aabb_intersection(object_ray: Ray) -> Option<(f32, f32)> {
+    // TODO: book says it's possible to return early sometimes
+    // TODO: make it faster by replacing with this implementation: https://tavianator.com/fast-branchless-raybounding-box-intersections/
+    let (min_x_distance, max_x_distance) = check_axis(object_ray.origin.x, object_ray.direction.x);
+    let (min_y_distance, max_y_distance) = check_axis(object_ray.origin.y, object_ray.direction.y);
+    let (min_z_distance, max_z_distance) = check_axis(object_ray.origin.z, object_ray.direction.z);
+
+    // max of minimum and min of maximum plane intersections are
+    // the actual cube intersections
+    let min_distance = min_x_distance.max(min_y_distance.max(min_z_distance));
+    let max_distance = max_x_distance.min(max_y_distance.min(max_z_distance));
+
+    if min_distance > max_distance {
+        // the min/max values get reversed only when the ray misses the cube
+        None
+    } else {
+        Some((min_distance, max_distance))
     }
 }
 
