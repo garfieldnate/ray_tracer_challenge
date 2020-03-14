@@ -73,3 +73,4 @@ Notes from book about reflection/refraction:
 * Test converting_point_in_child_from_world_to_object_space should use 1,2,3 instead of 2,2,2 to catch more errors.
 * Bonus chapter on bounding boxes: no bounding box specified for smooth triangles (should be different from normal ones, right?)
 * Typo in bounding boxes chapter: inculde -> include
+* "non-cubic bounding box" is not a great name for the test in the bounding box chapter; maybe "bounding box not centered at origin"
