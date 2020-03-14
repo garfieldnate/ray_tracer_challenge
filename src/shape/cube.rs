@@ -1,3 +1,4 @@
+use crate::bounding_box::BoundingBox;
 use crate::intersection::Intersection;
 use crate::material::Material;
 use crate::matrix::Matrix;
@@ -83,6 +84,13 @@ impl Shape for Cube {
             vector!(0, object_point.y, 0)
         } else {
             vector!(0, 0, object_point.z)
+        }
+    }
+
+    fn bounding_box(&self) -> BoundingBox {
+        BoundingBox {
+            min: point!(-1, -1, -1),
+            max: point!(1, 1, 1),
         }
     }
 }

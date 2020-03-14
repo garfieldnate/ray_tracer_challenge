@@ -1,3 +1,4 @@
+use crate::bounding_box::BoundingBox;
 use crate::intersection::Intersection;
 use crate::material::Material;
 use crate::matrix::Matrix;
@@ -68,6 +69,13 @@ impl Shape for Cylinder {
             }
         }
         vector!(object_point.x, 0, object_point.z)
+    }
+
+    fn bounding_box(&self) -> BoundingBox {
+        BoundingBox {
+            min: point!(-1, self.minimum_y, -1),
+            max: point!(1, self.maximum_y, 1),
+        }
     }
 }
 

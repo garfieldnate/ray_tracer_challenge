@@ -1,3 +1,4 @@
+use crate::bounding_box::BoundingBox;
 use crate::intersection::Intersection;
 use crate::material::Material;
 use crate::matrix::Matrix;
@@ -72,6 +73,10 @@ impl Shape for BaseShape {
         unimplemented!()
     }
     fn local_norm_at(&self, _object_point: Tuple, _hit: &Intersection) -> Tuple {
+        unimplemented!()
+    }
+
+    fn bounding_box(&self) -> BoundingBox {
         unimplemented!()
     }
 }

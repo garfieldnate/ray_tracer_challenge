@@ -1,3 +1,4 @@
+use crate::bounding_box::BoundingBox;
 use crate::intersection::Intersection;
 use crate::material::Material;
 use crate::matrix::Matrix;
@@ -69,6 +70,13 @@ impl Shape for Sphere {
     }
     fn local_norm_at(&self, object_point: Tuple, _hit: &Intersection) -> Tuple {
         object_point - self.center
+    }
+
+    fn bounding_box(&self) -> BoundingBox {
+        BoundingBox {
+            min: point!(-1, -1, -1),
+            max: point!(1, 1, 1),
+        }
     }
 }
 

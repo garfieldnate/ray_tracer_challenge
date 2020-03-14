@@ -1,3 +1,4 @@
+use crate::bounding_box::BoundingBox;
 use crate::intersection::Intersection;
 use crate::material::Material;
 use crate::matrix::Matrix;
@@ -69,6 +70,17 @@ impl Shape for Cone {
         let y = (object_point.x.powi(2) + object_point.z.powi(2)).sqrt();
         let y = if object_point.y > 0.0 { -y } else { y };
         vector!(object_point.x, y, object_point.z)
+    }
+
+    fn bounding_box(&self) -> BoundingBox {
+        let a = self.minimum_y.abs();
+        let b = self.maximum_y.abs();
+        let limit = a.max(b);
+
+        return BoundingBox::with_bounds(
+            point!(-limit, self.minimum_y, -limit),
+            point!(limit, self.maximum_y, limit),
+        );
     }
 }
 
@@ -262,5 +274,26 @@ mod tests {
             let normal = c.local_norm_at(point, &dummy_intersection(&c));
             assert_eq!(normal, expected_normal, "{}", name);
         }
+    }
+
+    #[test]
+    fn unbounded_cone_bounding_box() {
+        let c = Cone::new();
+        let b = c.bounding_box();
+        assert_eq!(
+            b.min,
+            point!(f32::NEG_INFINITY, f32::NEG_INFINITY, f32::NEG_INFINITY)
+        );
+        assert_eq!(b.max, point!(f32::INFINITY, f32::INFINITY, f32::INFINITY));
+    }
+
+    #[test]
+    fn bounded_cone_bounding_box() {
+        let mut c = Cone::new();
+        c.minimum_y = -5.;
+        c.maximum_y = 3.;
+        let b = c.bounding_box();
+        assert_eq!(b.min, point!(-5, -5, -5));
+        assert_eq!(b.max, point!(5, 3, 5));
     }
 }

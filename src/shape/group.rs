@@ -1,3 +1,4 @@
+use crate::bounding_box::BoundingBox;
 use crate::intersection::Intersection;
 use crate::matrix::Matrix;
 use crate::ray::Ray;
@@ -80,6 +81,14 @@ impl Shape for GroupShape {
     }
     fn local_norm_at(&self, _object_point: Tuple, _hit: &Intersection) -> Tuple {
         unreachable!("Groups do not have normals. This method should never be called.")
+    }
+
+    fn bounding_box(&self) -> BoundingBox {
+        // TODO
+        BoundingBox {
+            min: point!(-1, -1, -1),
+            max: point!(1, 1, 1),
+        }
     }
 }
 

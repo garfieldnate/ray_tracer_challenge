@@ -1,3 +1,4 @@
+use crate::bounding_box::BoundingBox;
 use crate::intersection::Intersection;
 use crate::ray::Ray;
 use crate::shape::base_shape::BaseShape;
@@ -40,5 +41,13 @@ impl Shape for TestShape {
             3.0 * _object_point.y,
             4.0 * _object_point.z
         )
+    }
+
+    fn bounding_box(&self) -> BoundingBox {
+        // arbitrary but easy to work with
+        BoundingBox {
+            min: point!(-1, -1, -1),
+            max: point!(1, 1, 1),
+        }
     }
 }

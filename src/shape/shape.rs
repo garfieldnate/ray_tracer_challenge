@@ -1,3 +1,4 @@
+use crate::bounding_box::BoundingBox;
 use crate::intersection::Intersection;
 use crate::material::Material;
 use crate::matrix::Matrix;
@@ -26,6 +27,8 @@ pub trait Shape: Debug + Downcast {
 
     fn local_intersect(&self, object_ray: Ray) -> Vec<Intersection>;
     fn local_norm_at(&self, object_point: Tuple, hit: &Intersection) -> Tuple;
+
+    fn bounding_box(&self) -> BoundingBox;
 
     // The rest of these should not be overridden by Shape implementers
 

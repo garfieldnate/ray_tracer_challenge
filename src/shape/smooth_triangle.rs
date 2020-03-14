@@ -1,3 +1,4 @@
+use crate::bounding_box::BoundingBox;
 use crate::intersection::Intersection;
 use crate::ray::Ray;
 use crate::shape::base_shape::BaseShape;
@@ -42,6 +43,11 @@ impl Shape for SmoothTriangle {
     fn local_norm_at(&self, _object_point: Tuple, hit: &Intersection) -> Tuple {
         // TODO: explain the math here. And why is the normal the same everywhere?
         self.n2 * hit.u + self.n3 * hit.v + self.n1 * (1. - hit.u - hit.v)
+    }
+
+    fn bounding_box(&self) -> BoundingBox {
+        // TODO: this is totally wrong, but the text doesn't give the code for the smooth triangle case
+        self.base.bounding_box()
     }
 }
 
