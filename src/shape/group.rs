@@ -70,6 +70,10 @@ impl Shape for GroupShape {
         self.local_intersect(world_ray)
     }
     fn local_intersect(&self, object_ray: Ray) -> Vec<Intersection> {
+        let b = self.bounding_box();
+        if !b.intersects(object_ray) {
+            return vec![];
+        }
         let mut intersections = vec![];
         for c in &mut self.children.iter() {
             for i in c.intersect(object_ray) {
@@ -101,6 +105,7 @@ mod tests {
     use crate::shape::base_shape::BaseShape;
     use crate::shape::cylinder::Cylinder;
     use crate::shape::sphere::Sphere;
+    use crate::shape::test_shape::TestShape;
     use crate::test::utils::dummy_intersection;
     use crate::transformations::rotation_y;
     use crate::transformations::scaling;
@@ -295,5 +300,35 @@ mod tests {
 
         assert_eq!(b.min, point!(-4.5, -3, -5));
         assert_eq!(b.max, point!(4, 7, 4.5));
+    }
+
+    #[test]
+    fn ray_intersection_doesnt_test_children_if_bounding_box_is_missed() {
+        let child = TestShape::new();
+        let mut shape = GroupShape::new();
+        shape.add_child(Box::new(child));
+        let r = Ray::new(point!(0, 0, -5), vector!(0, 1, 0));
+        shape.intersect(r);
+
+        let test_shape = shape.get_children().unwrap()[0]
+            .downcast_ref::<TestShape>()
+            .unwrap();
+        println!("{:?}", test_shape.saved_ray.borrow());
+        assert!(test_shape.saved_ray.borrow().is_none());
+    }
+
+    #[test]
+    fn ray_intersection_tests_children_if_bounding_box_is_hit() {
+        let child = TestShape::new();
+        let mut shape = GroupShape::new();
+        shape.add_child(Box::new(child));
+        let r = Ray::new(point!(0, 0, -5), vector!(0, 0, 1));
+        shape.intersect(r);
+
+        let test_shape = shape.get_children().unwrap()[0]
+            .downcast_ref::<TestShape>()
+            .unwrap();
+        println!("{:?}", test_shape.saved_ray.borrow());
+        assert!(test_shape.saved_ray.borrow().is_some());
     }
 }
