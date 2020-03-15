@@ -21,11 +21,42 @@ impl GroupShape {
     pub fn new() -> Self {
         Self::default()
     }
+
+    pub fn with_children(children: Vec<Box<dyn Shape>>) -> Self {
+        let mut g = Self::default();
+        g.children = children;
+        g
+    }
+
     pub fn add_child(&mut self, mut child: Box<dyn Shape>) {
         // bake this group's transform into the child's existing transform
         let old_child_transform = child.transformation().clone();
         child.set_transformation(self.transformation() * &old_child_transform);
         self.children.push(child);
+    }
+
+    fn partition_children(&mut self) -> (Vec<Box<dyn Shape>>, Vec<Box<dyn Shape>>) {
+        let (lbox, rbox) = self.bounding_box().split();
+        let mut left = vec![];
+        let mut right = vec![];
+        let mut new_children = vec![];
+        for c in self.children.drain(..) {
+            let bounds = c.as_ref().parent_space_bounding_box();
+            if lbox.contains_bounding_box(bounds) {
+                left.push(c);
+            } else if rbox.contains_bounding_box(bounds) {
+                right.push(c)
+            } else {
+                new_children.push(c)
+            }
+        }
+        self.children = new_children;
+        (left, right)
+    }
+
+    fn make_subgroup(&mut self, new_group_children: Vec<Box<dyn Shape>>) {
+        let new_child = GroupShape::with_children(new_group_children);
+        self.add_child(Box::new(new_child));
     }
 }
 
@@ -113,6 +144,7 @@ mod tests {
     use crate::transformations::scaling;
     use crate::transformations::translation;
     use crate::tuple::Tuple;
+    use std::collections::HashSet;
     use std::f32::consts::PI;
 
     #[test]
@@ -332,5 +364,66 @@ mod tests {
             .unwrap();
         println!("{:?}", test_shape.saved_ray.borrow());
         assert!(test_shape.saved_ray.borrow().is_some());
+    }
+
+    #[test]
+    fn partitioning_children() {
+        let mut s1 = Sphere::new();
+        s1.set_transformation(translation(-2., 0., 0.));
+        let s1_id = s1.get_unique_id();
+
+        let mut s2 = Sphere::new();
+        s2.set_transformation(translation(2., 0., 0.));
+        let s2_id = s2.get_unique_id();
+
+        let s3 = Sphere::new();
+        let s3_id = s3.get_unique_id();
+
+        let mut g = GroupShape::new();
+        g.add_child(Box::new(s1));
+        g.add_child(Box::new(s2));
+        g.add_child(Box::new(s3));
+
+        let (left, right) = g.partition_children();
+
+        // g should contain s3
+        let g_children = g.get_children().unwrap();
+        assert_eq!(g_children.len(), 1);
+        assert_eq!(g_children[0].get_unique_id(), s3_id);
+
+        // left should contain s1
+        assert_eq!(left.len(), 1);
+        assert_eq!(left[0].get_unique_id(), s1_id);
+
+        // right should contain s2
+        assert_eq!(right.len(), 1);
+        assert_eq!(right[0].get_unique_id(), s2_id);
+    }
+
+    #[test]
+    fn creating_subgroup_from_list_of_children() {
+        let s1 = Sphere::new();
+        let s1_id = s1.get_unique_id();
+
+        let s2 = Sphere::new();
+        let s2_id = s2.get_unique_id();
+
+        let mut g = GroupShape::new();
+        g.make_subgroup(vec![Box::new(s1), Box::new(s2)]);
+
+        let g_children = g.get_children().unwrap();
+        assert_eq!(g_children.len(), 1);
+
+        let g_child = g_children[0].downcast_ref::<GroupShape>().unwrap();
+        let g_grandchild_ids: HashSet<_> = g_child
+            .get_children()
+            .unwrap()
+            .iter()
+            .map(|c| c.get_unique_id())
+            .collect();
+        assert_eq!(
+            g_grandchild_ids,
+            [s1_id, s2_id].iter().cloned().collect::<HashSet<_>>()
+        );
     }
 }

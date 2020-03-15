@@ -1,5 +1,6 @@
 # TODO
 
+- remove get_children() from Shape; now that we have downcast_ref for Shape, we shouldn't need it for testing
 - reduce mutability everywhere possible, including tests, using scoped mutability and also ..Default::default() syntax
 - Patterns
   - Make pattern compound, so that stripes can contain stripes, etc.
