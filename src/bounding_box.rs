@@ -86,6 +86,40 @@ impl BoundingBox {
     pub fn intersects(&self, r: Ray) -> bool {
         aabb_intersection(r, self.min, self.max).is_some()
     }
+
+    pub fn split(&self) -> (BoundingBox, BoundingBox) {
+        // figure out the box's largest dimension
+        let dx = self.max.x - self.min.x;
+        let dy = self.max.y - self.min.y;
+        let dz = self.max.z - self.min.z;
+
+        let greatest = dx.max(dy).max(dz);
+
+        // variables to help construct the points on the dividing plane
+        let (mut x0, mut y0, mut z0) = (self.min.x, self.min.y, self.min.z);
+        let (mut x1, mut y1, mut z1) = (self.max.x, self.max.y, self.max.z);
+
+        // adjust the points so that they lie on the dividing plane
+        if greatest == dx {
+            x0 = x0 + dx / 2.;
+            x1 = x0;
+        } else if greatest == dy {
+            y0 = y0 + dy / 2.;
+            y1 = y0;
+        } else {
+            z0 = z0 + dz / 2.;
+            z1 = z0;
+        }
+
+        let mid_min = point!(x0, y0, z0);
+        let mid_max = point!(x1, y1, z1);
+
+        // construct and return the two halves of the bounding box
+        let left = BoundingBox::with_bounds(self.min, mid_max);
+        let right = BoundingBox::with_bounds(mid_min, self.max);
+
+        (left, right)
+    }
 }
 
 #[cfg(test)]
@@ -207,5 +241,45 @@ mod tests {
             let r = Ray::new(origin, direction.norm());
             assert_eq!(expected, b.intersects(r), "Case {}", name);
         }
+    }
+
+    #[test]
+    fn splitting_perfect_cube() {
+        let b = BoundingBox::with_bounds(point!(-1, -4, -5), point!(9, 6, 5));
+        let (left, right) = b.split();
+        assert_eq!(left.min, point!(-1, -4, -5));
+        assert_eq!(left.max, point!(4, 6, 5));
+        assert_eq!(right.min, point!(4, -4, -5));
+        assert_eq!(right.max, point!(9, 6, 5));
+    }
+
+    #[test]
+    fn splitting_x_wide_box() {
+        let b = BoundingBox::with_bounds(point!(-1, -2, -3), point!(9, 5.5, 3));
+        let (left, right) = b.split();
+        assert_eq!(left.min, point!(-1, -2, -3));
+        assert_eq!(left.max, point!(4, 5.5, 3));
+        assert_eq!(right.min, point!(4, -2, -3));
+        assert_eq!(right.max, point!(9, 5.5, 3));
+    }
+
+    #[test]
+    fn splitting_y_wide_box() {
+        let b = BoundingBox::with_bounds(point!(-1, -2, -3), point!(5, 8, 3));
+        let (left, right) = b.split();
+        assert_eq!(left.min, point!(-1, -2, -3));
+        assert_eq!(left.max, point!(5, 3, 3));
+        assert_eq!(right.min, point!(-1, 3, -3));
+        assert_eq!(right.max, point!(5, 8, 3));
+    }
+
+    #[test]
+    fn splitting_z_wide_box() {
+        let b = BoundingBox::with_bounds(point!(-1, -2, -3), point!(5, 3, 7));
+        let (left, right) = b.split();
+        assert_eq!(left.min, point!(-1, -2, -3));
+        assert_eq!(left.max, point!(5, 3, 2));
+        assert_eq!(right.min, point!(-1, -2, 2));
+        assert_eq!(right.max, point!(5, 3, 7));
     }
 }
