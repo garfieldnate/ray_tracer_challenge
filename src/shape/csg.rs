@@ -83,6 +83,12 @@ impl Shape for CSG {
 
     fn local_intersect(&self, object_ray: Ray) -> Vec<Intersection> {
         let mut intersections = vec![];
+
+        let b = self.bounding_box();
+        if !b.intersects(object_ray) {
+            return intersections;
+        }
+
         for i in self.s1.as_ref().intersect(object_ray) {
             intersections.push(i);
         }
@@ -125,6 +131,7 @@ mod tests {
     use crate::shape::csg::CSGOperator::Union;
     use crate::shape::cube::Cube;
     use crate::shape::sphere::Sphere;
+    use crate::shape::test_shape::TestShape;
     use crate::transformations::translation;
 
     #[test]
@@ -293,5 +300,39 @@ mod tests {
         let b = shape.bounding_box();
         assert_eq!(b.min, point!(-1, -1, -1));
         assert_eq!(b.max, point!(3, 4, 5));
+    }
+
+    #[test]
+    fn ray_intersection_doesnt_test_children_if_bounding_box_is_missed() {
+        let left = TestShape::new();
+        let right = TestShape::new();
+        let shape = CSG::new(CSGOperator::Difference(), Box::new(left), Box::new(right));
+        let r = Ray::new(point!(0, 0, -5), vector!(0, 1, 0));
+        shape.intersect(r);
+
+        let test_shape1 = shape.s1.downcast_ref::<TestShape>().unwrap();
+        println!("{:?}", test_shape1.saved_ray.borrow());
+        assert!(test_shape1.saved_ray.borrow().is_none());
+
+        let test_shape2 = shape.s2.downcast_ref::<TestShape>().unwrap();
+        println!("{:?}", test_shape2.saved_ray.borrow());
+        assert!(test_shape2.saved_ray.borrow().is_none());
+    }
+
+    #[test]
+    fn ray_intersection_tests_children_if_bounding_box_is_hit() {
+        let left = TestShape::new();
+        let right = TestShape::new();
+        let shape = CSG::new(CSGOperator::Difference(), Box::new(left), Box::new(right));
+        let r = Ray::new(point!(0, 0, -5), vector!(0, 0, 1));
+        shape.intersect(r);
+
+        let test_shape1 = shape.s1.downcast_ref::<TestShape>().unwrap();
+        println!("{:?}", test_shape1.saved_ray.borrow());
+        assert!(test_shape1.saved_ray.borrow().is_some());
+
+        let test_shape2 = shape.s2.downcast_ref::<TestShape>().unwrap();
+        println!("{:?}", test_shape2.saved_ray.borrow());
+        assert!(test_shape2.saved_ray.borrow().is_some());
     }
 }

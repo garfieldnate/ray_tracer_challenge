@@ -70,11 +70,13 @@ impl Shape for GroupShape {
         self.local_intersect(world_ray)
     }
     fn local_intersect(&self, object_ray: Ray) -> Vec<Intersection> {
+        let mut intersections = vec![];
+
         let b = self.bounding_box();
         if !b.intersects(object_ray) {
-            return vec![];
+            return intersections;
         }
-        let mut intersections = vec![];
+
         for c in &mut self.children.iter() {
             for i in c.intersect(object_ray) {
                 intersections.push(i);
