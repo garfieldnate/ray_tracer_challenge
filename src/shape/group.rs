@@ -130,6 +130,22 @@ impl Shape for GroupShape {
 
         b
     }
+
+    fn divide(&mut self, threshold: usize) {
+        if threshold <= self.children.len() {
+            let (left, right) = self.partition_children();
+            if !left.is_empty() {
+                self.make_subgroup(left);
+            }
+            if !right.is_empty() {
+                self.make_subgroup(right);
+            }
+        }
+
+        for child in &mut self.children.iter_mut() {
+            child.divide(threshold);
+        }
+    }
 }
 
 #[cfg(test)]
@@ -425,5 +441,42 @@ mod tests {
             g_grandchild_ids,
             [s1_id, s2_id].iter().cloned().collect::<HashSet<_>>()
         );
+    }
+
+    #[test]
+    fn subdividing_group_partitions_its_children() {
+        let mut s1 = Sphere::new();
+        let s1_id = s1.get_unique_id();
+        println!("s1 id: {}", s1_id);
+        s1.set_transformation(translation(-2., -2., 0.));
+
+        let mut s2 = Sphere::new();
+        let s2_id = s2.get_unique_id();
+        println!("s2 id: {}", s2_id);
+        s2.set_transformation(translation(-2., 2., 0.));
+
+        let mut s3 = Sphere::new();
+        let s3_id = s3.get_unique_id();
+        println!("s3 id: {}", s3_id);
+        s3.set_transformation(scaling(4., 4., 4.));
+
+        let mut g = GroupShape::new();
+        g.add_child(Box::new(s1));
+        g.add_child(Box::new(s2));
+        g.add_child(Box::new(s3));
+        g.divide(1);
+
+        let g_children = g.get_children().unwrap();
+
+        assert_eq!(g_children[0].get_unique_id(), s3_id);
+
+        let subgroup = g_children[1].downcast_ref::<GroupShape>().unwrap();
+        let ids: HashSet<_> = subgroup
+            .get_children()
+            .unwrap()
+            .iter()
+            .map(|c| c.get_unique_id())
+            .collect();
+        assert_eq!(ids, [s1_id, s2_id].iter().cloned().collect::<HashSet<_>>());
     }
 }
