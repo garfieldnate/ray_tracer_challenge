@@ -113,6 +113,9 @@ pub trait Shape: Debug + Downcast {
     fn parent_space_bounding_box(&self) -> BoundingBox {
         self.bounding_box().transform(self.transformation())
     }
+
+    // no-op for shapes that do not combine other shapes
+    fn divide(&mut self, threshold: usize) {}
 }
 
 // TODO: add 'sync' keyword when parallelizing
