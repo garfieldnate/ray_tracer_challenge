@@ -121,6 +121,11 @@ impl Shape for CSG {
 
         b
     }
+
+    fn divide(&mut self, threshold: usize) {
+        self.s1.divide(threshold);
+        self.s2.divide(threshold);
+    }
 }
 
 #[cfg(test)]
@@ -130,6 +135,7 @@ mod tests {
     use crate::shape::csg::CSGOperator::Difference;
     use crate::shape::csg::CSGOperator::Union;
     use crate::shape::cube::Cube;
+    use crate::shape::group::GroupShape;
     use crate::shape::sphere::Sphere;
     use crate::shape::test_shape::TestShape;
     use crate::transformations::translation;
@@ -334,5 +340,51 @@ mod tests {
         let test_shape2 = shape.s2.downcast_ref::<TestShape>().unwrap();
         println!("{:?}", test_shape2.saved_ray.borrow());
         assert!(test_shape2.saved_ray.borrow().is_some());
+    }
+
+    #[test]
+    fn subdividing_csg_subdivides_its_children() {
+        let mut s1 = Sphere::new();
+        let s1_id = s1.get_unique_id();
+        println!("s1 id: {}", s1_id);
+        s1.set_transformation(translation(-1.5, 0., 0.));
+
+        let mut s2 = Sphere::new();
+        let s2_id = s2.get_unique_id();
+        println!("s2 id: {}", s2_id);
+        s2.set_transformation(translation(-2.5, 0., 0.));
+
+        let mut s5 = Sphere::new();
+        let s5_id = s5.get_unique_id();
+        println!("s5 id: {}", s5_id);
+        s5.set_transformation(translation(3., 0., 0.));
+
+        let left = GroupShape::with_children(vec![Box::new(s1), Box::new(s2), Box::new(s5)]);
+        let left_id = left.get_unique_id();
+        println!("left id: {}", left_id);
+
+        let mut s3 = Sphere::new();
+        let s3_id = s3.get_unique_id();
+        println!("s3 id: {}", s3_id);
+        s3.set_transformation(translation(0., 0., -1.5));
+
+        let mut s4 = Sphere::new();
+        let s4_id = s4.get_unique_id();
+        println!("s4 id: {}", s4_id);
+        s4.set_transformation(translation(0., 0., -2.5));
+
+        let mut s6 = Sphere::new();
+        let s6_id = s6.get_unique_id();
+        println!("s6 id: {}", s6_id);
+        s6.set_transformation(translation(0., 0., 3.));
+
+        let right = GroupShape::with_children(vec![Box::new(s3), Box::new(s4), Box::new(s6)]);
+        let right_id = right.get_unique_id();
+        println!("right id: {}", right_id);
+
+        let mut shape = CSG::new(CSGOperator::Difference(), Box::new(left), Box::new(right));
+        shape.divide(1);
+        println!("{:?}", shape);
+        assert!(false);
     }
 }

@@ -106,7 +106,7 @@ pub trait Shape: Debug + Downcast {
     }
 
     // no-op for shapes that do not combine other shapes
-    fn divide(&mut self, threshold: usize) {}
+    fn divide(&mut self, _threshold: usize) {}
 }
 
 // TODO: add 'sync' keyword when parallelizing
