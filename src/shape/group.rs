@@ -36,17 +36,27 @@ impl GroupShape {
     }
 
     fn partition_children(&mut self) -> (Vec<Box<dyn Shape>>, Vec<Box<dyn Shape>>) {
-        let (lbox, rbox) = self.bounding_box().split();
+        println!("Current whole shape bounds are {:?}", self.bounding_box());
+        let (left_bounds, right_bounds) = self.bounding_box().split();
         let mut left = vec![];
         let mut right = vec![];
         let mut new_children = vec![];
         for c in self.children.drain(..) {
-            let bounds = c.as_ref().parent_space_bounding_box();
-            if lbox.contains_bounding_box(bounds) {
+            let child_bounds = c.as_ref().parent_space_bounding_box();
+            println!("testing child bounds {:?}", child_bounds);
+            println!("left is {:?}", left_bounds);
+            println!("right is {:?}", right_bounds);
+            if left_bounds.contains_bounding_box(child_bounds) {
+                println!("Child contained in left");
                 left.push(c);
-            } else if rbox.contains_bounding_box(bounds) {
-                right.push(c)
+            } else if right_bounds.contains_bounding_box(child_bounds) {
+                println!("Child contained in right");
+                right.push(c);
             } else {
+                println!(
+                    "child bounds {:?} not contained in either half",
+                    child_bounds
+                );
                 new_children.push(c)
             }
         }
@@ -54,9 +64,18 @@ impl GroupShape {
         (left, right)
     }
 
-    fn make_subgroup(&mut self, new_group_children: Vec<Box<dyn Shape>>) {
-        let new_child = GroupShape::with_children(new_group_children);
-        self.add_child(Box::new(new_child));
+    fn make_subgroup(&mut self, mut new_group_children: Vec<Box<dyn Shape>>) {
+        // don't bother wrapping a single shape in another group object
+        if new_group_children.len() == 1 {
+            self.add_child(new_group_children.remove(0));
+        } else {
+            let new_child = GroupShape::with_children(new_group_children);
+            println!(
+                "make_subgroup: new child's id is {}",
+                new_child.get_unique_id()
+            );
+            self.add_child(Box::new(new_child));
+        }
     }
 }
 
@@ -135,9 +154,11 @@ impl Shape for GroupShape {
         if threshold <= self.children.len() {
             let (left, right) = self.partition_children();
             if !left.is_empty() {
+                println!("divide: left not empty");
                 self.make_subgroup(left);
             }
             if !right.is_empty() {
+                println!("divide: right not empty");
                 self.make_subgroup(right);
             }
         }
@@ -160,7 +181,6 @@ mod tests {
     use crate::transformations::scaling;
     use crate::transformations::translation;
     use crate::tuple::Tuple;
-    use std::collections::HashSet;
     use std::f32::consts::PI;
 
     #[test]
@@ -431,16 +451,13 @@ mod tests {
         assert_eq!(g_children.len(), 1);
 
         let g_child = g_children[0].downcast_ref::<GroupShape>().unwrap();
-        let g_grandchild_ids: HashSet<_> = g_child
+        let g_grandchild_ids: Vec<usize> = g_child
             .get_children()
             .unwrap()
             .iter()
             .map(|c| c.get_unique_id())
             .collect();
-        assert_eq!(
-            g_grandchild_ids,
-            [s1_id, s2_id].iter().cloned().collect::<HashSet<_>>()
-        );
+        assert_eq!(g_grandchild_ids, vec![s1_id, s2_id]);
     }
 
     #[test]
@@ -471,12 +488,16 @@ mod tests {
         assert_eq!(g_children[0].get_unique_id(), s3_id);
 
         let subgroup = g_children[1].downcast_ref::<GroupShape>().unwrap();
-        let ids: HashSet<_> = subgroup
+        let ids: Vec<usize> = subgroup
             .get_children()
             .unwrap()
             .iter()
             .map(|c| c.get_unique_id())
             .collect();
-        assert_eq!(ids, [s1_id, s2_id].iter().cloned().collect::<HashSet<_>>());
+        // println!(
+        //     "subgroup has children {:?}",
+        //     subgroup.get_children().unwrap()
+        // );
+        assert_eq!(ids, vec![s1_id, s2_id]);
     }
 }
