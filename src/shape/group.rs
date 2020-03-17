@@ -494,10 +494,64 @@ mod tests {
             .iter()
             .map(|c| c.get_unique_id())
             .collect();
-        // println!(
-        //     "subgroup has children {:?}",
-        //     subgroup.get_children().unwrap()
-        // );
         assert_eq!(ids, vec![s1_id, s2_id]);
+    }
+
+    #[test]
+    fn subdividing_group_with_too_few_children() {
+        let mut s1 = Sphere::new();
+        let s1_id = s1.get_unique_id();
+        println!("s1 id: {}", s1_id);
+        s1.set_transformation(translation(-2., 0., 0.));
+
+        let mut s2 = Sphere::new();
+        let s2_id = s2.get_unique_id();
+        println!("s2 id: {}", s2_id);
+        s2.set_transformation(translation(2., 1., 0.));
+
+        let mut s3 = Sphere::new();
+        let s3_id = s3.get_unique_id();
+        println!("s3 id: {}", s3_id);
+        s3.set_transformation(translation(2., -1., 0.));
+
+        let mut subgroup = GroupShape::new();
+        let subgroup_id = subgroup.get_unique_id();
+        println!("subgroup id: {}", subgroup_id);
+        subgroup.add_child(Box::new(s1));
+        subgroup.add_child(Box::new(s2));
+        subgroup.add_child(Box::new(s3));
+
+        let s4 = Sphere::new();
+        let s4_id = s4.get_unique_id();
+        println!("s4 id: {}", s4_id);
+
+        let mut g = GroupShape::new();
+        println!("g id: {}", g.get_unique_id());
+        g.add_child(Box::new(subgroup));
+        g.add_child(Box::new(s4));
+
+        g.divide(3);
+
+        let g_children = g.get_children().unwrap();
+        println!("{:?}", g_children[0]);
+        assert_eq!(g_children[0].get_unique_id(), subgroup_id);
+        assert_eq!(g_children[1].get_unique_id(), s4_id);
+
+        let subgroup_children = g_children[0].get_children().unwrap();
+        assert_eq!(subgroup_children[0].get_unique_id(), s1_id);
+
+        let ids: Vec<usize> = subgroup_children[1]
+            .get_children()
+            .unwrap()
+            .iter()
+            .map(|c| c.get_unique_id())
+            .collect();
+        assert_eq!(ids, vec![s2_id, s3_id]);
+
+        //   Then g[0] = subgroup
+        //     And g[1] = s4
+        //     And subgroup.count = 2
+        //     And subgroup[0] is a group of [s1]
+        //     And subgroup[1] is a group of [s2, s3]
     }
 }
