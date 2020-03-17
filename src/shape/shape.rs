@@ -10,15 +10,6 @@ use std::fmt::Debug;
 use std::hash::Hash;
 use std::hash::Hasher;
 
-use std::sync::atomic::{AtomicUsize, Ordering};
-
-// Shapes are globally unique. We use IDs to simplify their comparison.
-static OBJECT_COUNTER: AtomicUsize = AtomicUsize::new(0);
-
-pub fn get_next_unique_shape_id() -> usize {
-    OBJECT_COUNTER.fetch_add(1, Ordering::SeqCst)
-}
-
 // TODO: update to DowncastSync later when parallelizing
 pub trait Shape: Debug + Downcast {
     // tthe BaseShape that the wrapping instance is delegating to

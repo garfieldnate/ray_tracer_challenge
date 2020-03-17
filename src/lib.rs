@@ -28,6 +28,7 @@ pub mod intersection;
 pub mod light;
 pub mod material;
 pub mod obj_parser;
+mod object_id;
 pub mod pattern;
 pub mod ray;
 pub mod shape;
