@@ -547,11 +547,5 @@ mod tests {
             .map(|c| c.get_unique_id())
             .collect();
         assert_eq!(ids, vec![s2_id, s3_id]);
-
-        //   Then g[0] = subgroup
-        //     And g[1] = s4
-        //     And subgroup.count = 2
-        //     And subgroup[0] is a group of [s1]
-        //     And subgroup[1] is a group of [s2, s3]
     }
 }
