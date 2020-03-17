@@ -2,29 +2,39 @@ use crate::bounding_box::BoundingBox;
 use crate::intersection::Intersection;
 use crate::material::Material;
 use crate::matrix::Matrix;
+use crate::object_id::ObjectId;
 use crate::ray::Ray;
-use crate::shape::shape::get_next_unique_shape_id;
 use crate::shape::shape::Shape;
 use crate::tuple::Tuple;
 use std::fmt::Debug;
 
 // Other shape implementations should delegate to this one where these defaults are acceptable.
-#[derive(Default, Debug)]
+#[derive(Debug)]
 pub struct BaseShape {
+    casts_shadow: bool,
+    id: ObjectId,
     t: Matrix,
     t_inverse: Matrix,
     t_inverse_transpose: Matrix,
     m: Material,
-    casts_shadow: bool,
-    id: usize,
 }
 
 impl BaseShape {
     pub fn new() -> Self {
+        Default::default()
+    }
+}
+
+impl Default for BaseShape {
+    fn default() -> Self {
         Self {
             casts_shadow: true,
-            id: get_next_unique_shape_id(),
-            ..Default::default()
+            // the rest are just defaults; TODO: can we automatically use defaults for remaining fields with a macro or something? Perhaps https://github.com/nrc/derive-new
+            id: ObjectId::default(),
+            t: Matrix::default(),
+            t_inverse: Matrix::default(),
+            t_inverse_transpose: Matrix::default(),
+            m: Material::default(),
         }
     }
 }
@@ -38,7 +48,7 @@ impl Shape for BaseShape {
         unimplemented!()
     }
     fn get_unique_id(&self) -> usize {
-        self.id
+        self.id.get_id()
     }
     fn transformation(&self) -> &Matrix {
         &self.t
