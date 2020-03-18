@@ -36,27 +36,27 @@ impl GroupShape {
     }
 
     fn partition_children(&mut self) -> (Vec<Box<dyn Shape>>, Vec<Box<dyn Shape>>) {
-        println!("Current whole shape bounds are {:?}", self.bounding_box());
+        // println!("Current whole shape bounds are {:?}", self.bounding_box());
         let (left_bounds, right_bounds) = self.bounding_box().split();
         let mut left = vec![];
         let mut right = vec![];
         let mut new_children = vec![];
         for c in self.children.drain(..) {
             let child_bounds = c.as_ref().parent_space_bounding_box();
-            println!("testing child bounds {:?}", child_bounds);
-            println!("left is {:?}", left_bounds);
-            println!("right is {:?}", right_bounds);
+            // println!("testing child bounds {:?}", child_bounds);
+            // println!("left is {:?}", left_bounds);
+            // println!("right is {:?}", right_bounds);
             if left_bounds.contains_bounding_box(child_bounds) {
-                println!("Child contained in left");
+                // println!("Child contained in left");
                 left.push(c);
             } else if right_bounds.contains_bounding_box(child_bounds) {
-                println!("Child contained in right");
+                // println!("Child contained in right");
                 right.push(c);
             } else {
-                println!(
-                    "child bounds {:?} not contained in either half",
-                    child_bounds
-                );
+                // println!(
+                //     "child bounds {:?} not contained in either half",
+                //     child_bounds
+                // );
                 new_children.push(c)
             }
         }
@@ -70,10 +70,10 @@ impl GroupShape {
             self.add_child(new_group_children.remove(0));
         } else {
             let new_child = GroupShape::with_children(new_group_children);
-            println!(
-                "make_subgroup: new child's id is {}",
-                new_child.get_unique_id()
-            );
+            // println!(
+            //     "make_subgroup: new child's id is {}",
+            //     new_child.get_unique_id()
+            // );
             self.add_child(Box::new(new_child));
         }
     }
@@ -154,11 +154,9 @@ impl Shape for GroupShape {
         if threshold <= self.children.len() {
             let (left, right) = self.partition_children();
             if !left.is_empty() {
-                println!("divide: left not empty");
                 self.make_subgroup(left);
             }
             if !right.is_empty() {
-                println!("divide: right not empty");
                 self.make_subgroup(right);
             }
         }
