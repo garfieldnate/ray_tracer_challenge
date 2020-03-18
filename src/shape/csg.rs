@@ -354,6 +354,13 @@ mod tests {
 
         let mut shape = CSG::new(CSGOperator::Difference(), Box::new(left), Box::new(right));
         shape.divide(1);
-        assert!(false);
+
+        let left_children = shape.s1.get_children().unwrap();
+        let right_children = shape.s2.get_children().unwrap();
+
+        for child in left_children.iter().chain(right_children) {
+            let t = child.downcast_ref::<TestShape>().unwrap();
+            assert_eq!(t.divide_was_called_with_threshold, 1);
+        }
     }
 }
