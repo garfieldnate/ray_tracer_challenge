@@ -11,6 +11,7 @@ use std::fmt::Debug;
 pub struct TestShape {
     pub base: BaseShape,
     pub saved_ray: RefCell<Option<Ray>>,
+    pub divide_was_called_with_threshold: usize,
 }
 
 impl TestShape {
@@ -18,6 +19,7 @@ impl TestShape {
         TestShape {
             base: BaseShape::new(),
             saved_ray: RefCell::new(None),
+            divide_was_called_with_threshold: 0,
         }
     }
 }
@@ -42,12 +44,14 @@ impl Shape for TestShape {
             4.0 * _object_point.z
         )
     }
-
     fn bounding_box(&self) -> BoundingBox {
         // arbitrary but easy to work with
         BoundingBox {
             min: point!(-1, -1, -1),
             max: point!(1, 1, 1),
         }
+    }
+    fn divide(&mut self, threshold: usize) {
+        self.divide_was_called_with_threshold = threshold;
     }
 }
