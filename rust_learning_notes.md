@@ -26,6 +26,12 @@
 * Man I wish contain-rs were maintained! That's a seriously important project. LinkedHashMap, etc.
 * Need better testing method for RNG-seeded operations;rand::rngs::mock::StepRng::new(0, step) is fine if using gen<i32> or something; but get<f32> gives an exact spread over all possible f32 values, which are not conducive to manual testing. I'd rather be able to write `float_rng(0., 0.1)` and have it generate .1, , .2, etc. Even better would be a test RNG that takes a sequence from the user.
 * setting "rust.build_lib": true does nothing in vscode. The documentation says both that it is an unstable feature and that no features require "rust.unstable_features" to be enabled, but I also tried "rust.unstable_features" enabled and vscode told me I had to use rust nightly for that.
+* To run the flamegraph binary with an argument for the executable being perfed:
+    $ sudo flamegraph "target/release/here_be_dragons /Users/nathanglenn/Downloads/dragon.obj"
+Also don't forget to put this in your Cargo.toml:
+
+    [profile.release]
+    debug = true
 
 ### VS Code Wishes
 * I wish that VSCode could auto-format macros. Doesn't seem to do indenting automatically.
