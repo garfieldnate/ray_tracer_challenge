@@ -34,11 +34,9 @@ impl ObjParseResults {
             Some(ref mut groups) => {
                 let mut all_as_group = GroupShape::new();
                 for (_k, v) in groups.drain() {
-                    println!("adding as all_as_group child: {:?}", v);
                     all_as_group.add_child(Box::new(v));
                 }
                 self.groups = None;
-                println!("all_as_group: {:?}", all_as_group);
                 Some(all_as_group)
             }
             None => None,
