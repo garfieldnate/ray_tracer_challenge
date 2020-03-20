@@ -80,6 +80,7 @@ impl Camera {
                 let color = world.color_at(ray, reflection_recursion_depth);
                 canvas.write_pixel(x as usize, y as usize, color);
             }
+            eprintln!("Rendered y {}/{}", y, self.height_pixels);
         }
         canvas
     }
