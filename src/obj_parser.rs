@@ -243,11 +243,8 @@ fn normalize_vertices(vertices: &mut Vec<Tuple>) {
     for v in &vertices[1..] {
         bounds.add_point(*v);
     }
-    println!("bounds: {:?}", bounds);
     let span = bounds.max - bounds.min;
-    println!("span: {:?}", span);
     let scale = span.x.max(span.y.max(span.z)) / 2.;
-    println!("scale: {:?}", scale);
 
     for v in vertices[1..].iter_mut() {
         v.x = (v.x - (bounds.min.x + span.x / 2.)) / scale;

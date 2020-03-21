@@ -101,15 +101,15 @@ impl BoundingBox {
 
         // adjust the points so that they lie on the dividing plane
         if greatest == dx {
-            println!("Splitting box on x");
+            // eprintln!("Splitting box on x");
             x0 = x0 + dx / 2.;
             x1 = x0;
         } else if greatest == dy {
-            println!("Splitting box on y");
+            // eprintln!("Splitting box on y");
             y0 = y0 + dy / 2.;
             y1 = y0;
         } else {
-            println!("Splitting box on z");
+            // eprintln!("Splitting box on z");
             z0 = z0 + dz / 2.;
             z1 = z0;
         }

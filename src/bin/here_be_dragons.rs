@@ -42,7 +42,8 @@ fn main() {
 
     let world = World {
         objects: vec![
-            Box::new(get_scene_element(dragon_file_path)),
+            // Box::new(get_scene_element(dragon_file_path)),
+            Box::new(get_dragon(dragon_file_path))
             // Box::new(get_floor()),
             // Box::new(get_sphere_1()),
             // Box::new(get_sphere_2()),
@@ -162,11 +163,11 @@ fn get_dragon(dragon_file_path: &Path) -> GroupShape {
     let file = File::open(dragon_file_path).unwrap();
     let mut parse_results = parse_obj(file).unwrap();
     let mut dragon = parse_results.take_all_as_group().unwrap();
-    dragon.set_transformation(&scaling(0.268, 0.268, 0.268) * &translation(0., 0.1217, 0.));
     eprintln!("Finished parsing dragon");
+    // dragon.set_transformation(&scaling(0.268, 0.268, 0.268) * &translation(0., 0.1217, 0.));
 
-    // dragon.divide(5);
-    // eprintln!("Finished dividing dragon");
+    dragon.divide(4);
+    eprintln!("Finished dividing dragon");
 
     dragon
 }
