@@ -25,10 +25,10 @@ use ray_tracer_challenge::{color, point, vector};
 use std::{env, fs::File, path::Path};
 
 // To render larger, be sure to use an optimized (release) build and give it up to a minute to finish
-// const CANVAS_WIDTH: u32 = 1000;
-// const CANVAS_HEIGHT: u32 = 400;
-const CANVAS_WIDTH: u32 = 500;
-const CANVAS_HEIGHT: u32 = 200;
+const CANVAS_WIDTH: u32 = 1000;
+const CANVAS_HEIGHT: u32 = 400;
+// const CANVAS_WIDTH: u32 = 500;
+// const CANVAS_HEIGHT: u32 = 200;
 // const CANVAS_WIDTH: u32 = 250;
 // const CANVAS_HEIGHT: u32 = 100;
 // const CANVAS_WIDTH: u32 = 110;

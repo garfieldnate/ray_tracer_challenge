@@ -1,3 +1,4 @@
+use crate::bounding_box::BoundingBox;
 use crate::shape::group::GroupShape;
 use crate::shape::shape::Shape;
 use crate::shape::smooth_triangle::SmoothTriangle;
@@ -54,6 +55,7 @@ pub enum ParseError {
     MalformedFace(String),
     MalformedNormal(String),
     MalformedGroupDeclaration(String),
+    UnexpectedSymbol(String),
 }
 impl From<io::Error> for ParseError {
     fn from(err: io::Error) -> ParseError {
@@ -80,6 +82,7 @@ impl Display for ParseError {
             ParseError::MalformedFace(ref s) => f.write_str(s),
             ParseError::MalformedNormal(ref s) => f.write_str(s),
             ParseError::MalformedGroupDeclaration(ref s) => f.write_str(s),
+            ParseError::UnexpectedSymbol(ref s) => f.write_str(s),
         }
     }
 }
@@ -92,6 +95,7 @@ pub fn parse_obj<T: Read>(reader: T) -> Result<ObjParseResults, ParseError> {
     let mut normals = vec![point!(0, 0, 0)];
     let mut groups: HashMap<String, GroupShape> = HashMap::new();
     let mut current_group: Option<&mut GroupShape> = None;
+    let mut normalization_finished = false;
     for (index, line) in buf_reader.lines().enumerate() {
         let line = line?;
         let line = line.trim();
@@ -99,6 +103,11 @@ pub fn parse_obj<T: Read>(reader: T) -> Result<ObjParseResults, ParseError> {
         match elements.next() {
             // parse a vertex line: v f32 f32 f32
             Some("v") => {
+                if normalization_finished {
+                    return Err(ParseError::UnexpectedSymbol(format!(
+                        "Found vertex at line {}; vertices must all be specified before any faces are specified (so that they \
+                            may be normalized before any faces are created)", index)));
+                }
                 let coordinates = elements
                     .map(|x| x.parse::<f32>())
                     .collect::<Result<Vec<f32>, std::num::ParseFloatError>>()?;
@@ -128,7 +137,13 @@ pub fn parse_obj<T: Read>(reader: T) -> Result<ObjParseResults, ParseError> {
                 }
             }
             // parse a triangle line: vf usize usize usize
+            // Next: set flag that no more vertices may be read. Normalize all vertices, update tests. Then try making a scene with an OBJ file!
             Some("f") => {
+                if !normalization_finished {
+                    normalize_vertices(&mut vertices);
+                    normalization_finished = true;
+                }
+
                 // TODO: throw useful error if normal is specified for some but not all faces in spec
                 let face_specs = elements
                     .map(parse_face)
@@ -179,6 +194,9 @@ pub fn parse_obj<T: Read>(reader: T) -> Result<ObjParseResults, ParseError> {
 
         num_ignored_lines += 1;
     }
+    if !normalization_finished {
+        normalize_vertices(&mut vertices);
+    }
     Ok(ObjParseResults {
         num_ignored_lines,
         vertices,
@@ -215,6 +233,23 @@ fn parse_face(face_string: &str) -> Result<FaceParseResults, ParseError> {
         None => Err(ParseError::MalformedFace(
             "Missing vertex index".to_string(),
         )),
+    }
+}
+
+// Modify the vertices so that their min/max values are -1/1 and they are centered at the origin
+fn normalize_vertices(vertices: &mut Vec<Tuple>) {
+    let mut bounds = BoundingBox::empty();
+    // skip index 0, which is a dummy vertex
+    for v in &vertices[1..] {
+        bounds.add_point(*v);
+    }
+    let span = bounds.max - bounds.min;
+    let scale = span.x.max(span.y.max(span.z)) / 2.;
+
+    for v in vertices[1..].iter_mut() {
+        v.x = (v.x - (bounds.min.x + span.x / 2.)) / scale;
+        v.y = (v.y - (bounds.min.y + span.y / 2.)) / scale;
+        v.z = (v.z - (bounds.min.z + span.z / 2.)) / scale;
     }
 }
 
@@ -272,14 +307,14 @@ mod tests {
         let text = "v -1 1 0
         v -1.0000 0.5000 0.0000
         v 1 0 0
-        v 1 1 0";
+        v 1 -1 0";
         let results = parse_obj(text.as_bytes()).unwrap();
 
         assert_eq!(results.vertices.len(), 5);
         assert_eq!(results.vertices[1], point!(-1, 1, 0));
         assert_eq!(results.vertices[2], point!(-1, 0.5, 0));
         assert_eq!(results.vertices[3], point!(1, 0, 0));
-        assert_eq!(results.vertices[4], point!(1, 1, 0));
+        assert_eq!(results.vertices[4], point!(1, -1, 0));
     }
 
     #[test]
@@ -315,7 +350,7 @@ mod tests {
         v -1 0 0
         v 1 0 0
         v 1 1 0
-        v 0 2 0
+        v 0 1 1
 
         f 1 2 3 4 5
         ";
