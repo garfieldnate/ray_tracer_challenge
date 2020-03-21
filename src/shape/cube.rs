@@ -88,41 +88,43 @@ impl Shape for Cube {
 }
 
 pub fn aabb_intersection(object_ray: Ray, min: Tuple, max: Tuple) -> Option<(f32, f32)> {
-    // TODO: book says it's possible to return early sometimes
-    // TODO: make it faster by replacing with this implementation: https://tavianator.com/fast-branchless-raybounding-box-intersections/
-    let (min_x_distance, max_x_distance) =
-        check_axis(object_ray.origin.x, object_ray.direction.x, min.x, max.x);
-    let (min_y_distance, max_y_distance) =
-        check_axis(object_ray.origin.y, object_ray.direction.y, min.y, max.y);
-    let (min_z_distance, max_z_distance) =
-        check_axis(object_ray.origin.z, object_ray.direction.z, min.z, max.z);
+    // a branchless and divisionless implementation taken from Dimension:
+    // https://tavianator.com/cgit/dimension.git/tree/libdimension/bvh/bvh.c
 
-    // max of minimum and min of maximum plane intersections are
-    // the actual cube intersections
-    let min_distance = min_x_distance.max(min_y_distance.max(min_z_distance));
-    let max_distance = max_x_distance.min(max_y_distance.min(max_z_distance));
+    // First calculate the distance the ray travels to hit the minimum and maximum bounds
+    // of the box on the x axis. Note that if the ray's direction's x value is 0, the inverse
+    // will be infinity and the max/min distances will be positive or negative infinity
+    // (both represented nicely with IEEE floating point numbers).
+    let min_x_distance = (min.x - object_ray.origin.x) * object_ray.direction_inverses.x;
+    let max_x_distance = (max.x - object_ray.origin.x) * object_ray.direction_inverses.x;
+    // calculate the min and max distances that the ray may travel; note that these values
+    // may be reversed from the distances to the min and max box bounds. Using the min/max
+    // logic here is apparently more efficient than an if statement with swap logic, since
+    // CPU's can do comparison-conditional logic without the costs of regular branching.
+    let mut min_distance = min_x_distance.min(max_x_distance);
+    let mut max_distance = min_x_distance.max(max_x_distance);
 
-    if min_distance > max_distance {
-        // the min/max values get reversed only when the ray misses the cube
-        None
-    } else {
+    // repeat for distances to bounds in y axis
+    let min_y_distance = (min.y - object_ray.origin.y) * object_ray.direction_inverses.y;
+    let max_y_distance = (max.y - object_ray.origin.y) * object_ray.direction_inverses.y;
+    min_distance = min_distance.max(min_y_distance.min(max_y_distance));
+    max_distance = max_distance.min(min_y_distance.max(max_y_distance));
+
+    // repeat for distances to bounds in z axis
+    let min_z_distance = (min.z - object_ray.origin.z) * object_ray.direction_inverses.z;
+    let max_z_distance = (max.z - object_ray.origin.z) * object_ray.direction_inverses.z;
+    min_distance = min_distance.max(min_z_distance.min(max_z_distance));
+    max_distance = max_distance.min(min_z_distance.max(max_z_distance));
+
+    // The max distance has to be at least 0; if it's negative, then that means the ray
+    // intersected in the direction that we are *not* casting it. In the case that the ray
+    // was parallel to an axis and did not intersect the cube, either min_distance will be
+    // infinity or max_distance will be negative infinity; both cases are automatically
+    // handled with regular floating point number comparisons.
+    if max_distance >= 0f32.max(min_distance) {
         Some((min_distance, max_distance))
-    }
-}
-
-// return pair of distance values for intersecting two parallel planes of the cube;
-// note that values can also be + and - infinity
-fn check_axis(origin: f32, direction: f32, min: f32, max: f32) -> (f32, f32) {
-    // the planes are offset at origin + and - 1
-    let tmin_numerator = min - origin;
-    let tmax_numerator = max - origin;
-
-    let (tmin, tmax) = (tmin_numerator / direction, tmax_numerator / direction);
-
-    if tmin > tmax {
-        (tmax, tmin)
     } else {
-        (tmin, tmax)
+        None
     }
 }
 
@@ -178,6 +180,11 @@ mod tests {
                 point!(0, 0, -2),
                 vector!(0.5345, 0.8018, 0.2673),
             ),
+            (
+                "ray is cast away from the cube",
+                point!(0, 0, 2),
+                vector!(0., 0., 1.),
+            ),
             ("parallel to z", point!(2, 0, 2), vector!(0, 0, -1)),
             ("parallel to y", point!(0, 2, 2), vector!(0, -1, 0)),
             ("parallel to x", point!(2, 2, 0), vector!(-1, 0, 0)),
@@ -187,7 +194,7 @@ mod tests {
             let xs = c.local_intersect(r);
             assert!(
                 xs.is_empty(),
-                "{}: should find 0 intersections but found {}: {:?}",
+                "case {}: should find 0 intersections but found {}: {:?}",
                 name,
                 xs.len(),
                 xs
