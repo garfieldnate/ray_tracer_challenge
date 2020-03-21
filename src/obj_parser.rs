@@ -243,8 +243,11 @@ fn normalize_vertices(vertices: &mut Vec<Tuple>) {
     for v in &vertices[1..] {
         bounds.add_point(*v);
     }
+    println!("bounds: {:?}", bounds);
     let span = bounds.max - bounds.min;
+    println!("span: {:?}", span);
     let scale = span.x.max(span.y.max(span.z)) / 2.;
+    println!("scale: {:?}", scale);
 
     for v in vertices[1..].iter_mut() {
         v.x = (v.x - (bounds.min.x + span.x / 2.)) / scale;
@@ -315,6 +318,22 @@ mod tests {
         assert_eq!(results.vertices[2], point!(-1, 0.5, 0));
         assert_eq!(results.vertices[3], point!(1, 0, 0));
         assert_eq!(results.vertices[4], point!(1, -1, 0));
+    }
+
+    #[test]
+    fn vertices_are_normalized() {
+        let text = "v -50 10 20
+        v 30 -40 0
+        v 10 -20 50
+        v -10 30 10";
+        let results = parse_obj(text.as_bytes()).unwrap();
+
+        println!("{:?}", results.vertices);
+        assert_eq!(results.vertices.len(), 5);
+        assert_eq!(results.vertices[1], point!(-1., 0.375, -0.125));
+        assert_eq!(results.vertices[2], point!(1., -0.875, -0.625));
+        assert_eq!(results.vertices[3], point!(0.5, -0.375, 0.625));
+        assert_eq!(results.vertices[4], point!(0., 0.875, -0.375));
     }
 
     #[test]
