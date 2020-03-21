@@ -5,6 +5,7 @@ use crate::ray::Ray;
 use crate::shape::base_shape::BaseShape;
 use crate::shape::shape::Shape;
 use crate::tuple::Tuple;
+use std::cell::RefCell;
 use std::cmp::Ordering::Equal;
 
 // instead of using BaseShape for the transform here, we propagate transforms to the children and then
@@ -15,6 +16,7 @@ use std::cmp::Ordering::Equal;
 pub struct GroupShape {
     base: BaseShape,
     children: Vec<Box<dyn Shape>>,
+    cached_bounding_box: RefCell<Option<BoundingBox>>,
 }
 
 impl GroupShape {
@@ -140,14 +142,17 @@ impl Shape for GroupShape {
     }
 
     fn bounding_box(&self) -> BoundingBox {
-        let mut b = BoundingBox::empty();
+        let mut cached_box = self.cached_bounding_box.borrow_mut();
+        cached_box.get_or_insert_with(|| {
+            let mut b = BoundingBox::empty();
 
-        for child in &mut self.children.iter() {
-            let child_box = child.parent_space_bounding_box();
-            b.add_bounding_box(child_box);
-        }
-
-        b
+            for child in &mut self.children.iter() {
+                let child_box = child.parent_space_bounding_box();
+                b.add_bounding_box(child_box);
+            }
+            b
+        });
+        cached_box.unwrap()
     }
 
     fn divide(&mut self, threshold: usize) {
