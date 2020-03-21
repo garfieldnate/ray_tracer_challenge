@@ -90,11 +90,6 @@ pub trait Shape: Debug + Downcast {
         self.normal_to_world(&object_normal)
     }
 
-    // should only be implemented by GroupShape
-    fn get_children(&self) -> Option<&Vec<Box<dyn Shape>>> {
-        None
-    }
-
     // should only be overridden by GroupShape and CSG
     fn includes(&self, other: &dyn Shape) -> bool {
         // TODO: how to unify this with the PartialEq implementation
@@ -209,8 +204,8 @@ mod tests {
         g1.add_child(Box::new(g2));
 
         // lost ownership of these, so we have to dig them out again for testing...
-        let g2 = g1.get_children().unwrap()[0].as_ref();
-        let s = g2.get_children().unwrap()[0].as_ref();
+        let g2 = g1.get_children()[0].as_ref();
+        let s = g2.downcast_ref::<GroupShape>().unwrap().get_children()[0].as_ref();
 
         let n = s.normal_to_world(&object_normal);
         assert_abs_diff_eq!(n, vector!(0.28571427, 0.42857143, -0.85714287));

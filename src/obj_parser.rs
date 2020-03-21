@@ -285,7 +285,6 @@ fn fan_triangulation(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::shape::shape::Shape;
     use crate::shape::smooth_triangle::SmoothTriangle;
     use std::fs::File;
     use std::path::PathBuf;
@@ -346,7 +345,7 @@ mod tests {
         ";
         let results = parse_obj(text.as_bytes()).unwrap();
 
-        let g_children = results.get_default_group().unwrap().get_children().unwrap();
+        let g_children = results.get_default_group().unwrap().get_children();
         let t1 = g_children[0].downcast_ref::<Triangle>().unwrap();
         let t2 = g_children[1].downcast_ref::<Triangle>().unwrap();
 
@@ -372,7 +371,7 @@ mod tests {
         ";
 
         let results = parse_obj(text.as_bytes()).unwrap();
-        let g_children = results.get_default_group().unwrap().get_children().unwrap();
+        let g_children = results.get_default_group().unwrap().get_children();
         let t1 = g_children[0].downcast_ref::<Triangle>().unwrap();
         let t2 = g_children[1].downcast_ref::<Triangle>().unwrap();
         let t3 = g_children[2].downcast_ref::<Triangle>().unwrap();
@@ -402,13 +401,9 @@ mod tests {
     fn triangles_in_groups() {
         let results = parse_obj_test_file("triangles.obj");
         let g1 = results.get_group("FirstGroup").unwrap();
-        let t1 = g1.get_children().unwrap()[0]
-            .downcast_ref::<Triangle>()
-            .unwrap();
+        let t1 = g1.get_children()[0].downcast_ref::<Triangle>().unwrap();
         let g2 = results.get_group("SecondGroup").unwrap();
-        let t2 = g2.get_children().unwrap()[0]
-            .downcast_ref::<Triangle>()
-            .unwrap();
+        let t2 = g2.get_children()[0].downcast_ref::<Triangle>().unwrap();
 
         assert_eq!(t1.p1, results.vertices[1]);
         assert_eq!(t1.p2, results.vertices[2]);
@@ -424,17 +419,13 @@ mod tests {
         let mut results = parse_obj_test_file("triangles.obj");
 
         let parent_group = results.take_all_as_group().unwrap();
-        let child_groups = parent_group.get_children().unwrap();
+        let child_groups = parent_group.get_children();
 
         let g1 = child_groups[0].downcast_ref::<GroupShape>().unwrap();
         let g2 = child_groups[1].downcast_ref::<GroupShape>().unwrap();
 
-        let t1 = g1.get_children().unwrap()[0]
-            .downcast_ref::<Triangle>()
-            .unwrap();
-        let t2 = g2.get_children().unwrap()[0]
-            .downcast_ref::<Triangle>()
-            .unwrap();
+        let t1 = g1.get_children()[0].downcast_ref::<Triangle>().unwrap();
+        let t2 = g2.get_children()[0].downcast_ref::<Triangle>().unwrap();
 
         // can only test points the triangles have in common because
         // return ordering is random; TODO: switch to LinkedHashMap. Except LinkedHashMap
@@ -477,7 +468,7 @@ mod tests {
             f 1/0/3 2/102/1 3/14/2";
         let results = parse_obj(text.as_bytes()).unwrap();
         let g = results.get_default_group().unwrap();
-        let g_children = g.get_children().unwrap();
+        let g_children = g.get_children();
         let t1 = g_children[0].downcast_ref::<SmoothTriangle>().unwrap();
         let t2 = g_children[1].downcast_ref::<SmoothTriangle>().unwrap();
 

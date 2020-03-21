@@ -1,6 +1,5 @@
 # TODO
 
-- remove get_children() from Shape; now that we have downcast_ref for Shape, we shouldn't need it for testing
 - reduce mutability everywhere possible, including tests, using scoped mutability and also ..Default::default() syntax
 - Patterns
   - Make pattern compound, so that stripes can contain stripes, etc.
@@ -13,17 +12,14 @@
   - curently objects can opt out of having a shadow, but that's not really realistic
   - keyword in graphics is "caustic"
 - Canvas write_pixel: fail properly for out of bounds
-- cleanup after [codereview.se](https://codereview.stackexchange.com/questions/236895/color-and-canvas-implementations-in-rust-for-ray-tracer-challenge) responds
 - transformation should probably all be in matrix
 - Having to use & everywhere for matrix, tuple or color multplication sucks
 - Integrate error-chain if needed (http://brson.github.io/2016/11/30/starting-with-error-chain)
-- read up on and understand the Any crate, downcast_ref vs. Box::downcast
-    - also read up on the standard library in general
 - update any tests that could benefit from the new downcasting functionality
 
 ### Performance
 
-- Cache bounding boxes for group and CSG
+- Cache bounding boxes for CSG
 - auto-decide when a refract/reflect recursion should end. The reflect_refract binary is 10x faster at 5 instead of 20 but I don't see a visual difference. Seems like maybe we could check if something is close to 0.
 - (also ergonomics) see if we can replace trait objects with generics everywhere.
 - Triangle meshes as mentioned in the book, instead of simple groups
