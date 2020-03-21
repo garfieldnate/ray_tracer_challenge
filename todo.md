@@ -17,8 +17,6 @@
 - transformation should probably all be in matrix
 - Having to use & everywhere for matrix, tuple or color multplication sucks
 - Integrate error-chain if needed (http://brson.github.io/2016/11/30/starting-with-error-chain)
-- make cube intersection more performant
-  - apparently divides in general are expensive and caching the inverses of ray direction components is worthwhile
 - read up on and understand the Any crate, downcast_ref vs. Box::downcast
     - also read up on the standard library in general
 - update any tests that could benefit from the new downcasting functionality
@@ -76,3 +74,10 @@ Notes from book about reflection/refraction:
 * Bonus chapter on bounding boxes: no bounding box specified for smooth triangles (should be different from normal ones, right?)
 * Typo in bounding boxes chapter: inculde -> include
 * "non-cubic bounding box" is not a great name for the test in the bounding box chapter; maybe "bounding box not centered at origin"
+* "ray misses cube" test needs one more case: the ray is cast away from the cube. The code in the book does not work for this case:
+    (
+        "ray is cast away from the cube",
+        point!(0, 0, 2),
+        vector!(0., 0., 1.),
+    ),
+What needs to happen: at the end of the method, tmax should be non--negative; otherwise, the ray misses. Currently, tmax can be a negative number, indicating an intersection *opposite* the ray's direction. This can happen because the rest of the intersection math is for a general line, not for a line segment or a mathematical ray.

@@ -5,13 +5,20 @@ use crate::tuple::Tuple;
 pub struct Ray {
     pub origin: Tuple,
     pub direction: Tuple,
+    // 1/x, 1/y, 1/z cached for faster intersection calculations later
+    pub direction_inverses: Tuple,
 }
 
 impl Ray {
     pub fn new(origin: Tuple, direction: Tuple) -> Self {
         debug_assert!(origin.is_point());
         debug_assert!(direction.is_vector());
-        Ray { origin, direction }
+        let direction_inverses = vector!(1. / direction.x, 1. / direction.y, 1. / direction.z);
+        Ray {
+            origin,
+            direction,
+            direction_inverses,
+        }
     }
     pub fn position(&self, distance: f32) -> Tuple {
         self.origin + self.direction * distance
