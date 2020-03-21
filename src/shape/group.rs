@@ -30,6 +30,12 @@ impl GroupShape {
         g
     }
 
+    /// Note to clients: the children's transforms will have this group's transform baked in.
+    /// To get the child in its origin form, call remove_child (not implemented)
+    pub fn get_children(&self) -> &Vec<Box<dyn Shape>> {
+        &self.children
+    }
+
     pub fn add_child(&mut self, mut child: Box<dyn Shape>) {
         // bake this group's transform into the child's existing transform
         let old_child_transform = child.transformation().clone();
@@ -88,19 +94,11 @@ impl Shape for GroupShape {
     fn get_base_mut(&mut self) -> &mut BaseShape {
         &mut self.base
     }
-    /// Note to clients: the children's transforms will have this group's transform baked in.
-    /// To get the child in its origin form, call remove_child (not implemented)
-    fn get_children(&self) -> Option<&Vec<Box<dyn Shape>>> {
-        Some(&self.children)
-    }
     fn includes(&self, other: &dyn Shape) -> bool {
         if self.get_unique_id() == other.get_unique_id() {
             true
         } else {
-            match self.get_children() {
-                Some(children) => children.iter().any(|s| s.as_ref().includes(other)),
-                None => false,
-            }
+            self.children.iter().any(|s| s.as_ref().includes(other))
         }
     }
     fn set_transformation(&mut self, t: Matrix) {
@@ -245,7 +243,7 @@ mod tests {
         g.add_child(Box::new(s));
 
         assert_eq!(
-            g.get_children().unwrap()[0].transformation(),
+            g.get_children()[0].transformation(),
             &matrix!(
                 [2.0, 0.0, 0.0, 10.0],
                 [0.0, 2.0, 0.0, 0.0],
@@ -271,7 +269,7 @@ mod tests {
         let r = Ray::new(point!(10, 0, -10), vector!(0, 0, 1));
 
         assert_eq!(
-            g.get_children().unwrap()[0].transformation(),
+            g.get_children()[0].transformation(),
             &matrix!(
                 [2.0, 0.0, 0.0, 10.0],
                 [0.0, 2.0, 0.0, 0.0],
@@ -298,7 +296,7 @@ mod tests {
         let r = Ray::new(point!(10, 0, -10), vector!(0, 0, 1));
 
         assert_eq!(
-            g.get_children().unwrap()[0].transformation(),
+            g.get_children()[0].transformation(),
             &matrix!(
                 [2.0, 0.0, 0.0, 10.0],
                 [0.0, 2.0, 0.0, 0.0],
@@ -323,8 +321,11 @@ mod tests {
         g1.add_child(Box::new(g2));
 
         // lost ownership of these, so we have to dig them out again for testing...
-        let g2 = g1.get_children().unwrap()[0].as_ref();
-        let s = g2.get_children().unwrap()[0].as_ref();
+        let g2 = g1.get_children()[0]
+            .as_ref()
+            .downcast_ref::<GroupShape>()
+            .unwrap();
+        let s = g2.get_children()[0].as_ref();
 
         let p = s.world_to_object_point(&point!(-2, 0, -10));
         assert_abs_diff_eq!(p, point!(5.0, 0.0, -0.66666657));
@@ -348,8 +349,11 @@ mod tests {
         g1.add_child(Box::new(g2));
 
         // lost ownership of these, so we have to dig them out again for testing...
-        let g2 = g1.get_children().unwrap()[0].as_ref();
-        let s = g2.get_children().unwrap()[0].as_ref();
+        let g2 = g1.get_children()[0]
+            .as_ref()
+            .downcast_ref::<GroupShape>()
+            .unwrap();
+        let s = g2.get_children()[0].as_ref();
 
         let n = s.normal_at(&world_point, &dummy_intersection(&g1));
         assert_abs_diff_eq!(n, vector!(0.2857036, 0.42854306, -0.8571606));
@@ -383,9 +387,7 @@ mod tests {
         let r = Ray::new(point!(0, 0, -5), vector!(0, 1, 0));
         shape.intersect(r);
 
-        let test_shape = shape.get_children().unwrap()[0]
-            .downcast_ref::<TestShape>()
-            .unwrap();
+        let test_shape = shape.get_children()[0].downcast_ref::<TestShape>().unwrap();
         println!("{:?}", test_shape.saved_ray.borrow());
         assert!(test_shape.saved_ray.borrow().is_none());
     }
@@ -398,9 +400,7 @@ mod tests {
         let r = Ray::new(point!(0, 0, -5), vector!(0, 0, 1));
         shape.intersect(r);
 
-        let test_shape = shape.get_children().unwrap()[0]
-            .downcast_ref::<TestShape>()
-            .unwrap();
+        let test_shape = shape.get_children()[0].downcast_ref::<TestShape>().unwrap();
         println!("{:?}", test_shape.saved_ray.borrow());
         assert!(test_shape.saved_ray.borrow().is_some());
     }
@@ -426,7 +426,7 @@ mod tests {
         let (left, right) = g.partition_children();
 
         // g should contain s3
-        let g_children = g.get_children().unwrap();
+        let g_children = g.get_children();
         assert_eq!(g_children.len(), 1);
         assert_eq!(g_children[0].get_unique_id(), s3_id);
 
@@ -450,13 +450,12 @@ mod tests {
         let mut g = GroupShape::new();
         g.make_subgroup(vec![Box::new(s1), Box::new(s2)]);
 
-        let g_children = g.get_children().unwrap();
+        let g_children = g.get_children();
         assert_eq!(g_children.len(), 1);
 
         let g_child = g_children[0].downcast_ref::<GroupShape>().unwrap();
         let g_grandchild_ids: Vec<usize> = g_child
             .get_children()
-            .unwrap()
             .iter()
             .map(|c| c.get_unique_id())
             .collect();
@@ -486,14 +485,13 @@ mod tests {
         g.add_child(Box::new(s3));
         g.divide(1);
 
-        let g_children = g.get_children().unwrap();
+        let g_children = g.get_children();
 
         assert_eq!(g_children[0].get_unique_id(), s3_id);
 
         let subgroup = g_children[1].downcast_ref::<GroupShape>().unwrap();
         let ids: Vec<usize> = subgroup
             .get_children()
-            .unwrap()
             .iter()
             .map(|c| c.get_unique_id())
             .collect();
@@ -535,17 +533,21 @@ mod tests {
 
         g.divide(3);
 
-        let g_children = g.get_children().unwrap();
+        let g_children = g.get_children();
         println!("{:?}", g_children[0]);
         assert_eq!(g_children[0].get_unique_id(), subgroup_id);
         assert_eq!(g_children[1].get_unique_id(), s4_id);
 
-        let subgroup_children = g_children[0].get_children().unwrap();
+        let subgroup_children = g_children[0]
+            .downcast_ref::<GroupShape>()
+            .unwrap()
+            .get_children();
         assert_eq!(subgroup_children[0].get_unique_id(), s1_id);
 
         let ids: Vec<usize> = subgroup_children[1]
-            .get_children()
+            .downcast_ref::<GroupShape>()
             .unwrap()
+            .get_children()
             .iter()
             .map(|c| c.get_unique_id())
             .collect();

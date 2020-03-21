@@ -88,7 +88,7 @@ impl Shape for Cube {
 }
 
 pub fn aabb_intersection(object_ray: Ray, min: Tuple, max: Tuple) -> Option<(f32, f32)> {
-    // a branchless and divisionless implementation taken from Dimension:
+    // a branchless and divisionless implementation taken from tavianator:
     // https://tavianator.com/cgit/dimension.git/tree/libdimension/bvh/bvh.c
 
     // First calculate the distance the ray travels to hit the minimum and maximum bounds
