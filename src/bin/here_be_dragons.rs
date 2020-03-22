@@ -42,8 +42,8 @@ fn main() {
 
     let world = World {
         objects: vec![
-            // Box::new(get_scene_element(dragon_file_path)),
-            Box::new(get_dragon(dragon_file_path))
+            Box::new(get_scene_element(dragon_file_path)),
+            // Box::new(get_dragon(dragon_file_path))
             // Box::new(get_floor()),
             // Box::new(get_sphere_1()),
             // Box::new(get_sphere_2()),
@@ -90,37 +90,16 @@ fn get_light() -> PointLight {
     PointLight::new(point!(-10, 100, -100), color!(1, 1, 1))
 }
 
-// - define: raw-bbox
-//   value:
-//     add: cube
-//     shadow: false
-//     transform:
-//       - [ translate, 1, 1, 1 ]
-//       - [ scale, 3.73335, 2.5845, 1.6283 ]
-//       - [ translate, -3.9863, -0.1217, -1.1820 ]
-fn get_raw_bbox() -> Cube {
+// definition changed from the bbox/raw_bbox definition provided in bonus chapter
+fn get_display_case() -> Cube {
     let mut c = Cube::new();
     c.set_casts_shadow(false);
-    c.set_transformation(
-        &translation(-3.9863, -0.1217, -1.1820)
-            * &(&scaling(3.73335, 2.5845, 1.6283) * &translation(1., 1., 1.)),
-    );
+    // c.set_transformation(
+    //     &translation(-3.9863, -0.1217, -1.1820)
+    //         * &(&scaling(3.73335, 2.5845, 1.6283) * &translation(1., 1., 1.)),
+    // );
 
     c
-}
-
-// - define: bbox
-//   value:
-//     add: raw-bbox
-//     transform:
-//       - [ translate, 0, 0.1217, 0]
-//       - [ scale, 0.268, 0.268, 0.268 ]
-fn get_bbox() -> GroupShape {
-    let mut g = GroupShape::new();
-    g.add_child(Box::new(get_raw_bbox()));
-    g.set_transformation(&scaling(0.268, 0.268, 0.268) * &translation(0., 0.1217, 0.));
-
-    g
 }
 
 // - define: pedestal
@@ -164,10 +143,11 @@ fn get_dragon(dragon_file_path: &Path) -> GroupShape {
     let mut parse_results = parse_obj(file).unwrap();
     let mut dragon = parse_results.take_all_as_group().unwrap();
     eprintln!("Finished parsing dragon");
-    // dragon.set_transformation(&scaling(0.268, 0.268, 0.268) * &translation(0., 0.1217, 0.));
+    dragon.set_transformation(translation(0., 0.3, 0.));
+    // eprintln!("Finished transforming dragon");
 
-    dragon.divide(4);
-    eprintln!("Finished dividing dragon");
+    // dragon.divide(4);
+    // eprintln!("Finished dividing dragon");
 
     dragon
 }
@@ -195,9 +175,10 @@ fn get_dragon(dragon_file_path: &Path) -> GroupShape {
 //             refractive-index: 1
 fn get_scene_element(dragon_file_path: &Path) -> GroupShape {
     let mut element = GroupShape::new();
-    element.set_transformation(translation(0., 2., 0.));
+    // element.set_transformation(translation(0., 2., 0.));
 
     let mut dragon = get_dragon(dragon_file_path);
+    // TODO: group shape should propagate material
     let mut dragon_material = Material::default();
     dragon_material.color = color!(1., 0., 0.1);
     dragon_material.ambient = 0.1;
@@ -206,7 +187,7 @@ fn get_scene_element(dragon_file_path: &Path) -> GroupShape {
     dragon_material.shininess = 15.;
     dragon.set_material(dragon_material);
 
-    let mut display_case = get_bbox();
+    let mut display_case = get_display_case();
     let mut case_material = Material::default();
     case_material.ambient = 0.;
     case_material.diffuse = 0.4;
@@ -215,12 +196,17 @@ fn get_scene_element(dragon_file_path: &Path) -> GroupShape {
     case_material.refractive_index = 1.;
     display_case.set_material(case_material);
 
-    let mut dragon_box = GroupShape::new();
-    dragon_box.add_child(Box::new(dragon));
-    dragon_box.add_child(Box::new(display_case));
+    // let mut dragon_box = GroupShape::new();
+    // dragon_box.add_child(Box::new(dragon));
+    // dragon_box.add_child(Box::new(display_case));
 
-    element.add_child(Box::new(dragon_box));
-    element.add_child(Box::new(get_pedestal()));
+    // element.add_child(Box::new(dragon_box));
+    element.add_child(Box::new(dragon));
+    // element.add_child(Box::new(get_pedestal()));
+
+    eprintln!("dividing scene element...");
+    element.divide(4);
+    eprintln!("finished dividing scene element");
 
     element
 }

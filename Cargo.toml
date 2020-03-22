@@ -13,3 +13,45 @@ derivative = "1.0.3"
 downcast-rs = "1.1.1"
 dyn-clone = "1.0.1"
 rand = "0.7"
+
+# Currently no bin or doc tests
+[lib]
+doctest = false
+[[bin]]
+name = "3d_sphere"
+test = false
+[[bin]]
+name = "clock_dots"
+test = false
+[[bin]]
+name = "first_patterns"
+test = false
+[[bin]]
+name = "first_plane"
+test = false
+[[bin]]
+name = "first_scene"
+test = false
+[[bin]]
+name = "here_be_dragons"
+test = false
+[[bin]]
+name = "hexagons"
+test = false
+[[bin]]
+name = "projectile"
+test = false
+[[bin]]
+name = "reflect_refract"
+test = false
+[[bin]]
+name = "soft_shadows"
+test = false
+[[bin]]
+name = "sphere_outline"
+test = false
+[[bin]]
+name = "teapot"
+test = false
+
+

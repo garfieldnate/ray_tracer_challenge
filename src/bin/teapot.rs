@@ -31,11 +31,12 @@ const CANVAS_HEIGHT: u32 = 300;
 fn main() {
     let args: Vec<String> = env::args().collect();
     let obj_file_path = Path::new(&args[1]);
+    let divide = &args[2] == "true";
 
     let light = get_light();
 
     let world = World {
-        objects: vec![Box::new(get_obj(obj_file_path))],
+        objects: vec![Box::new(get_obj(obj_file_path, divide))],
         light: Some(Box::new(light)),
     };
 
@@ -46,7 +47,7 @@ fn main() {
         view_transform(point!(0, 0, -2), point!(0, 0, 0), vector!(0, 1, 0)),
     );
 
-    let canvas = camera.render(world, 5);
+    let canvas = camera.render(world, 0);
     println!("{}", canvas.to_ppm());
 }
 
@@ -54,15 +55,17 @@ fn get_light() -> PointLight {
     PointLight::new(point!(-10, 100, -100), color!(1, 1, 1))
 }
 
-fn get_obj(obj_file_path: &Path) -> GroupShape {
+fn get_obj(obj_file_path: &Path, divide: bool) -> GroupShape {
     let file = File::open(obj_file_path).unwrap();
     let mut parse_results = parse_obj(file).unwrap();
     let mut teapot = parse_results.take_all_as_group().unwrap();
     eprintln!("Finished parsing obj");
     teapot.set_transformation(rotation_x(-PI / 2.));
     eprintln!("Finished transforming teapot");
-    teapot.divide(4);
-    eprintln!("Finished dividing teapot");
+    if divide {
+        teapot.divide(2);
+        eprintln!("Finished dividing teapot");
+    }
 
     teapot
 }

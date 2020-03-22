@@ -136,8 +136,7 @@ pub fn parse_obj<T: Read>(reader: T) -> Result<ObjParseResults, ParseError> {
                     normals.push(vector!(coordinates[0], coordinates[1], coordinates[2]))
                 }
             }
-            // parse a triangle line: vf usize usize usize
-            // Next: set flag that no more vertices may be read. Normalize all vertices, update tests. Then try making a scene with an OBJ file!
+            // parse a triangle line: f usize usize usize
             Some("f") => {
                 if !normalization_finished {
                     normalize_vertices(&mut vertices);
