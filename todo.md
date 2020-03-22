@@ -78,3 +78,5 @@ Notes from book about reflection/refraction:
         vector!(0., 0., 1.),
     ),
 What needs to happen: at the end of the method, tmax should be non--negative; otherwise, the ray misses. Currently, tmax can be a negative number, indicating an intersection *opposite* the ray's direction. This can happen because the rest of the intersection math is for a general line, not for a line segment or a mathematical ray.
+* Dragon YAML file: I don't think raw-bbox vs bbox makes sense. raw-bbox is only used by bbox, and a group with 1 shape has no use as far as I can tell. It *did* help me uncover a case not covered in the book:
+    * setting material on a group should propagate that material to its children
