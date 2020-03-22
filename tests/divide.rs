@@ -31,14 +31,30 @@ const CANVAS_HEIGHT: u32 = 300;
 
 #[test]
 fn main() {
-    let with_divide_canvas = get_canvas(true);
-    let without_divide_canvas = get_canvas(false);
+    let with_divide_world = get_world(true);
+    let without_divide_world = get_world(false);
 
-    assert_eq!(with_divide_canvas.to_ppm(), without_divide_canvas.to_ppm());
-    assert!(false);
+    let camera = Camera::new(
+        CANVAS_WIDTH,
+        CANVAS_HEIGHT,
+        1.,
+        view_transform(point!(0, 0, -2), point!(0, 0, 0), vector!(0, 1, 0)),
+    );
+    for y in 0..CANVAS_HEIGHT - 1 {
+        for x in 0..CANVAS_WIDTH - 1 {
+            let ray = camera.ray_for_pixel(x, y);
+            let color_divide = with_divide_world.color_at(ray, 0);
+            let color_no_divide = without_divide_world.color_at(ray, 0);
+            assert_eq!(
+                color_divide, color_no_divide,
+                "color mismatch at {},{}",
+                x, y
+            );
+        }
+    }
 }
 
-fn get_canvas(divide: bool) -> Canvas {
+fn get_world(divide: bool) -> World {
     let light = get_light();
     let world = World {
         objects: vec![Box::new(get_obj(
@@ -48,16 +64,7 @@ fn get_canvas(divide: bool) -> Canvas {
         light: Some(Box::new(light)),
     };
 
-    let camera = Camera::new(
-        CANVAS_WIDTH,
-        CANVAS_HEIGHT,
-        1.,
-        view_transform(point!(0, 0, -2), point!(0, 0, 0), vector!(0, 1, 0)),
-    );
-
-    let canvas = camera.render(world, 0);
-
-    canvas
+    world
 }
 fn get_light() -> PointLight {
     PointLight::new(point!(-10, 100, -100), color!(1, 1, 1))
