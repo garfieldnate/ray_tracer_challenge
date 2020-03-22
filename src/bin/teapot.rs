@@ -13,6 +13,7 @@ use ray_tracer_challenge::shape::group::GroupShape;
 use ray_tracer_challenge::shape::plane::Plane;
 use ray_tracer_challenge::shape::shape::Shape;
 use ray_tracer_challenge::shape::sphere::Sphere;
+use ray_tracer_challenge::shape::triangle::Triangle;
 use ray_tracer_challenge::transformations::rotation_x;
 use ray_tracer_challenge::transformations::scaling;
 use ray_tracer_challenge::transformations::translation;
@@ -68,4 +69,24 @@ fn get_obj(obj_file_path: &Path, divide: bool) -> GroupShape {
     }
 
     teapot
+
+    // Next: what's the difference between the above and the below?
+    // cargo run --release --bin teapot ~/Downloads/teapot-low.obj true > out_yes.ppm && cargo run --release --bin teapot ~/Downloads/teapot-low.obj false > out_no.ppm && open out_*.ppm
+    // let mut shape = GroupShape::new();
+    // shape.add_child(Box::new(Triangle::new(
+    //     point!(0.7, 0, 1),
+    //     point!(0.5, -1, 1),
+    //     point!(0.5, 0, 1),
+    // )));
+    // shape.add_child(Box::new(Triangle::new(
+    //     point!(-1, 1, 0),
+    //     point!(0.6, 0.6, 0.6),
+    //     point!(1, 0.7, -1),
+    // )));
+    // // println!("shape: {:?}", shape);
+    // if divide {
+    //     shape.divide(2);
+    // }
+
+    // shape
 }

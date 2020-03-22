@@ -14,6 +14,7 @@ use ray_tracer_challenge::shape::group::GroupShape;
 use ray_tracer_challenge::shape::plane::Plane;
 use ray_tracer_challenge::shape::shape::Shape;
 use ray_tracer_challenge::shape::sphere::Sphere;
+use ray_tracer_challenge::shape::triangle::Triangle;
 use ray_tracer_challenge::transformations::rotation_x;
 use ray_tracer_challenge::transformations::scaling;
 use ray_tracer_challenge::transformations::translation;
@@ -52,6 +53,7 @@ fn main() {
             );
         }
     }
+    assert!(false);
 }
 
 fn get_world(divide: bool) -> World {
@@ -74,13 +76,31 @@ fn get_obj(obj_file_path: &Path, divide: bool) -> GroupShape {
     let file = File::open(obj_file_path).unwrap();
     let mut parse_results = parse_obj(file).unwrap();
     let mut teapot = parse_results.take_all_as_group().unwrap();
-    eprintln!("Finished parsing obj");
-    teapot.set_transformation(rotation_x(-PI / 2.));
-    eprintln!("Finished transforming teapot");
+    println!("teapot: {:?}", teapot);
+    // v .7 0 1
+    // v .5 -1 1
+    // v .5 0 1
+    // v -1 1 0
+    // v .6 .6 .6
+    // v 1 .7 -1
+
+    // f 1 2 3
+    // f 4 5 6
+    let mut shape = GroupShape::new();
+    shape.add_child(Box::new(Triangle::new(
+        point!(0.7, 0, 1),
+        point!(0.5, -1, 1),
+        point!(0.5, 0, 1),
+    )));
+    shape.add_child(Box::new(Triangle::new(
+        point!(-1, 1, 0),
+        point!(0.6, 0.6, 0.6),
+        point!(1, 0.7, -1),
+    )));
+    println!("shape: {:?}", shape);
     if divide {
-        teapot.divide(2);
-        eprintln!("Finished dividing teapot");
+        shape.divide(2);
     }
 
-    teapot
+    shape
 }
