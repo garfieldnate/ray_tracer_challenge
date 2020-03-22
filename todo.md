@@ -1,5 +1,6 @@
 # TODO
 
+- Why do our glass CSG balls with subtracted cylinders look so wrong?
 - reduce mutability everywhere possible, including tests, using scoped mutability and also ..Default::default() syntax
 - Patterns
   - Make pattern compound, so that stripes can contain stripes, etc.
@@ -19,7 +20,6 @@
 
 ### Performance
 
-- Cache bounding boxes for CSG
 - auto-decide when a refract/reflect recursion should end. The reflect_refract binary is 10x faster at 5 instead of 20 but I don't see a visual difference. Seems like maybe we could check if something is close to 0.
 - (also ergonomics) see if we can replace trait objects with generics everywhere.
 - Triangle meshes as mentioned in the book, instead of simple groups
@@ -30,6 +30,7 @@
 
 ### Ergonomics
 
+- Should somehow require that a shape be made immutable ("lock") before allowing bounding boxes to be calculated, since GroupShape and CSG cache them
 - use `derivative` crate's functionality in more places
 - Parse more details of OBJ files, or at least ignore everything after / in polygon lines
 - Normalize OBJ inputs into a cube for easier handling: https://forum.raytracerchallenge.com/thread/27/triangle-mesh-normalization

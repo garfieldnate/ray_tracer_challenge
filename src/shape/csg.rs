@@ -4,6 +4,7 @@ use crate::ray::Ray;
 use crate::shape::base_shape::BaseShape;
 use crate::shape::shape::Shape;
 use crate::tuple::Tuple;
+use std::cell::RefCell;
 use std::cmp::Ordering::Equal;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -19,6 +20,7 @@ pub struct CSG {
     op: CSGOperator,
     s1: Box<dyn Shape>,
     s2: Box<dyn Shape>,
+    cached_bounding_box: RefCell<Option<BoundingBox>>,
 }
 
 impl CSG {
@@ -28,6 +30,7 @@ impl CSG {
             op,
             s1,
             s2,
+            cached_bounding_box: RefCell::new(None),
         }
     }
 
@@ -114,12 +117,16 @@ impl Shape for CSG {
     }
 
     fn bounding_box(&self) -> BoundingBox {
-        let mut b = BoundingBox::empty();
+        let mut cached_box = self.cached_bounding_box.borrow_mut();
+        cached_box.get_or_insert_with(|| {
+            let mut b = BoundingBox::empty();
 
-        b.add_bounding_box(self.s1.parent_space_bounding_box());
-        b.add_bounding_box(self.s2.parent_space_bounding_box());
+            b.add_bounding_box(self.s1.parent_space_bounding_box());
+            b.add_bounding_box(self.s2.parent_space_bounding_box());
 
-        b
+            b
+        });
+        cached_box.unwrap()
     }
 
     fn divide(&mut self, threshold: usize) {
