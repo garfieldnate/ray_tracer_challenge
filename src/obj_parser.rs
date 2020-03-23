@@ -33,12 +33,22 @@ impl ObjParseResults {
     pub fn take_all_as_group(&mut self) -> Option<GroupShape> {
         match self.groups {
             Some(ref mut groups) => {
-                let mut all_as_group = GroupShape::new();
-                for (_k, v) in groups.drain() {
-                    all_as_group.add_child(Box::new(v));
+                // if there's only one group, return it
+                if groups.len() == 1 {
+                    let only_group = groups.remove("").unwrap();
+                    self.groups = None;
+
+                    Some(only_group)
                 }
-                self.groups = None;
-                Some(all_as_group)
+                // otherwise, put all of the groups into one group and return that
+                else {
+                    let mut all_as_group = GroupShape::new();
+                    for (_k, v) in groups.drain() {
+                        all_as_group.add_child(Box::new(v));
+                    }
+                    self.groups = None;
+                    Some(all_as_group)
+                }
             }
             None => None,
         }
