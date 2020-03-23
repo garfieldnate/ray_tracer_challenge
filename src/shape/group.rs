@@ -43,28 +43,20 @@ impl GroupShape {
         self.children.push(child);
     }
 
+    // Meant ONLY to be used by divide because returned left and right children will
+    // still have the group's transform baked into their own.
     fn partition_children(&mut self) -> (Vec<Box<dyn Shape>>, Vec<Box<dyn Shape>>) {
-        // println!("Current whole shape bounds are {:?}", self.bounding_box());
         let (left_bounds, right_bounds) = self.bounding_box().split();
         let mut left = vec![];
         let mut right = vec![];
         let mut new_children = vec![];
         for c in self.children.drain(..) {
             let child_bounds = c.as_ref().parent_space_bounding_box();
-            // println!("testing child bounds {:?}", child_bounds);
-            // println!("left is {:?}", left_bounds);
-            // println!("right is {:?}", right_bounds);
             if left_bounds.contains_bounding_box(child_bounds) {
-                // println!("Child contained in left");
                 left.push(c);
             } else if right_bounds.contains_bounding_box(child_bounds) {
-                // println!("Child contained in right");
                 right.push(c);
             } else {
-                // println!(
-                //     "child bounds {:?} not contained in either half",
-                //     child_bounds
-                // );
                 new_children.push(c)
             }
         }
@@ -72,17 +64,15 @@ impl GroupShape {
         (left, right)
     }
 
+    // Meant ONLY to be used by divide because it does NOT push down this group's
+    // transformation (partition children left the transformation baked in).
     fn make_subgroup(&mut self, mut new_group_children: Vec<Box<dyn Shape>>) {
         // don't bother wrapping a single shape in another group object
         if new_group_children.len() == 1 {
-            self.add_child(new_group_children.remove(0));
+            self.children.push(new_group_children.remove(0));
         } else {
             let new_child = GroupShape::with_children(new_group_children);
-            // println!(
-            //     "make_subgroup: new child's id is {}",
-            //     new_child.get_unique_id()
-            // );
-            self.add_child(Box::new(new_child));
+            self.children.push(Box::new(new_child));
         }
     }
 }
@@ -552,5 +542,46 @@ mod tests {
             .map(|c| c.get_unique_id())
             .collect();
         assert_eq!(ids, vec![s2_id, s3_id]);
+    }
+
+    #[test]
+    fn divide_preserves_pushed_down_transformation() {
+        let mut s1 = Sphere::new();
+        s1.set_transformation(translation(-2., 0., 0.));
+
+        let mut s2 = Sphere::new();
+        s2.set_transformation(translation(2., -1., 0.));
+
+        let mut s3 = Sphere::new();
+        s3.set_transformation(translation(2., 1., 0.));
+
+        let mut group = GroupShape::new();
+        group.set_transformation(translation(1., 1., 0.));
+        group.add_child(Box::new(s1));
+        group.add_child(Box::new(s2));
+        group.add_child(Box::new(s3));
+
+        // we expect the transformation to be passed down to the children; this
+        // should not change when the group is divided
+        group.divide(2);
+
+        assert_eq!(
+            group.get_children()[0].transformation(),
+            &translation(-1., 1., 0.),
+            "s1 transformation should be preserved during division"
+        );
+        let subgroup = group.get_children()[1]
+            .downcast_ref::<GroupShape>()
+            .unwrap();
+        assert_eq!(
+            subgroup.get_children()[0].transformation(),
+            &translation(3., 0., 0.),
+            "s2 transformation should be preserved during division"
+        );
+        assert_eq!(
+            subgroup.get_children()[1].transformation(),
+            &translation(3., 2., 0.),
+            "s3 transformation should be preserved during division"
+        );
     }
 }
