@@ -33,12 +33,22 @@ impl ObjParseResults {
     pub fn take_all_as_group(&mut self) -> Option<GroupShape> {
         match self.groups {
             Some(ref mut groups) => {
-                let mut all_as_group = GroupShape::new();
-                for (_k, v) in groups.drain() {
-                    all_as_group.add_child(Box::new(v));
+                // if there's only one group, return it
+                if groups.len() == 1 {
+                    let (_, only_group) = groups.drain().next().unwrap();
+                    self.groups = None;
+
+                    Some(only_group)
                 }
-                self.groups = None;
-                Some(all_as_group)
+                // otherwise, put all of the groups into one group and return that
+                else {
+                    let mut all_as_group = GroupShape::new();
+                    for (_k, v) in groups.drain() {
+                        all_as_group.add_child(Box::new(v));
+                    }
+                    self.groups = None;
+                    Some(all_as_group)
+                }
             }
             None => None,
         }
@@ -439,6 +449,46 @@ mod tests {
         assert_eq!(t2.p1, point!(-1, 1, 0));
         // assert_eq!(t2.p2, point!(1, 0, 0));
         // assert_eq!(t2.p3, point!(1, 1, 0));
+    }
+
+    #[test]
+    fn converting_obj_with_one_group_to_group() {
+        let text = "
+        v .7 0 1
+        v .5 -1 1
+        v .5 0 1
+        v -1 1 0
+        v .6 .6 .6
+        v 1 .7 -1
+
+        f 1 2 3
+        f 4 5 6
+        ";
+
+        // when we take all as group, and there is only one group, that group
+        // should simply be returned without wrapping it in another GroupShape object
+        let mut results = parse_obj(text.as_bytes()).unwrap();
+        let group = results.take_all_as_group().unwrap();
+        assert_eq!(group.get_children().len(), 2, "Default group is returned");
+
+        let text = "
+        v .7 0 1
+        v .5 -1 1
+        v .5 0 1
+        v -1 1 0
+        v .6 .6 .6
+        v 1 .7 -1
+
+        g TestGroup
+        f 1 2 3
+        f 4 5 6
+        ";
+
+        // when we take all as group, and there is only one group, that group
+        // should simply be returned without wrapping it in another GroupShape object
+        let mut results = parse_obj(text.as_bytes()).unwrap();
+        let group = results.take_all_as_group().unwrap();
+        assert_eq!(group.get_children().len(), 2, "Named group is returned");
     }
 
     #[test]
