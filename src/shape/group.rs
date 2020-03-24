@@ -138,11 +138,6 @@ impl Shape for GroupShape {
                 let child_box = child.parent_space_bounding_box();
                 b.add_bounding_box(child_box);
             }
-            eprintln!(
-                "Calculated bounding box for group {} to be {:?}",
-                self.get_unique_id(),
-                b
-            );
             b
         });
         cached_box.unwrap()
