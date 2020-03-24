@@ -138,9 +138,20 @@ impl Shape for GroupShape {
                 let child_box = child.parent_space_bounding_box();
                 b.add_bounding_box(child_box);
             }
+            eprintln!(
+                "Calculated bounding box for group {} to be {:?}",
+                self.get_unique_id(),
+                b
+            );
             b
         });
         cached_box.unwrap()
+    }
+
+    fn parent_space_bounding_box(&self) -> BoundingBox {
+        // transformation for self is always pushed down to children, so we can't use shape's default implementation here.
+        // TODO: put self.transformation in a separate field so that we don't have to override this here.
+        self.bounding_box()
     }
 
     fn divide(&mut self, threshold: usize) {
@@ -367,6 +378,26 @@ mod tests {
 
         assert_eq!(b.min, point!(-4.5, -3, -5));
         assert_eq!(b.max, point!(4, 7, 4.5));
+    }
+
+    #[test]
+    fn group_parent_space_bounding_box_ignores_passed_down_transformation() {
+        let mut s = Sphere::new();
+        s.set_transformation(scaling(2., 2., 2.));
+
+        let mut c = Cylinder::new();
+        c.minimum_y = -1.;
+        c.maximum_y = 1.;
+        c.set_transformation(scaling(2., 2., 2.));
+
+        let mut shape = GroupShape::new();
+        shape.add_child(Box::new(s));
+        shape.add_child(Box::new(c));
+        shape.set_transformation(scaling(0.5, 0.5, 0.5));
+
+        let b1 = shape.bounding_box();
+        let b2 = shape.parent_space_bounding_box();
+        assert_eq!(b1, b2);
     }
 
     #[test]
