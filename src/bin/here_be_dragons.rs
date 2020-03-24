@@ -139,8 +139,6 @@ fn get_dragon(dragon_file_path: &Path) -> GroupShape {
     dragon.set_transformation(translation(0., 0.69, 0.));
 
     eprintln!("Finished parsing dragon");
-    dragon.divide(4);
-    eprintln!("Finished dividing dragon");
 
     dragon
 }
@@ -168,7 +166,21 @@ fn get_dragon(dragon_file_path: &Path) -> GroupShape {
 //             refractive-index: 1
 fn get_scene_element(dragon_file_path: &Path) -> GroupShape {
     let mut element = GroupShape::new();
-    // element.set_transformation(translation(0., 2., 0.));
+    let center_front_transform = identity_4x4();
+    let center_back_transform = translation(0., 2., 2.);
+    //         - [ rotate-y, -0.4 ]
+    //         - [ scale, 0.75, 0.75, 0.75 ]
+    let middle_left_transform = translation(-2., 0.75, -1.);
+    //         - [ rotate-y, -0.2 ]
+    //         - [ scale, 0.5, 0.5, 0.5 ]
+    let left_transform = translation(-4., 0., -2.);
+    //         - [ rotate-y, 3.3 ]
+    //         - [ scale, 0.5, 0.5, 0.5 ]
+    let right_transform = translation(4., 0., -2.);
+    //         - [ rotate-y, 4 ]
+    //         - [ scale, 0.75, 0.75, 0.75 ]
+    let center_right_transform = translation(2., 1., -1.);
+    element.set_transformation(center_right_transform);
 
     let mut dragon = get_dragon(dragon_file_path);
     let mut dragon_material = Material::default();
@@ -194,6 +206,9 @@ fn get_scene_element(dragon_file_path: &Path) -> GroupShape {
 
     element.add_child(Box::new(dragon_box));
     element.add_child(Box::new(get_pedestal()));
+
+    element.divide(4);
+    eprintln!("Finished dividing element");
 
     element
 }
