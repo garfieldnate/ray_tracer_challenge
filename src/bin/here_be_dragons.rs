@@ -42,8 +42,8 @@ fn main() {
 
     let world = World {
         objects: vec![
-            // Box::new(get_scene_element(dragon_file_path)),
-            Box::new(get_dragon(dragon_file_path))
+            Box::new(get_scene_element(dragon_file_path)),
+            // Box::new(get_dragon(dragon_file_path))
             // Box::new(get_floor()),
             // Box::new(get_sphere_1()),
             // Box::new(get_sphere_2()),
@@ -101,26 +101,9 @@ fn get_light() -> PointLight {
 fn get_raw_bbox() -> Cube {
     let mut c = Cube::new();
     c.set_casts_shadow(false);
-    c.set_transformation(
-        &translation(-3.9863, -0.1217, -1.1820)
-            * &(&scaling(3.73335, 2.5845, 1.6283) * &translation(1., 1., 1.)),
-    );
+    c.set_transformation(&translation(-3.9863, -0.1217, -1.1820) * &translation(1., 1., 1.));
 
     c
-}
-
-// - define: bbox
-//   value:
-//     add: raw-bbox
-//     transform:
-//       - [ translate, 0, 0.1217, 0]
-//       - [ scale, 0.268, 0.268, 0.268 ]
-fn get_bbox() -> GroupShape {
-    let mut g = GroupShape::new();
-    g.add_child(Box::new(get_raw_bbox()));
-    g.set_transformation(&scaling(0.268, 0.268, 0.268) * &translation(0., 0.1217, 0.));
-
-    g
 }
 
 // - define: pedestal
@@ -138,7 +121,7 @@ fn get_bbox() -> GroupShape {
 fn get_pedestal() -> Cylinder {
     let mut c = Cylinder::new();
     c.maximum_y = 0.;
-    c.minimum_y = -0.15;
+    c.minimum_y = -15.;
     c.closed = true;
 
     let mut m = Material::default();
@@ -147,6 +130,7 @@ fn get_pedestal() -> Cylinder {
     m.diffuse = 0.8;
     m.specular = 0.;
     m.reflective = 0.2;
+    m.transparency = 0.9;
     c.set_material(m);
 
     c
@@ -164,10 +148,10 @@ fn get_dragon(dragon_file_path: &Path) -> GroupShape {
     let mut parse_results = parse_obj(file).unwrap();
     let mut dragon = parse_results.take_all_as_group().unwrap();
     eprintln!("Finished parsing dragon");
+    // put the teapot right-side-up
+    // dragon.set_transformation(rotation_x(PI/2.));
+    // dragon.set_transformation(translation(0., 1., 0.));
     // dragon.set_transformation(&scaling(0.268, 0.268, 0.268) * &translation(0., 0.1217, 0.));
-
-    dragon.divide(4);
-    eprintln!("Finished dividing dragon");
 
     dragon
 }
@@ -194,9 +178,6 @@ fn get_dragon(dragon_file_path: &Path) -> GroupShape {
 //             transparency: 0.6
 //             refractive-index: 1
 fn get_scene_element(dragon_file_path: &Path) -> GroupShape {
-    let mut element = GroupShape::new();
-    element.set_transformation(translation(0., 2., 0.));
-
     let mut dragon = get_dragon(dragon_file_path);
     let mut dragon_material = Material::default();
     dragon_material.color = color!(1., 0., 0.1);
@@ -206,21 +187,37 @@ fn get_scene_element(dragon_file_path: &Path) -> GroupShape {
     dragon_material.shininess = 15.;
     dragon.set_material(dragon_material);
 
-    let mut display_case = get_bbox();
-    let mut case_material = Material::default();
-    case_material.ambient = 0.;
-    case_material.diffuse = 0.4;
-    case_material.specular = 0.;
-    case_material.transparency = 0.6;
-    case_material.refractive_index = 1.;
-    display_case.set_material(case_material);
+    // let mut display_case = get_raw_bbox();
+    // let mut case_material = Material::default();
+    // case_material.ambient = 0.;
+    // case_material.diffuse = 0.4;
+    // case_material.specular = 0.;
+    // case_material.transparency = 0.6;
+    // case_material.refractive_index = 1.;
+    // display_case.set_material(case_material);
 
-    let mut dragon_box = GroupShape::new();
-    dragon_box.add_child(Box::new(dragon));
-    dragon_box.add_child(Box::new(display_case));
+    let pedestal = get_pedestal();
 
-    element.add_child(Box::new(dragon_box));
-    element.add_child(Box::new(get_pedestal()));
+    // let mut dragon_box = GroupShape::new();
+    // dragon_box.add_child(Box::new(dragon));
+    // dragon_box.add_child(Box::new(display_case));
+
+    let mut element = GroupShape::new();
+    element.set_transformation(translation(0., 2., 0.));
+    eprintln!("element id: {}", element.get_unique_id());
+
+    // element.add_child(Box::new(dragon_box));
+    eprintln!(
+        "adding children dragon {} and pedestal {}",
+        dragon.get_unique_id(),
+        pedestal.get_unique_id()
+    );
+    element.add_child(Box::new(dragon));
+    element.add_child(Box::new(pedestal));
+
+    // eprintln!("Dividing element...");
+    // element.divide(4);
+    // eprintln!("Finished dividing element");
 
     element
 }

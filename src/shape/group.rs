@@ -132,6 +132,10 @@ impl Shape for GroupShape {
     fn bounding_box(&self) -> BoundingBox {
         let mut cached_box = self.cached_bounding_box.borrow_mut();
         cached_box.get_or_insert_with(|| {
+            eprintln!(
+                "Calculating bounding box for group {}...",
+                self.get_unique_id()
+            );
             let mut b = BoundingBox::empty();
 
             for child in &mut self.children.iter() {

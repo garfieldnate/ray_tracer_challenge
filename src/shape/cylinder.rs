@@ -72,6 +72,10 @@ impl Shape for Cylinder {
     }
 
     fn bounding_box(&self) -> BoundingBox {
+        eprintln!(
+            "getting bounding box for cylinder {}...",
+            self.get_unique_id()
+        );
         BoundingBox {
             min: point!(-1, self.minimum_y, -1),
             max: point!(1, self.maximum_y, 1),
