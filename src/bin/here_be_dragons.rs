@@ -93,10 +93,9 @@ fn get_light() -> PointLight {
 fn get_display_case() -> Cube {
     let mut c = Cube::new();
     c.set_casts_shadow(false);
-    // c.set_transformation(
-    //     &translation(-3.9863, -0.1217, -1.1820)
-    //         * &(&scaling(3.73335, 2.5845, 1.6283) * &translation(1., 1., 1.)),
-    // );
+    // scale cube to fit the dragon model inside comfortably; translate up to sit on the pedestal
+    // extra 0.001 is to avoid salt and pepper noise on shared boundary with pedestal
+    c.set_transformation(&scaling(1.1, 0.77, 0.49) * &translation(0., 1.001, 0.));
 
     c
 }
@@ -135,7 +134,9 @@ fn get_dragon(dragon_file_path: &Path) -> GroupShape {
     let mut parse_results = parse_obj(file).unwrap();
     let mut dragon = parse_results.take_all_as_group().unwrap();
     // lift dragon so that it sits on the pedestal
-    // raw bounds were dragon { min: Tuple { x: -1.0, y: -0.6922653, z: -0.4361561, w: 1.0 }, max: Tuple { x: 0.99999994, y: 0.6922653, z: 0.4361561, w: 1.0 } }
+    // raw normalized OBJ bounds were:
+    //     min: Tuple { x: -1.0, y: -0.6922653, z: -0.4361561, w: 1.0 }
+    //     max: Tuple { x: 0.99999994, y: 0.6922653, z: 0.4361561, w: 1.0 } }
     dragon.set_transformation(translation(0., 0.69, 0.));
 
     eprintln!("Finished parsing dragon");
@@ -167,6 +168,15 @@ fn get_dragon(dragon_file_path: &Path) -> GroupShape {
 fn get_scene_element(dragon_file_path: &Path) -> GroupShape {
     let mut element = GroupShape::new();
     let center_front_transform = identity_4x4();
+    let center_front_dragon_material = {
+        let mut m = Material::default();
+        m.color = color!(1, 0, 0.1);
+        m.ambient = 0.1;
+        m.diffuse = 0.6;
+        m.specular = 0.3;
+        m.shininess = 15.;
+        m
+    };
     let center_back_transform = translation(0., 2., 2.);
     //         - [ rotate-y, -0.4 ]
     //         - [ scale, 0.75, 0.75, 0.75 ]
@@ -180,16 +190,11 @@ fn get_scene_element(dragon_file_path: &Path) -> GroupShape {
     //         - [ rotate-y, 4 ]
     //         - [ scale, 0.75, 0.75, 0.75 ]
     let center_right_transform = translation(2., 1., -1.);
-    element.set_transformation(center_right_transform);
+    element.set_transformation(center_front_transform);
 
     let mut dragon = get_dragon(dragon_file_path);
-    let mut dragon_material = Material::default();
-    dragon_material.color = color!(1., 0., 0.1);
-    dragon_material.ambient = 0.1;
-    dragon_material.diffuse = 0.6;
-    dragon_material.specular = 0.3;
-    dragon_material.shininess = 15.;
-    dragon.set_material(dragon_material);
+    eprintln!("Setting dragon material...");
+    dragon.set_material(center_front_dragon_material);
 
     let mut display_case = get_display_case();
     let mut case_material = Material::default();
@@ -202,11 +207,12 @@ fn get_scene_element(dragon_file_path: &Path) -> GroupShape {
 
     let mut dragon_box = GroupShape::new();
     dragon_box.add_child(Box::new(dragon));
-    // dragon_box.add_child(Box::new(display_case));
+    dragon_box.add_child(Box::new(display_case));
 
     element.add_child(Box::new(dragon_box));
     element.add_child(Box::new(get_pedestal()));
 
+    eprintln!("Dividing element...");
     element.divide(4);
     eprintln!("Finished dividing element");
 
