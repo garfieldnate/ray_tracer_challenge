@@ -1,5 +1,6 @@
 use crate::bounding_box::BoundingBox;
 use crate::intersection::Intersection;
+use crate::material::Material;
 use crate::matrix::Matrix;
 use crate::ray::Ray;
 use crate::shape::base_shape::BaseShape;
@@ -89,6 +90,13 @@ impl Shape for GroupShape {
             true
         } else {
             self.children.iter().any(|s| s.as_ref().includes(other))
+        }
+    }
+    // just pass the material on to the children
+    // TODO: could be very inefficient for large groups
+    fn set_material(&mut self, m: Material) {
+        for child in &mut self.children.iter_mut() {
+            child.set_material(m.clone());
         }
     }
     fn set_transformation(&mut self, t: Matrix) {
@@ -193,6 +201,25 @@ mod tests {
             s_address,
             " and the one child should be s"
         );
+    }
+
+    #[test]
+    fn material_is_propagated_to_children() {
+        let mut g = GroupShape::with_children(vec![
+            Box::new(Sphere::new()),
+            Box::new(Sphere::new()),
+            Box::new(Sphere::new()),
+        ]);
+        let group_shininess = 123.456;
+        let m = {
+            let mut m = Material::default();
+            m.shininess = group_shininess;
+            m
+        };
+        g.set_material(m);
+        for c in g.get_children().iter() {
+            assert_eq!(c.material().shininess, group_shininess);
+        }
     }
 
     #[test]
