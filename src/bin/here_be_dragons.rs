@@ -4,18 +4,15 @@
 
 use ray_tracer_challenge::camera::Camera;
 use ray_tracer_challenge::color::Color;
-use ray_tracer_challenge::constants::red;
-use ray_tracer_challenge::constants::white;
 use ray_tracer_challenge::light::point_light::PointLight;
 use ray_tracer_challenge::material::Material;
 use ray_tracer_challenge::matrix::identity_4x4;
+use ray_tracer_challenge::matrix::Matrix;
 use ray_tracer_challenge::obj_parser::parse_obj;
 use ray_tracer_challenge::shape::cube::Cube;
 use ray_tracer_challenge::shape::cylinder::Cylinder;
 use ray_tracer_challenge::shape::group::GroupShape;
-use ray_tracer_challenge::shape::plane::Plane;
 use ray_tracer_challenge::shape::shape::Shape;
-use ray_tracer_challenge::shape::sphere::Sphere;
 use ray_tracer_challenge::transformations::scaling;
 use ray_tracer_challenge::transformations::translation;
 use ray_tracer_challenge::transformations::view_transform;
@@ -40,14 +37,59 @@ fn main() {
 
     let light = get_light();
 
+    let center_front_transform = translation(0., 0., -2.);
+    let center_front_dragon_material = {
+        let mut m = Material::default();
+        m.color = color!(1, 0, 0.1);
+        m.ambient = 0.1;
+        m.diffuse = 0.6;
+        m.specular = 0.3;
+        m.shininess = 15.;
+        m
+    };
+    let center_back_transform = translation(0., 2., 2.);
+    //         - [ rotate-y, -0.4 ]
+    //         - [ scale, 0.75, 0.75, 0.75 ]
+    let center_left_transform = translation(-2., 0.75, -1.);
+    //         - [ rotate-y, -0.2 ]
+    //         - [ scale, 0.5, 0.5, 0.5 ]
+    let left_transform = translation(-4., 0., -2.);
+    //         - [ rotate-y, 3.3 ]
+    //         - [ scale, 0.5, 0.5, 0.5 ]
+    let right_transform = translation(4., 0., -2.);
+    //         - [ rotate-y, 4 ]
+    //         - [ scale, 0.75, 0.75, 0.75 ]
+    let center_right_transform = translation(2., 1., -1.);
+
+    let mut element_data = vec![
+        (center_front_transform, center_front_dragon_material),
+        (center_back_transform, Material::default()),
+        (center_left_transform, Material::default()),
+        (left_transform, Material::default()),
+        (center_right_transform, Material::default()),
+        (right_transform, Material::default()),
+    ];
+
+    // TODO: why doesn't the lifetime checker allow this instead of the for loop?
+    // let objects: Vec<Box<dyn Shape>> = element_data
+    //     .drain(0..)
+    //     .map(|(element_transform, dragon_material)| {
+    //         get_scene_element(dragon_file_path, element_transform, dragon_material)
+    //     })
+    //     .map(|el| Box::new(el))
+    //     .collect::<Vec<Box<dyn Shape>>>();
+    let mut objects: Vec<Box<dyn Shape>> = vec![];
+    for (element_transform, dragon_material) in element_data {
+        let element = get_scene_element(dragon_file_path, element_transform, dragon_material);
+        objects.push(Box::new(element));
+    }
+
     let world = World {
-        objects: vec![
-            Box::new(get_scene_element(dragon_file_path)),
-            // Box::new(get_dragon(dragon_file_path))
-            // Box::new(get_floor()),
-            // Box::new(get_sphere_1()),
-            // Box::new(get_sphere_2()),
-        ],
+        objects,
+        // Box::new(get_dragon(dragon_file_path))
+        // Box::new(get_floor()),
+        // Box::new(get_sphere_1()),
+        // Box::new(get_sphere_2()),
         light: Some(Box::new(light)),
     };
 
@@ -165,36 +207,17 @@ fn get_dragon(dragon_file_path: &Path) -> GroupShape {
 //             specular: 0
 //             transparency: 0.6
 //             refractive-index: 1
-fn get_scene_element(dragon_file_path: &Path) -> GroupShape {
+fn get_scene_element(
+    dragon_file_path: &Path,
+    element_transform: Matrix,
+    dragon_material: Material,
+) -> GroupShape {
     let mut element = GroupShape::new();
-    let center_front_transform = identity_4x4();
-    let center_front_dragon_material = {
-        let mut m = Material::default();
-        m.color = color!(1, 0, 0.1);
-        m.ambient = 0.1;
-        m.diffuse = 0.6;
-        m.specular = 0.3;
-        m.shininess = 15.;
-        m
-    };
-    let center_back_transform = translation(0., 2., 2.);
-    //         - [ rotate-y, -0.4 ]
-    //         - [ scale, 0.75, 0.75, 0.75 ]
-    let middle_left_transform = translation(-2., 0.75, -1.);
-    //         - [ rotate-y, -0.2 ]
-    //         - [ scale, 0.5, 0.5, 0.5 ]
-    let left_transform = translation(-4., 0., -2.);
-    //         - [ rotate-y, 3.3 ]
-    //         - [ scale, 0.5, 0.5, 0.5 ]
-    let right_transform = translation(4., 0., -2.);
-    //         - [ rotate-y, 4 ]
-    //         - [ scale, 0.75, 0.75, 0.75 ]
-    let center_right_transform = translation(2., 1., -1.);
-    element.set_transformation(center_front_transform);
+    element.set_transformation(element_transform);
 
     let mut dragon = get_dragon(dragon_file_path);
     eprintln!("Setting dragon material...");
-    dragon.set_material(center_front_dragon_material);
+    dragon.set_material(dragon_material);
 
     let mut display_case = get_display_case();
     let mut case_material = Material::default();
