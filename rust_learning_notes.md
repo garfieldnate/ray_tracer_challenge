@@ -44,4 +44,6 @@ Also don't forget to put this in your Cargo.toml:
 * Using MyStruct::new() in a file where it is imported, VS code cannot suggest what to import
 * Oh my gosh waiting for full recompilation everytime I change something, between every accepted suggestion, is awful! No suggestions work while compiling.
 * Sometimes have to restart to properly analyze a file. Particularly, when creating a new file in the bin directory, it won't be analyzed until restarting VS Code.
-*
+
+## Preview Bug
+Sometimes Preview copies the wrong image to the clipboard. Usually happens when I'm generating the same image multiple times with the same name. The display will be correct, but when I go to copy, I still get the old image.
