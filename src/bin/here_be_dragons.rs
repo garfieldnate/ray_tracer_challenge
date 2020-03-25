@@ -6,19 +6,20 @@ use ray_tracer_challenge::camera::Camera;
 use ray_tracer_challenge::color::Color;
 use ray_tracer_challenge::light::point_light::PointLight;
 use ray_tracer_challenge::material::Material;
-use ray_tracer_challenge::matrix::identity_4x4;
 use ray_tracer_challenge::matrix::Matrix;
 use ray_tracer_challenge::obj_parser::parse_obj;
 use ray_tracer_challenge::shape::cube::Cube;
 use ray_tracer_challenge::shape::cylinder::Cylinder;
 use ray_tracer_challenge::shape::group::GroupShape;
 use ray_tracer_challenge::shape::shape::Shape;
+use ray_tracer_challenge::transformations::rotation_y;
 use ray_tracer_challenge::transformations::scaling;
 use ray_tracer_challenge::transformations::translation;
 use ray_tracer_challenge::transformations::view_transform;
 use ray_tracer_challenge::tuple::Tuple;
 use ray_tracer_challenge::world::World;
 use ray_tracer_challenge::{color, point, vector};
+use std::f32::consts::PI;
 use std::{env, fs::File, path::Path};
 
 // To render larger, be sure to use an optimized (release) build and give it up to a minute to finish
@@ -37,10 +38,7 @@ fn main() {
 
     let light = get_light();
 
-    // TODO: no display case for this one
-    let center_front_transform = translation(0., 0.5, -4.);
-    //   transform:
-    //     - [ rotate-y, 3.1415 ]
+    let center_front_transform = &translation(0., 0.5, -4.) * &rotation_y(PI);
     let center_front_dragon_material = {
         let mut m = Material::default();
         m.color = color!(1, 1, 1);
@@ -50,16 +48,10 @@ fn main() {
         m.shininess = 15.;
         m
     };
+    let center_front_case_material = None;
 
     let center_back_transform = translation(0., 2., 2.);
-    //         - add: bbox
-    //           material:
-    //             ambient: 0
-    //             diffuse: 0.4
-    //             specular: 0
-    //             transparency: 0.6
-    //             refractive-index: 1
-    let center_back_material = {
+    let center_back_dragon_material = {
         let mut m = Material::default();
         m.color = color!(1, 0, 0.1);
         m.ambient = 0.1;
@@ -68,17 +60,18 @@ fn main() {
         m.shininess = 15.;
         m
     };
-    //         - [ rotate-y, -0.4 ]
-    //         - [ scale, 0.75, 0.75, 0.75 ]
-    let center_left_transform = translation(-2., 0.75, -1.);
-    //         - add: bbox
-    //           material:
-    //             ambient: 0
-    //             diffuse: 0.2
-    //             specular: 0
-    //             transparency: 0.8
-    //             refractive-index: 1
-    let center_left_material = {
+    let center_back_case_material = {
+        let mut m = Material::default();
+        m.ambient = 0.;
+        m.diffuse = 0.4;
+        m.specular = 0.;
+        m.transparency = 0.6;
+
+        Some(m)
+    };
+    let center_left_transform =
+        &translation(-2., 0.75, -1.) * &(&rotation_y(-PI / 8.) * &scaling(0.75, 0.75, 0.75));
+    let center_left_dragon_material = {
         let mut m = Material::default();
         m.color = color!(0.9, 0.5, 0.1);
         m.ambient = 0.1;
@@ -87,17 +80,18 @@ fn main() {
         m.shininess = 15.;
         m
     };
-    //         - [ rotate-y, -0.2 ]
-    //         - [ scale, 0.5, 0.5, 0.5 ]
-    let left_transform = translation(-4., 0., -2.);
-    //         - add: bbox
-    //           material:
-    //             ambient: 0
-    //             diffuse: 0.1
-    //             specular: 0
-    //             transparency: 0.9
-    //             refractive-index: 1
-    let left_material = {
+    let center_left_case_material = {
+        let mut m = Material::default();
+        m.ambient = 0.;
+        m.diffuse = 0.2;
+        m.specular = 0.;
+        m.transparency = 0.8;
+
+        Some(m)
+    };
+    let left_transform =
+        &translation(-4., 0., -2.) * &(&rotation_y(-PI / 16.) * &scaling(0.5, 0.5, 0.5));
+    let left_dragon_material = {
         let mut m = Material::default();
         m.color = color!(1, 0.9, 0.1);
         m.ambient = 0.1;
@@ -107,17 +101,18 @@ fn main() {
 
         m
     };
-    //         - [ rotate-y, 3.3 ]
-    //         - [ scale, 0.5, 0.5, 0.5 ]
-    let right_transform = translation(4., 0., -2.);
-    //         - add: bbox
-    //           material:
-    //             ambient: 0
-    //             diffuse: 0.1
-    //             specular: 0
-    //             transparency: 0.9
-    //             refractive-index: 1
-    let right_material = {
+    let left_case_material = {
+        let mut m = Material::default();
+        m.ambient = 0.;
+        m.diffuse = 0.1;
+        m.specular = 0.;
+        m.transparency = 0.9;
+
+        Some(m)
+    };
+    let right_transform =
+        &translation(4., 0., -2.) * &(&rotation_y(21. * PI / 20.) * &scaling(0.5, 0.5, 0.5));
+    let right_dragon_material = {
         let mut m = Material::default();
         m.color = color!(0.9, 1, 0.1);
         m.ambient = 0.1;
@@ -127,17 +122,18 @@ fn main() {
 
         m
     };
-    //         - [ rotate-y, 4 ]
-    //         - [ scale, 0.75, 0.75, 0.75 ]
-    let center_right_transform = translation(2., 1., -1.);
-    //         - add: bbox
-    //           material:
-    //             ambient: 0
-    //             diffuse: 0.2
-    //             specular: 0
-    //             transparency: 0.8
-    //             refractive-index: 1
-    let center_right_material = {
+    let right_case_material = {
+        let mut m = Material::default();
+        m.ambient = 0.;
+        m.diffuse = 0.1;
+        m.specular = 0.;
+        m.transparency = 0.9;
+
+        Some(m)
+    };
+    let center_right_transform =
+        &translation(2., 1., -1.) * &(&rotation_y(5. * PI / 4.) * &scaling(0.75, 0.75, 0.75));
+    let center_right_dragon_material = {
         let mut m = Material::default();
         m.color = color!(1, 0.5, 0.1);
         m.ambient = 0.1;
@@ -147,36 +143,56 @@ fn main() {
 
         m
     };
+    let center_right_case_material = {
+        let mut m = Material::default();
+        m.ambient = 0.;
+        m.diffuse = 0.2;
+        m.specular = 0.;
+        m.transparency = 0.8;
+
+        Some(m)
+    };
 
     let mut element_data = vec![
-        (center_front_transform, center_front_dragon_material),
-        (center_back_transform, center_back_material),
-        (center_left_transform, center_left_material),
-        (left_transform, left_material),
-        (center_right_transform, center_right_material),
-        (right_transform, right_material),
+        (
+            center_front_transform,
+            center_front_dragon_material,
+            center_front_case_material,
+        ),
+        (
+            center_back_transform,
+            center_back_dragon_material,
+            center_back_case_material,
+        ),
+        (
+            center_left_transform,
+            center_left_dragon_material,
+            center_left_case_material,
+        ),
+        (left_transform, left_dragon_material, left_case_material),
+        (
+            center_right_transform,
+            center_right_dragon_material,
+            center_right_case_material,
+        ),
+        (right_transform, right_dragon_material, right_case_material),
     ];
 
-    // TODO: why doesn't the lifetime checker allow this instead of the for loop?
-    // let objects: Vec<Box<dyn Shape>> = element_data
-    //     .drain(0..)
-    //     .map(|(element_transform, dragon_material)| {
-    //         get_scene_element(dragon_file_path, element_transform, dragon_material)
-    //     })
-    //     .map(|el| Box::new(el))
-    //     .collect::<Vec<Box<dyn Shape>>>();
-    let mut objects: Vec<Box<dyn Shape>> = vec![];
-    for (element_transform, dragon_material) in element_data {
-        let element = get_scene_element(dragon_file_path, element_transform, dragon_material);
-        objects.push(Box::new(element));
-    }
+    let objects: Vec<Box<dyn Shape>> = element_data
+        .drain(0..)
+        .map(|(element_transform, dragon_material, case_material)| {
+            get_scene_element(
+                dragon_file_path,
+                element_transform,
+                dragon_material,
+                case_material,
+            )
+        })
+        .map(|el| Box::new(el) as _)
+        .collect();
 
     let world = World {
         objects,
-        // Box::new(get_dragon(dragon_file_path))
-        // Box::new(get_floor()),
-        // Box::new(get_sphere_1()),
-        // Box::new(get_sphere_2()),
         light: Some(Box::new(light)),
     };
 
@@ -277,6 +293,7 @@ fn get_scene_element(
     dragon_file_path: &Path,
     element_transform: Matrix,
     dragon_material: Material,
+    display_case_material: Option<Material>,
 ) -> GroupShape {
     let mut element = GroupShape::new();
     element.set_transformation(element_transform);
@@ -285,18 +302,21 @@ fn get_scene_element(
     eprintln!("Setting dragon material...");
     dragon.set_material(dragon_material);
 
-    let mut display_case = get_display_case();
-    let mut case_material = Material::default();
-    case_material.ambient = 0.;
-    case_material.diffuse = 0.4;
-    case_material.specular = 0.;
-    case_material.transparency = 0.6;
-    case_material.refractive_index = 1.;
-    display_case.set_material(case_material);
+    let dragon_box = {
+        match display_case_material {
+            Some(m) => {
+                let mut display_case = get_display_case();
+                display_case.set_material(m);
 
-    let mut dragon_box = GroupShape::new();
-    dragon_box.add_child(Box::new(dragon));
-    dragon_box.add_child(Box::new(display_case));
+                let mut dragon_box = GroupShape::new();
+                dragon_box.add_child(Box::new(dragon));
+                dragon_box.add_child(Box::new(display_case));
+
+                dragon_box
+            }
+            None => dragon,
+        }
+    };
 
     element.add_child(Box::new(dragon_box));
     element.add_child(Box::new(get_pedestal()));
