@@ -4,6 +4,7 @@ use crate::constants::white;
 use crate::pattern::pattern::BasePattern;
 use crate::pattern::pattern::Pattern;
 use crate::tuple::Tuple;
+use std::f32::consts::PI;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct UVCheckers {
@@ -55,9 +56,40 @@ impl Default for UVCheckers {
     }
 }
 
+pub fn spherical_map(p: Tuple) -> (f32, f32) {
+    // compute the azimuthal angle -π < θ <= π
+    // angle increases clockwise as viewed from above,
+    // which is opposite of what we want, but we'll fix it later.
+    let theta = p.x.atan2(p.z);
+
+    let origin_to_p = vector!(p.x, p.y, p.z);
+    let radius = origin_to_p.magnitude();
+
+    // compute the polar angle
+    // 0 <= φ <= π
+    let phi = (p.y / radius).acos();
+
+    // -0.5 < raw_u <= 0.5
+    let raw_u = theta / (2. * PI);
+
+    // 0 <= u < 1
+    // here's also where we fix the direction of u. Subtract it from 1,
+    // so that it increases counterclockwise as viewed from above.
+    let u = 1. - (raw_u + 0.5);
+
+    // we want v to be 0 at the south pole of the sphere,
+    // and 1 at the north pole, so we have to "flip it over"
+    // by subtracting it from 1.
+    let v = 1. - phi / PI;
+
+    (u, v)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    use std::f32::consts::FRAC_1_SQRT_2;
     #[test]
     fn pattern_creation() {
         let p = UVCheckers::new(2., 2., black(), white());
@@ -70,6 +102,25 @@ mod tests {
         ];
         for (name, u, v, expected_color) in test_data {
             assert_eq!(p.uv_pattern_at(u, v), expected_color, "Case {}", name);
+        }
+    }
+
+    #[test]
+    fn spherical_map_on_3d_point() {
+        let test_data = vec![
+            ("1", point!(0, 0, -1), 0.0, 0.5),
+            ("2", point!(1, 0, 0), 0.25, 0.5),
+            ("3", point!(0, 0, 1), 0.5, 0.5),
+            ("4", point!(-1, 0, 0), 0.75, 0.5),
+            ("5", point!(0, 1, 0), 0.5, 1.0),
+            ("6", point!(0, -1, 0), 0.5, 0.0),
+            ("7", point!(FRAC_1_SQRT_2, FRAC_1_SQRT_2, 0), 0.25, 0.75),
+        ];
+        for (name, p, expected_u, expected_v) in test_data {
+            let (u, v) = spherical_map(p);
+            println!("Case {}", name);
+            assert_abs_diff_eq!(u, expected_u);
+            assert_abs_diff_eq!(v, expected_v);
         }
     }
 }
