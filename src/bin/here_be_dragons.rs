@@ -37,8 +37,29 @@ fn main() {
 
     let light = get_light();
 
-    let center_front_transform = translation(0., 0., -2.);
+    // TODO: no display case for this one
+    let center_front_transform = translation(0., 0.5, -4.);
+    //   transform:
+    //     - [ rotate-y, 3.1415 ]
     let center_front_dragon_material = {
+        let mut m = Material::default();
+        m.color = color!(1, 1, 1);
+        m.ambient = 0.1;
+        m.diffuse = 0.6;
+        m.specular = 0.3;
+        m.shininess = 15.;
+        m
+    };
+
+    let center_back_transform = translation(0., 2., 2.);
+    //         - add: bbox
+    //           material:
+    //             ambient: 0
+    //             diffuse: 0.4
+    //             specular: 0
+    //             transparency: 0.6
+    //             refractive-index: 1
+    let center_back_material = {
         let mut m = Material::default();
         m.color = color!(1, 0, 0.1);
         m.ambient = 0.1;
@@ -47,27 +68,93 @@ fn main() {
         m.shininess = 15.;
         m
     };
-    let center_back_transform = translation(0., 2., 2.);
     //         - [ rotate-y, -0.4 ]
     //         - [ scale, 0.75, 0.75, 0.75 ]
     let center_left_transform = translation(-2., 0.75, -1.);
+    //         - add: bbox
+    //           material:
+    //             ambient: 0
+    //             diffuse: 0.2
+    //             specular: 0
+    //             transparency: 0.8
+    //             refractive-index: 1
+    let center_left_material = {
+        let mut m = Material::default();
+        m.color = color!(0.9, 0.5, 0.1);
+        m.ambient = 0.1;
+        m.diffuse = 0.6;
+        m.specular = 0.3;
+        m.shininess = 15.;
+        m
+    };
     //         - [ rotate-y, -0.2 ]
     //         - [ scale, 0.5, 0.5, 0.5 ]
     let left_transform = translation(-4., 0., -2.);
+    //         - add: bbox
+    //           material:
+    //             ambient: 0
+    //             diffuse: 0.1
+    //             specular: 0
+    //             transparency: 0.9
+    //             refractive-index: 1
+    let left_material = {
+        let mut m = Material::default();
+        m.color = color!(1, 0.9, 0.1);
+        m.ambient = 0.1;
+        m.diffuse = 0.6;
+        m.specular = 0.3;
+        m.shininess = 15.;
+
+        m
+    };
     //         - [ rotate-y, 3.3 ]
     //         - [ scale, 0.5, 0.5, 0.5 ]
     let right_transform = translation(4., 0., -2.);
+    //         - add: bbox
+    //           material:
+    //             ambient: 0
+    //             diffuse: 0.1
+    //             specular: 0
+    //             transparency: 0.9
+    //             refractive-index: 1
+    let right_material = {
+        let mut m = Material::default();
+        m.color = color!(0.9, 1, 0.1);
+        m.ambient = 0.1;
+        m.diffuse = 0.6;
+        m.specular = 0.3;
+        m.shininess = 15.;
+
+        m
+    };
     //         - [ rotate-y, 4 ]
     //         - [ scale, 0.75, 0.75, 0.75 ]
     let center_right_transform = translation(2., 1., -1.);
+    //         - add: bbox
+    //           material:
+    //             ambient: 0
+    //             diffuse: 0.2
+    //             specular: 0
+    //             transparency: 0.8
+    //             refractive-index: 1
+    let center_right_material = {
+        let mut m = Material::default();
+        m.color = color!(1, 0.5, 0.1);
+        m.ambient = 0.1;
+        m.diffuse = 0.6;
+        m.specular = 0.3;
+        m.shininess = 15.;
+
+        m
+    };
 
     let mut element_data = vec![
         (center_front_transform, center_front_dragon_material),
-        (center_back_transform, Material::default()),
-        (center_left_transform, Material::default()),
-        (left_transform, Material::default()),
-        (center_right_transform, Material::default()),
-        (right_transform, Material::default()),
+        (center_back_transform, center_back_material),
+        (center_left_transform, center_left_material),
+        (left_transform, left_material),
+        (center_right_transform, center_right_material),
+        (right_transform, right_material),
     ];
 
     // TODO: why doesn't the lifetime checker allow this instead of the for loop?
@@ -186,27 +273,6 @@ fn get_dragon(dragon_file_path: &Path) -> GroupShape {
     dragon
 }
 
-// - add: group
-//   transform:
-//     - [ translate, 0, 2, 0 ]
-//   children:
-//     - add: pedestal
-//     - add: group
-//       children:
-//         - add: dragon
-//           material:
-//             color: [ 1, 0, 0.1 ]
-//             ambient: 0.1
-//             diffuse: 0.6
-//             specular: 0.3
-//             shininess: 15
-//         - add: bbox
-//           material:
-//             ambient: 0
-//             diffuse: 0.4
-//             specular: 0
-//             transparency: 0.6
-//             refractive-index: 1
 fn get_scene_element(
     dragon_file_path: &Path,
     element_transform: Matrix,
@@ -340,18 +406,3 @@ fn get_scene_element(
 //             specular: 0
 //             transparency: 0.9
 //             refractive-index: 1
-
-// - add: group
-//   transform:
-//     - [ translate, 0, 0.5, -4 ]
-//   children:
-//     - add: pedestal
-//     - add: dragon
-//       material:
-//         color: [ 1, 1, 1 ]
-//         ambient: 0.1
-//         diffuse: 0.6
-//         specular: 0.3
-//         shininess: 15
-//       transform:
-//         - [ rotate-y, 3.1415 ]
