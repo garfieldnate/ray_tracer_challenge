@@ -32,6 +32,8 @@ Also don't forget to put this in your Cargo.toml:
 
     [profile.release]
     debug = true
+* If you map from Objects to Box<dyn Trait> objects, you'll probably need to put an `as _` on the box creation step to get the compiler to understand the types correctly. I'm not sure why this is required. Something about the compiler needing permission to do a coercion? Maybe it's just one spot that hasn't been ergonomized yet. It seems like `Box<T: Shape>` should always implement `Into<Box<dyn Shape>>` See https://users.rust-lang.org/t/cannot-extend-a-vec-of-trait-objects/28129.
+
 
 ### VS Code Wishes
 * I wish that VSCode could auto-format macros. Doesn't seem to do indenting automatically.
