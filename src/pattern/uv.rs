@@ -5,8 +5,10 @@ use crate::pattern::pattern::BasePattern;
 use crate::pattern::pattern::Pattern;
 use crate::tuple::Tuple;
 use dyn_clone::DynClone;
-use std::f32::consts::PI;
+use std::f32::consts::{FRAC_1_PI, PI};
 use std::fmt::Debug;
+
+const FRAC_1_2PI: f32 = 1. / (2. * PI);
 
 pub trait UVPattern: Debug + DynClone {
     fn color_at(&self, u: f32, v: f32) -> Color;
@@ -93,10 +95,7 @@ impl Pattern for TextureMap {
 pub struct SphericalMap;
 impl UVMapping for SphericalMap {
     fn point_to_uv(&self, p: Tuple) -> (f32, f32) {
-        // compute the azimuthal angle -π < θ <= π
-        // angle increases clockwise as viewed from above,
-        // which is opposite of what we want, but we'll fix it later.
-        let theta = p.x.atan2(p.z);
+        let u = calculate_u_from_azimuth(p);
 
         let origin_to_p = vector!(p.x, p.y, p.z);
         let radius = origin_to_p.magnitude();
@@ -105,28 +104,36 @@ impl UVMapping for SphericalMap {
         // 0 <= φ <= π
         let phi = (p.y / radius).acos();
 
-        // -0.5 < raw_u <= 0.5
-        let raw_u = theta / (2. * PI);
-
-        // 0 <= u < 1
-        // here's also where we fix the direction of u. Subtract it from 1,
-        // so that it increases counterclockwise as viewed from above.
-        let u = 1. - (raw_u + 0.5);
-
         // we want v to be 0 at the south pole of the sphere,
         // and 1 at the north pole, so we have to "flip it over"
         // by subtracting it from 1.
-        let v = 1. - phi / PI;
+        let v = 1. - phi * FRAC_1_PI;
 
         (u, v)
     }
+}
+
+fn calculate_u_from_azimuth(p: Tuple) -> f32 {
+    // compute the azimuthal angle -π < θ <= π
+    // angle increases clockwise as viewed from above,
+    // which is opposite of what we want, but we'll fix it later.
+    let theta = p.x.atan2(p.z);
+
+    // -0.5 < raw_u <= 0.5
+    let raw_u = theta * FRAC_1_2PI;
+
+    // 0 <= u < 1
+    // here's also where we fix the direction of u. Subtract it from 1,
+    // so that it increases counterclockwise as viewed from above.
+    let u = 1. - (raw_u + 0.5);
+
+    u
 }
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct PlanarMap;
 impl UVMapping for PlanarMap {
     fn point_to_uv(&self, p: Tuple) -> (f32, f32) {
-        // TODO: change to % if it's okay to have negative u and v values
         (p.x.rem_euclid(1.), p.z.rem_euclid(1.))
     }
 }
@@ -135,13 +142,9 @@ impl UVMapping for PlanarMap {
 pub struct CylindricalMap;
 impl UVMapping for CylindricalMap {
     fn point_to_uv(&self, p: Tuple) -> (f32, f32) {
-        // compute the azimuthal angle
-        // Should this actually be atan2(x,z)?
-        let theta = p.x.atan2(p.z);
-        let raw_u = theta / (2. * PI);
-        let u = 1. - (raw_u + 0.5);
-        // let v go from 0 to 1 between whole units of y
-        let v = p.y.rem_euclid(1.);
+        let u = calculate_u_from_azimuth(p);
+        // let v go from 0 to 1 between 2*pi units of y
+        let v = p.y.rem_euclid(2. * PI) * FRAC_1_2PI;
 
         return (u, v);
     }
@@ -233,19 +236,26 @@ mod tests {
     fn using_cylindrical_mapping_on_3d_point() {
         let test_data = vec![
             ("1", point!(0, 0, -1), 0.0, 0.0),
-            ("2", point!(0, 0.5, -1), 0.0, 0.5),
-            ("3", point!(0, 1, -1), 0.0, 0.0),
-            ("4", point!(0.70711, 0.5, -0.70711), 0.125, 0.5),
-            ("5", point!(1, 0.5, 0), 0.25, 0.5),
-            ("6", point!(0.70711, 0.5, 0.70711), 0.375, 0.5),
-            ("7", point!(0, -0.25, 1), 0.5, 0.75),
-            ("8", point!(-0.70711, 0.5, 0.70711), 0.625, 0.5),
-            ("9", point!(-1, 1.25, 0), 0.75, 0.25),
-            ("10", point!(-0.70711, 0.5, -0.70711), 0.875, 0.5),
+            ("2", point!(0, 0.5, -1), 0.0, 0.07957747),
+            ("3", point!(0, 1, -1), 0.0, 0.15915494),
+            ("4", point!(0.70711, 0.5, -0.70711), 0.125, 0.07957747),
+            ("5", point!(1, 0.5, 0), 0.25, 0.07957747),
+            ("6", point!(0.70711, 0.5, 0.70711), 0.375, 0.07957747),
+            ("7", point!(0, -0.25, 1), 0.5, 0.9602113),
+            ("8", point!(-0.70711, 0.5, 0.70711), 0.625, 0.07957747),
+            ("9", point!(-1, 1.25, 0), 0.75, 0.19894367),
+            ("10", point!(-0.70711, 0.5, -0.70711), 0.875, 0.07957747),
         ];
         for (name, p, expected_u, expected_v) in test_data {
             let (u, v) = CylindricalMap.point_to_uv(p);
-            assert_eq!((u, v), (expected_u, expected_v), "Case {}", name);
+            println!(
+                "Case {}: expected {:?}, got {:?}",
+                name,
+                (expected_u, expected_v),
+                (u, v)
+            );
+            assert_abs_diff_eq!(u, expected_u);
+            assert_abs_diff_eq!(v, expected_v);
         }
     }
 }

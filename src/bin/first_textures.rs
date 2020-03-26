@@ -33,7 +33,7 @@ fn main() {
         Plane::build(scaling(10.0, 0.01, 10.0), material)
     };
 
-    let middle = {
+    let sphere = {
         let mut material = Material::default();
         material.color = color!(0.1, 1, 0.5);
         material.pattern = Some(Box::new(TextureMap::new(
@@ -45,26 +45,30 @@ fn main() {
         Sphere::build(translation(-0.5, 1.0, 0.5), material)
     };
 
-    let right = {
+    let cylinder = {
         let mut material = Material::default();
         material.ambient = 0.1;
         material.specular = 0.6;
         material.shininess = 15.;
         material.diffuse = 0.8;
         material.pattern = Some(Box::new(TextureMap::new(
-            Box::new(UVCheckers::new(16., 8., color!(0, 0.5, 0), white())),
+            Box::new(UVCheckers::new(16., 16., color!(0, 0.5, 0), white())),
             Box::new(CylindricalMap),
         )));
 
         // y scaling by PI is always required for cylinders to get proper-looking squares
-        let mut c = Cylinder::build(&translation(2., 0., 0.) * &scaling(1., PI, 1.), material);
-        c.maximum_y = 1.;
-        c.minimum_y = 0.;
+        let mut c = Cylinder::build(translation(2., 2., 2.), material);
+        c.maximum_y = 3.;
+        c.minimum_y = -3.;
         c
     };
 
     let world = World {
-        objects: vec![Box::new(floor), Box::new(middle), Box::new(right)],
+        objects: vec![
+            // Box::new(floor),
+            // Box::new(sphere),
+            Box::new(cylinder),
+        ],
         // The light source is white, shining from above and to the left
         light: Some(Box::new(PointLight::new(point!(-10, 10, -10), white()))),
     };
