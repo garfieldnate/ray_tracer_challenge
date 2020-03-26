@@ -1,6 +1,6 @@
 use crate::color::Color;
 use crate::constants::black;
-use crate::constants::white;
+use crate::constants::{cyan, green, red, white, yellow};
 use crate::pattern::pattern::BasePattern;
 use crate::pattern::pattern::Pattern;
 use crate::tuple::Tuple;
@@ -25,7 +25,7 @@ pub struct UVCheckers {
 }
 
 impl UVCheckers {
-    pub fn new(width: f32, height: f32, a: Color, b: Color) -> UVCheckers {
+    pub fn new(width: f32, height: f32, a: Color, b: Color) -> Self {
         UVCheckers {
             a,
             b,
@@ -51,6 +51,56 @@ impl UVPattern for UVCheckers {
         } else {
             self.b
         }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct AlignCheck {
+    main: Color,
+    ul: Color,
+    ur: Color,
+    bl: Color,
+    br: Color,
+}
+
+impl AlignCheck {
+    pub fn new(main: Color, ul: Color, ur: Color, bl: Color, br: Color) -> Self {
+        AlignCheck {
+            main,
+            ul,
+            ur,
+            bl,
+            br,
+        }
+    }
+}
+
+impl UVPattern for AlignCheck {
+    fn color_at(&self, u: f32, v: f32) -> Color {
+        // remember: v = 0 at the bottom, v = 1 at the top
+        if v > 0.8 {
+            if u < 0.2 {
+                return self.ul;
+            }
+            if u > 0.8 {
+                return self.ur;
+            }
+        } else if v < 0.2 {
+            if u < 0.2 {
+                return self.bl;
+            }
+            if u > 0.8 {
+                return self.br;
+            }
+        }
+
+        self.main
+    }
+}
+
+impl Default for AlignCheck {
+    fn default() -> Self {
+        Self::new(white(), red(), yellow(), green(), cyan())
     }
 }
 
@@ -256,6 +306,27 @@ mod tests {
             );
             assert_abs_diff_eq!(u, expected_u);
             assert_abs_diff_eq!(v, expected_v);
+        }
+    }
+
+    #[test]
+    fn layout_of_align_check_pattern() {
+        let main = color!(1, 1, 1);
+        let ul = color!(1, 0, 0);
+        let ur = color!(1, 1, 0);
+        let bl = color!(0, 1, 0);
+        let br = color!(0, 1, 1);
+        let align_check = AlignCheck::new(main, ul, ur, bl, br);
+        let test_data = vec![
+            ("1", 0.5, 0.5, main),
+            ("2", 0.1, 0.9, ul),
+            ("3", 0.9, 0.9, ur),
+            ("4", 0.1, 0.1, bl),
+            ("5", 0.9, 0.1, br),
+        ];
+        for (name, u, v, expected_color) in test_data {
+            let c = align_check.color_at(u, v);
+            assert_eq!(c, expected_color);
         }
     }
 }

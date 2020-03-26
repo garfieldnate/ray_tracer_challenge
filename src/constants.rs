@@ -34,6 +34,9 @@ pub fn blue() -> Color {
 pub fn yellow() -> Color {
     color!(1, 1, 0)
 }
+pub fn cyan() -> Color {
+    color!(0, 1, 1)
+}
 pub fn gray() -> Color {
     color!(0.5, 0.5, 0.5)
 }

@@ -5,7 +5,7 @@ use ray_tracer_challenge::constants::{black, white};
 use ray_tracer_challenge::light::point_light::PointLight;
 use ray_tracer_challenge::material::Material;
 use ray_tracer_challenge::pattern::uv::{
-    CylindricalMap, PlanarMap, SphericalMap, TextureMap, UVCheckers,
+    AlignCheck, CylindricalMap, PlanarMap, SphericalMap, TextureMap, UVCheckers,
 };
 use ray_tracer_challenge::shape::cylinder::Cylinder;
 use ray_tracer_challenge::shape::plane::Plane;
@@ -26,7 +26,8 @@ fn main() {
         let mut material = Material::default();
         material.color = color!(1, 0.9, 0.9);
         material.pattern = Some(Box::new(TextureMap::new(
-            Box::new(UVCheckers::new(16., 8., black(), white())),
+            Box::new(AlignCheck::default()),
+            // Box::new(UVCheckers::new(16., 8., black(), white())),
             Box::new(PlanarMap),
         )));
         material.specular = 0.0;
@@ -64,11 +65,7 @@ fn main() {
     };
 
     let world = World {
-        objects: vec![
-            // Box::new(floor),
-            // Box::new(sphere),
-            Box::new(cylinder),
-        ],
+        objects: vec![Box::new(floor), Box::new(sphere), Box::new(cylinder)],
         // The light source is white, shining from above and to the left
         light: Some(Box::new(PointLight::new(point!(-10, 10, -10), white()))),
     };
