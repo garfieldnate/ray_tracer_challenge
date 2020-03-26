@@ -126,7 +126,24 @@ impl UVMapping for SphericalMap {
 pub struct PlanarMap;
 impl UVMapping for PlanarMap {
     fn point_to_uv(&self, p: Tuple) -> (f32, f32) {
+        // TODO: change to % if it's okay to have negative u and v values
         (p.x.rem_euclid(1.), p.z.rem_euclid(1.))
+    }
+}
+
+#[derive(Clone, Copy, Debug, Default)]
+pub struct CylindricalMap;
+impl UVMapping for CylindricalMap {
+    fn point_to_uv(&self, p: Tuple) -> (f32, f32) {
+        // compute the azimuthal angle
+        // Should this actually be atan2(x,z)?
+        let theta = p.x.atan2(p.z);
+        let raw_u = theta / (2. * PI);
+        let u = 1. - (raw_u + 0.5);
+        // let v go from 0 to 1 between whole units of y
+        let v = p.y.rem_euclid(1.);
+
+        return (u, v);
     }
 }
 
@@ -174,16 +191,16 @@ mod tests {
         let checkers = UVCheckers::new(16., 8., black(), white());
         let texture_map = TextureMap::new(Box::new(checkers), Box::new(SphericalMap));
         let test_data = vec![
-            ("", point!(0.4315, 0.4670, 0.7719), white()),
-            ("", point!(-0.9654, 0.2552, -0.0534), black()),
-            ("", point!(0.1039, 0.7090, 0.6975), white()),
-            ("", point!(-0.4986, -0.7856, -0.3663), black()),
-            ("", point!(-0.0317, -0.9395, 0.3411), black()),
-            ("", point!(0.4809, -0.7721, 0.4154), black()),
-            ("", point!(0.0285, -0.9612, -0.2745), black()),
-            ("", point!(-0.5734, -0.2162, -0.7903), white()),
-            ("", point!(0.7688, -0.1470, 0.6223), black()),
-            ("", point!(-0.7652, 0.2175, 0.6060), black()),
+            ("1", point!(0.4315, 0.4670, 0.7719), white()),
+            ("2", point!(-0.9654, 0.2552, -0.0534), black()),
+            ("3", point!(0.1039, 0.7090, 0.6975), white()),
+            ("4", point!(-0.4986, -0.7856, -0.3663), black()),
+            ("5", point!(-0.0317, -0.9395, 0.3411), black()),
+            ("6", point!(0.4809, -0.7721, 0.4154), black()),
+            ("7", point!(0.0285, -0.9612, -0.2745), black()),
+            ("8", point!(-0.5734, -0.2162, -0.7903), white()),
+            ("9", point!(0.7688, -0.1470, 0.6223), black()),
+            ("10", point!(-0.7652, 0.2175, 0.6060), black()),
         ];
         for (name, p, expected_color) in test_data {
             assert_eq!(
@@ -194,6 +211,7 @@ mod tests {
             );
         }
     }
+
     #[test]
     fn using_planar_mapping_on_3d_point() {
         let test_data = vec![
@@ -207,8 +225,27 @@ mod tests {
         ];
         for (name, p, expected_u, expected_v) in test_data {
             let (u, v) = PlanarMap.point_to_uv(p);
-            assert_eq!(u, expected_u, "Case {}", name);
-            assert_eq!(v, expected_v, "Case {}", name);
+            assert_eq!((u, v), (expected_u, expected_v), "Case {}", name);
+        }
+    }
+
+    #[test]
+    fn using_cylindrical_mapping_on_3d_point() {
+        let test_data = vec![
+            ("1", point!(0, 0, -1), 0.0, 0.0),
+            ("2", point!(0, 0.5, -1), 0.0, 0.5),
+            ("3", point!(0, 1, -1), 0.0, 0.0),
+            ("4", point!(0.70711, 0.5, -0.70711), 0.125, 0.5),
+            ("5", point!(1, 0.5, 0), 0.25, 0.5),
+            ("6", point!(0.70711, 0.5, 0.70711), 0.375, 0.5),
+            ("7", point!(0, -0.25, 1), 0.5, 0.75),
+            ("8", point!(-0.70711, 0.5, 0.70711), 0.625, 0.5),
+            ("9", point!(-1, 1.25, 0), 0.75, 0.25),
+            ("10", point!(-0.70711, 0.5, -0.70711), 0.875, 0.5),
+        ];
+        for (name, p, expected_u, expected_v) in test_data {
+            let (u, v) = CylindricalMap.point_to_uv(p);
+            assert_eq!((u, v), (expected_u, expected_v), "Case {}", name);
         }
     }
 }

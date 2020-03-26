@@ -80,3 +80,4 @@ Notes from book about reflection/refraction:
     vector!(0., 0., 1.),
     ),
     What needs to happen: at the end of the method, tmax should be non--negative; otherwise, the ray misses. Currently, tmax can be a negative number, indicating an intersection _opposite_ the ray's direction. This can happen because the rest of the intersection math is for a general line, not for a line segment or a mathematical ray.
+- Cylinder azimuth calculation should be with x and z, not x and y.
