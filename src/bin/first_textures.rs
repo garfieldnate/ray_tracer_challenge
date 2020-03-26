@@ -6,7 +6,7 @@ use ray_tracer_challenge::light::point_light::PointLight;
 use ray_tracer_challenge::material::Material;
 use ray_tracer_challenge::pattern::checkers::Checkers;
 use ray_tracer_challenge::pattern::pattern::Pattern;
-use ray_tracer_challenge::pattern::uv::{SphericalMap, TextureMap, UVCheckers};
+use ray_tracer_challenge::pattern::uv::{PlanarMap, SphericalMap, TextureMap, UVCheckers};
 use ray_tracer_challenge::shape::plane::Plane;
 use ray_tracer_challenge::shape::sphere::Sphere;
 use ray_tracer_challenge::transformations::scaling;
@@ -21,11 +21,12 @@ const CANVAS_WIDTH: u32 = 1000;
 const CANVAS_HEIGHT: u32 = 500;
 
 fn main() {
-    let mut checkers = Checkers::new(color!(0.1, 1, 0.5), color!(0.9, 0.2, 0.6));
-    checkers.set_transformation(scaling(0.1, 0.1, 0.1));
     let mut room_material = Material::default();
     room_material.color = color!(1, 0.9, 0.9);
-    room_material.pattern = Some(Box::new(checkers));
+    room_material.pattern = Some(Box::new(TextureMap::new(
+        Box::new(UVCheckers::new(16., 8., black(), white())),
+        Box::new(PlanarMap),
+    )));
     room_material.specular = 0.0;
     let floor = Plane::build(scaling(10.0, 0.01, 10.0), room_material);
 

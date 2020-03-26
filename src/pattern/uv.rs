@@ -122,6 +122,14 @@ impl UVMapping for SphericalMap {
     }
 }
 
+#[derive(Clone, Copy, Debug, Default)]
+pub struct PlanarMap;
+impl UVMapping for PlanarMap {
+    fn point_to_uv(&self, p: Tuple) -> (f32, f32) {
+        (p.x.rem_euclid(1.), p.z.rem_euclid(1.))
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -184,6 +192,23 @@ mod tests {
                 "Case {}",
                 name
             );
+        }
+    }
+    #[test]
+    fn using_planar_mapping_on_3d_point() {
+        let test_data = vec![
+            ("1", point!(0.25, 0, 0.5), 0.25, 0.5),
+            ("2", point!(0.25, 0, -0.25), 0.25, 0.75),
+            ("3", point!(0.25, 0.5, -0.25), 0.25, 0.75),
+            ("4", point!(1.25, 0, 0.5), 0.25, 0.5),
+            ("5", point!(0.25, 0, -1.75), 0.25, 0.25),
+            ("6", point!(1, 0, -1), 0.0, 0.0),
+            ("7", point!(0, 0, 0), 0.0, 0.0),
+        ];
+        for (name, p, expected_u, expected_v) in test_data {
+            let (u, v) = PlanarMap.point_to_uv(p);
+            assert_eq!(u, expected_u, "Case {}", name);
+            assert_eq!(v, expected_v, "Case {}", name);
         }
     }
 }
