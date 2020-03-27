@@ -179,6 +179,36 @@ fn calculate_u_from_azimuth(p: Tuple) -> f32 {
 
     u
 }
+#[derive(Debug, PartialEq, Clone, Copy)]
+pub enum Face {
+    Left(),
+    Right(),
+    Front(),
+    Back(),
+    Up(),
+    Down(),
+}
+
+fn face_from_point(p: Tuple) -> Face {
+    let abs_x = p.x.abs();
+    let abs_y = p.y.abs();
+    let abs_z = p.z.abs();
+    let coord = abs_x.max(abs_y).max(abs_z);
+
+    if coord == p.x {
+        Face::Right()
+    } else if coord == -p.x {
+        Face::Left()
+    } else if coord == p.y {
+        Face::Up()
+    } else if coord == -p.y {
+        Face::Down()
+    } else if coord == p.z {
+        Face::Front()
+    } else {
+        Face::Back()
+    }
+}
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct PlanarMap;
@@ -326,7 +356,23 @@ mod tests {
         ];
         for (name, u, v, expected_color) in test_data {
             let c = align_check.color_at(u, v);
-            assert_eq!(c, expected_color);
+            assert_eq!(c, expected_color, "Case {}", name);
+        }
+    }
+
+    #[test]
+    fn identifying_face_of_cube_from_point() {
+        let test_data = vec![
+            ("1", point!(-1, 0.5, -0.25), Face::Left()),
+            ("2", point!(1.1, -0.75, 0.8), Face::Right()),
+            ("3", point!(0.1, 0.6, 0.9), Face::Front()),
+            ("4", point!(-0.7, 0, -2), Face::Back()),
+            ("5", point!(0.5, 1, 0.9), Face::Up()),
+            ("6", point!(-0.2, -1.3, 1.1), Face::Down()),
+        ];
+        for (name, p, expected_face) in test_data {
+            let face = face_from_point(p);
+            assert_eq!(face, expected_face, "Case {}", name);
         }
     }
 }
