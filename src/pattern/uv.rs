@@ -54,56 +54,6 @@ impl UVPattern for UVCheckers {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub struct AlignCheck {
-    main: Color,
-    ul: Color,
-    ur: Color,
-    bl: Color,
-    br: Color,
-}
-
-impl AlignCheck {
-    pub fn new(main: Color, ul: Color, ur: Color, bl: Color, br: Color) -> Self {
-        AlignCheck {
-            main,
-            ul,
-            ur,
-            bl,
-            br,
-        }
-    }
-}
-
-impl UVPattern for AlignCheck {
-    fn color_at(&self, u: f32, v: f32) -> Color {
-        // remember: v = 0 at the bottom, v = 1 at the top
-        if v > 0.8 {
-            if u < 0.2 {
-                return self.ul;
-            }
-            if u > 0.8 {
-                return self.ur;
-            }
-        } else if v < 0.2 {
-            if u < 0.2 {
-                return self.bl;
-            }
-            if u > 0.8 {
-                return self.br;
-            }
-        }
-
-        self.main
-    }
-}
-
-impl Default for AlignCheck {
-    fn default() -> Self {
-        Self::new(white(), red(), yellow(), green(), cyan())
-    }
-}
-
 pub trait UVMapping: Debug + DynClone {
     fn point_to_uv(&self, p: Tuple) -> (f32, f32);
 }
@@ -179,14 +129,65 @@ fn calculate_u_from_azimuth(p: Tuple) -> f32 {
 
     u
 }
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct AlignCheck {
+    main: Color,
+    ul: Color,
+    ur: Color,
+    bl: Color,
+    br: Color,
+}
+
+impl AlignCheck {
+    pub fn new(main: Color, ul: Color, ur: Color, bl: Color, br: Color) -> Self {
+        AlignCheck {
+            main,
+            ul,
+            ur,
+            bl,
+            br,
+        }
+    }
+}
+
+impl UVPattern for AlignCheck {
+    fn color_at(&self, u: f32, v: f32) -> Color {
+        // remember: v = 0 at the bottom, v = 1 at the top
+        if v > 0.8 {
+            if u < 0.2 {
+                return self.ul;
+            }
+            if u > 0.8 {
+                return self.ur;
+            }
+        } else if v < 0.2 {
+            if u < 0.2 {
+                return self.bl;
+            }
+            if u > 0.8 {
+                return self.br;
+            }
+        }
+
+        self.main
+    }
+}
+
+impl Default for AlignCheck {
+    fn default() -> Self {
+        Self::new(white(), red(), yellow(), green(), cyan())
+    }
+}
+
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum Face {
-    Left(),
-    Right(),
-    Front(),
-    Back(),
-    Up(),
-    Down(),
+    Front = 0,
+    Back = 1,
+    Left = 2,
+    Right = 3,
+    Up = 4,
+    Down = 5,
 }
 
 #[derive(Clone, Copy, Debug, Default)]
@@ -209,6 +210,63 @@ impl UVMapping for CylindricalMap {
     }
 }
 
+#[derive(Clone, Debug)]
+pub struct CubicMap {
+    base: BasePattern,
+    uv_patterns: Vec<Box<dyn UVPattern>>,
+}
+
+impl CubicMap {
+    pub fn new(
+        front: Box<dyn UVPattern>,
+        back: Box<dyn UVPattern>,
+        left: Box<dyn UVPattern>,
+        right: Box<dyn UVPattern>,
+        up: Box<dyn UVPattern>,
+        down: Box<dyn UVPattern>,
+    ) -> Self {
+        // TODO: using a proper EnumMap class would be great, but there isn't one currently.
+        let mut uv_patterns: Vec<Box<dyn UVPattern>> = Vec::with_capacity(6);
+        // it's important that these are inserted in the same order as they are declared in
+        // the enum
+        uv_patterns.push(front);
+        uv_patterns.push(back);
+        uv_patterns.push(left);
+        uv_patterns.push(right);
+        uv_patterns.push(up);
+        uv_patterns.push(down);
+
+        Self {
+            base: BasePattern::new(),
+            uv_patterns,
+        }
+    }
+}
+
+impl Pattern for CubicMap {
+    fn get_base(&self) -> &BasePattern {
+        &self.base
+    }
+    fn get_base_mut(&mut self) -> &mut BasePattern {
+        &mut self.base
+    }
+
+    // color value will allow client to test that world_point was transformed
+    fn color_at_world(&self, world_point: Tuple) -> Color {
+        let face = face_from_point(world_point);
+        let (u, v) = match face {
+            Face::Left => cube_uv_left(world_point),
+            Face::Right => cube_uv_right(world_point),
+            Face::Front => cube_uv_front(world_point),
+            Face::Back => cube_uv_back(world_point),
+            Face::Up => cube_uv_up(world_point),
+            Face::Down => cube_uv_down(world_point),
+        };
+
+        self.uv_patterns[face as usize].color_at(u, v)
+    }
+}
+
 fn face_from_point(p: Tuple) -> Face {
     let abs_x = p.x.abs();
     let abs_y = p.y.abs();
@@ -216,17 +274,17 @@ fn face_from_point(p: Tuple) -> Face {
     let coord = abs_x.max(abs_y).max(abs_z);
 
     if coord == p.x {
-        Face::Right()
+        Face::Right
     } else if coord == -p.x {
-        Face::Left()
+        Face::Left
     } else if coord == p.y {
-        Face::Up()
+        Face::Up
     } else if coord == -p.y {
-        Face::Down()
+        Face::Down
     } else if coord == p.z {
-        Face::Front()
+        Face::Front
     } else {
-        Face::Back()
+        Face::Back
     }
 }
 
@@ -245,6 +303,7 @@ fn cube_uv_back(p: Tuple) -> (f32, f32) {
 fn cube_uv_left(p: Tuple) -> (f32, f32) {
     let u = ((p.z + 1.) % 2.) / 2.;
     let v = ((p.y + 1.) % 2.) / 2.;
+    eprintln!("Returning {:?} for cube_uv_left", (u, v));
     (u, v)
 }
 
@@ -269,8 +328,9 @@ fn cube_uv_down(p: Tuple) -> (f32, f32) {
 #[cfg(test)]
 mod tests {
     use super::*;
-
     use std::f32::consts::FRAC_1_SQRT_2;
+
+    use crate::constants::{black, blue, brown, cyan, purple};
     #[test]
     fn uv_checkers_pattern() {
         let p = UVCheckers::new(2., 2., black(), white());
@@ -399,12 +459,12 @@ mod tests {
     #[test]
     fn identifying_face_of_cube_from_point() {
         let test_data = vec![
-            ("1", point!(-1, 0.5, -0.25), Face::Left()),
-            ("2", point!(1.1, -0.75, 0.8), Face::Right()),
-            ("3", point!(0.1, 0.6, 0.9), Face::Front()),
-            ("4", point!(-0.7, 0, -2), Face::Back()),
-            ("5", point!(0.5, 1, 0.9), Face::Up()),
-            ("6", point!(-0.2, -1.3, 1.1), Face::Down()),
+            ("1", point!(-1, 0.5, -0.25), Face::Left),
+            ("2", point!(1.1, -0.75, 0.8), Face::Right),
+            ("3", point!(0.1, 0.6, 0.9), Face::Front),
+            ("4", point!(-0.7, 0, -2), Face::Back),
+            ("5", point!(0.5, 1, 0.9), Face::Up),
+            ("6", point!(-0.2, -1.3, 1.1), Face::Down),
         ];
         for (name, p, expected_face) in test_data {
             let face = face_from_point(p);
@@ -481,6 +541,61 @@ mod tests {
         for (name, p, expected_u, expected_v) in test_data {
             let (u, v) = cube_uv_down(p);
             assert_eq!((u, v), (expected_u, expected_v), "Case {}", name);
+        }
+    }
+
+    #[test]
+    fn finding_colors_on_mapped_cube() {
+        let left = AlignCheck::new(yellow(), cyan(), red(), blue(), brown());
+        let front = AlignCheck::new(cyan(), red(), yellow(), brown(), green());
+        let right = AlignCheck::new(red(), yellow(), purple(), green(), white());
+        let back = AlignCheck::new(green(), purple(), cyan(), white(), blue());
+        let up = AlignCheck::new(brown(), cyan(), purple(), red(), yellow());
+        let down = AlignCheck::new(purple(), brown(), green(), blue(), white());
+        let pattern = CubicMap::new(
+            Box::new(front),
+            Box::new(back),
+            Box::new(left),
+            Box::new(right),
+            Box::new(up),
+            Box::new(down),
+        );
+
+        let test_data = vec![
+            ("L1", point!(-1, 0, 0), yellow()),
+            ("L2", point!(-1, 0.9, -0.9), cyan()),
+            ("L3", point!(-1, 0.9, 0.9), red()),
+            ("L4", point!(-1, -0.9, -0.9), blue()),
+            ("L5", point!(-1, -0.9, 0.9), brown()),
+            ("F1", point!(0, 0, 1), cyan()),
+            ("F2", point!(-0.9, 0.9, 1), red()),
+            ("F3", point!(0.9, 0.9, 1), yellow()),
+            ("F4", point!(-0.9, -0.9, 1), brown()),
+            ("F5", point!(0.9, -0.9, 1), green()),
+            ("R1", point!(1, 0, 0), red()),
+            ("R2", point!(1, 0.9, 0.9), yellow()),
+            ("R3", point!(1, 0.9, -0.9), purple()),
+            ("R4", point!(1, -0.9, 0.9), green()),
+            ("R5", point!(1, -0.9, -0.9), white()),
+            ("B1", point!(0, 0, -1), green()),
+            ("B2", point!(0.9, 0.9, -1), purple()),
+            ("B3", point!(-0.9, 0.9, -1), cyan()),
+            ("B4", point!(0.9, -0.9, -1), white()),
+            ("B5", point!(-0.9, -0.9, -1), blue()),
+            ("U1", point!(0, 1, 0), brown()),
+            ("U2", point!(-0.9, 1, -0.9), cyan()),
+            ("U3", point!(0.9, 1, -0.9), purple()),
+            ("U4", point!(-0.9, 1, 0.9), red()),
+            ("U5", point!(0.9, 1, 0.9), yellow()),
+            ("D1", point!(0, -1, 0), purple()),
+            ("D2", point!(-0.9, -1, 0.9), brown()),
+            ("D3", point!(0.9, -1, 0.9), green()),
+            ("D4", point!(-0.9, -1, -0.9), blue()),
+            ("D5", point!(0.9, -1, -0.9), white()),
+        ];
+
+        for (name, p, expected_color) in test_data {
+            assert_eq!(pattern.color_at_world(p), expected_color, "Case {}", name);
         }
     }
 }

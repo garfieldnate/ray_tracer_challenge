@@ -37,8 +37,14 @@ pub fn yellow() -> Color {
 pub fn cyan() -> Color {
     color!(0, 1, 1)
 }
+pub fn purple() -> Color {
+    color!(1, 0, 1)
+}
 pub fn gray() -> Color {
     color!(0.5, 0.5, 0.5)
+}
+pub fn brown() -> Color {
+    color!(1, 0.5, 0)
 }
 
 pub fn metal() -> Material {

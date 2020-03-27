@@ -83,3 +83,4 @@ Notes from book about reflection/refraction:
 -   Cylinder azimuth calculation should be with x and z, not x and y.
 -   Cross diagram for uv mapping of a cube is wrong for up and down:
     -   Up and down should both map x positively. The tests are correct. I found another chart with the correct mapping on wikipedia: https://en.wikipedia.org/wiki/Cube_mapping#/media/File:Cube_map.svg, but it also makes intuitive sense. Looking up or down from inside the cube, the observer's x never reverses from the absolute x.
+-   Pseudocode for CubeMap's pattern_at contains uv_cube_left, etc. but these should be cube_uv_left, etc. to be consistent with the previous declarations in the chapter
