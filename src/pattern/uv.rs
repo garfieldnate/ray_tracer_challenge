@@ -1,6 +1,6 @@
 use crate::color::Color;
 use crate::constants::black;
-use crate::constants::{cyan, green, red, white, yellow};
+use crate::constants::{blue, brown, cyan, green, purple, red, white, yellow};
 use crate::pattern::pattern::BasePattern;
 use crate::pattern::pattern::Pattern;
 use crate::tuple::Tuple;
@@ -303,7 +303,6 @@ fn cube_uv_back(p: Tuple) -> (f32, f32) {
 fn cube_uv_left(p: Tuple) -> (f32, f32) {
     let u = ((p.z + 1.) % 2.) / 2.;
     let v = ((p.y + 1.) % 2.) / 2.;
-    eprintln!("Returning {:?} for cube_uv_left", (u, v));
     (u, v)
 }
 
@@ -323,6 +322,24 @@ fn cube_uv_down(p: Tuple) -> (f32, f32) {
     let u = ((p.x + 1.) % 2.) / 2.;
     let v = ((p.z + 1.) % 2.) / 2.;
     (u, v)
+}
+
+pub fn get_align_check_cubic_map_pattern() -> CubicMap {
+    let left = AlignCheck::new(yellow(), cyan(), red(), blue(), brown());
+    let front = AlignCheck::new(cyan(), red(), yellow(), brown(), green());
+    let right = AlignCheck::new(red(), yellow(), purple(), green(), white());
+    let back = AlignCheck::new(green(), purple(), cyan(), white(), blue());
+    let up = AlignCheck::new(brown(), cyan(), purple(), red(), yellow());
+    let down = AlignCheck::new(purple(), brown(), green(), blue(), white());
+    let pattern = CubicMap::new(
+        Box::new(front),
+        Box::new(back),
+        Box::new(left),
+        Box::new(right),
+        Box::new(up),
+        Box::new(down),
+    );
+    pattern
 }
 
 #[cfg(test)]
@@ -546,20 +563,7 @@ mod tests {
 
     #[test]
     fn finding_colors_on_mapped_cube() {
-        let left = AlignCheck::new(yellow(), cyan(), red(), blue(), brown());
-        let front = AlignCheck::new(cyan(), red(), yellow(), brown(), green());
-        let right = AlignCheck::new(red(), yellow(), purple(), green(), white());
-        let back = AlignCheck::new(green(), purple(), cyan(), white(), blue());
-        let up = AlignCheck::new(brown(), cyan(), purple(), red(), yellow());
-        let down = AlignCheck::new(purple(), brown(), green(), blue(), white());
-        let pattern = CubicMap::new(
-            Box::new(front),
-            Box::new(back),
-            Box::new(left),
-            Box::new(right),
-            Box::new(up),
-            Box::new(down),
-        );
+        let pattern = get_align_check_cubic_map_pattern();
 
         let test_data = vec![
             ("L1", point!(-1, 0, 0), yellow()),

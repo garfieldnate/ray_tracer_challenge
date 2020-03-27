@@ -4,15 +4,17 @@ use ray_tracer_challenge::constants::DEFAULT_RAY_RECURSION_DEPTH;
 use ray_tracer_challenge::constants::{black, white};
 use ray_tracer_challenge::light::point_light::PointLight;
 use ray_tracer_challenge::material::Material;
+use ray_tracer_challenge::pattern::uv::get_align_check_cubic_map_pattern;
 use ray_tracer_challenge::pattern::uv::{
     AlignCheck, CylindricalMap, PlanarMap, SphericalMap, TextureMap, UVCheckers,
 };
+use ray_tracer_challenge::shape::cube::Cube;
 use ray_tracer_challenge::shape::cylinder::Cylinder;
 use ray_tracer_challenge::shape::plane::Plane;
 use ray_tracer_challenge::shape::shape::Shape;
 use ray_tracer_challenge::shape::sphere::Sphere;
 use ray_tracer_challenge::transformations::view_transform;
-use ray_tracer_challenge::transformations::{scaling, translation};
+use ray_tracer_challenge::transformations::{rotation_x, scaling, translation};
 use ray_tracer_challenge::tuple::Tuple;
 use ray_tracer_challenge::world::World;
 use ray_tracer_challenge::{color, point, vector};
@@ -64,8 +66,25 @@ fn main() {
         c
     };
 
+    let cube = {
+        let mut material = Material::default();
+        let pattern = get_align_check_cubic_map_pattern();
+        material.pattern = Some(Box::new(pattern));
+
+        let mut c = Cube::new();
+        c.set_transformation(&translation(5., 2., 2.) * &rotation_x(-PI / 4.));
+        c.set_material(material);
+
+        c
+    };
+
     let world = World {
-        objects: vec![Box::new(floor), Box::new(sphere), Box::new(cylinder)],
+        objects: vec![
+            Box::new(floor),
+            Box::new(sphere),
+            Box::new(cylinder),
+            Box::new(cube),
+        ],
         // The light source is white, shining from above and to the left
         light: Some(Box::new(PointLight::new(point!(-10, 10, -10), white()))),
     };
