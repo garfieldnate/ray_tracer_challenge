@@ -231,7 +231,39 @@ fn face_from_point(p: Tuple) -> Face {
 }
 
 fn cube_uv_front(p: Tuple) -> (f32, f32) {
-    (1., 1.)
+    let u = ((p.x + 1.) % 2.) / 2.;
+    let v = ((p.y + 1.) % 2.) / 2.;
+    (u, v)
+}
+
+fn cube_uv_back(p: Tuple) -> (f32, f32) {
+    let u = ((1. - p.x) % 2.) / 2.;
+    let v = ((p.y + 1.) % 2.) / 2.;
+    (u, v)
+}
+
+fn cube_uv_left(p: Tuple) -> (f32, f32) {
+    let u = ((p.z + 1.) % 2.) / 2.;
+    let v = ((p.y + 1.) % 2.) / 2.;
+    (u, v)
+}
+
+fn cube_uv_right(p: Tuple) -> (f32, f32) {
+    let u = ((1. - p.z) % 2.) / 2.;
+    let v = ((p.y + 1.) % 2.) / 2.;
+    (u, v)
+}
+
+fn cube_uv_up(p: Tuple) -> (f32, f32) {
+    let u = ((p.x + 1.) % 2.) / 2.;
+    let v = ((1. - p.z) % 2.) / 2.;
+    (u, v)
+}
+
+fn cube_uv_down(p: Tuple) -> (f32, f32) {
+    let u = ((p.x + 1.) % 2.) / 2.;
+    let v = ((p.z + 1.) % 2.) / 2.;
+    (u, v)
 }
 
 #[cfg(test)]
@@ -399,7 +431,7 @@ mod tests {
             ("2", point!(-0.5, -0.5, -1), 0.75, 0.25),
         ];
         for (name, p, expected_u, expected_v) in test_data {
-            let (u, v) = cube_uv_front(p);
+            let (u, v) = cube_uv_back(p);
             assert_eq!((u, v), (expected_u, expected_v), "Case {}", name);
         }
     }
@@ -411,7 +443,7 @@ mod tests {
             ("2", point!(-1, -0.5, 0.5), 0.75, 0.25),
         ];
         for (name, p, expected_u, expected_v) in test_data {
-            let (u, v) = cube_uv_front(p);
+            let (u, v) = cube_uv_left(p);
             assert_eq!((u, v), (expected_u, expected_v), "Case {}", name);
         }
     }
@@ -423,7 +455,7 @@ mod tests {
             ("2", point!(1, -0.5, -0.5), 0.75, 0.25),
         ];
         for (name, p, expected_u, expected_v) in test_data {
-            let (u, v) = cube_uv_front(p);
+            let (u, v) = cube_uv_right(p);
             assert_eq!((u, v), (expected_u, expected_v), "Case {}", name);
         }
     }
@@ -435,7 +467,7 @@ mod tests {
             ("2", point!(0.5, 1, 0.5), 0.75, 0.25),
         ];
         for (name, p, expected_u, expected_v) in test_data {
-            let (u, v) = cube_uv_front(p);
+            let (u, v) = cube_uv_up(p);
             assert_eq!((u, v), (expected_u, expected_v), "Case {}", name);
         }
     }
@@ -447,7 +479,7 @@ mod tests {
             ("2", point!(0.5, -1, -0.5), 0.75, 0.25),
         ];
         for (name, p, expected_u, expected_v) in test_data {
-            let (u, v) = cube_uv_front(p);
+            let (u, v) = cube_uv_down(p);
             assert_eq!((u, v), (expected_u, expected_v), "Case {}", name);
         }
     }
