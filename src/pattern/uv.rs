@@ -189,6 +189,26 @@ pub enum Face {
     Down(),
 }
 
+#[derive(Clone, Copy, Debug, Default)]
+pub struct PlanarMap;
+impl UVMapping for PlanarMap {
+    fn point_to_uv(&self, p: Tuple) -> (f32, f32) {
+        (p.x.rem_euclid(1.), p.z.rem_euclid(1.))
+    }
+}
+
+#[derive(Clone, Copy, Debug, Default)]
+pub struct CylindricalMap;
+impl UVMapping for CylindricalMap {
+    fn point_to_uv(&self, p: Tuple) -> (f32, f32) {
+        let u = calculate_u_from_azimuth(p);
+        // let v go from 0 to 1 between 2*pi units of y
+        let v = p.y.rem_euclid(2. * PI) * FRAC_1_2PI;
+
+        return (u, v);
+    }
+}
+
 fn face_from_point(p: Tuple) -> Face {
     let abs_x = p.x.abs();
     let abs_y = p.y.abs();
@@ -210,24 +230,8 @@ fn face_from_point(p: Tuple) -> Face {
     }
 }
 
-#[derive(Clone, Copy, Debug, Default)]
-pub struct PlanarMap;
-impl UVMapping for PlanarMap {
-    fn point_to_uv(&self, p: Tuple) -> (f32, f32) {
-        (p.x.rem_euclid(1.), p.z.rem_euclid(1.))
-    }
-}
-
-#[derive(Clone, Copy, Debug, Default)]
-pub struct CylindricalMap;
-impl UVMapping for CylindricalMap {
-    fn point_to_uv(&self, p: Tuple) -> (f32, f32) {
-        let u = calculate_u_from_azimuth(p);
-        // let v go from 0 to 1 between 2*pi units of y
-        let v = p.y.rem_euclid(2. * PI) * FRAC_1_2PI;
-
-        return (u, v);
-    }
+fn cube_uv_front(p: Tuple) -> (f32, f32) {
+    (1., 1.)
 }
 
 #[cfg(test)]
@@ -373,6 +377,78 @@ mod tests {
         for (name, p, expected_face) in test_data {
             let face = face_from_point(p);
             assert_eq!(face, expected_face, "Case {}", name);
+        }
+    }
+
+    #[test]
+    fn uv_mapping_the_front_face_of_a_cube() {
+        let test_data = vec![
+            ("1", point!(-0.5, 0.5, 1), 0.25, 0.75),
+            ("2", point!(0.5, -0.5, 1), 0.75, 0.25),
+        ];
+        for (name, p, expected_u, expected_v) in test_data {
+            let (u, v) = cube_uv_front(p);
+            assert_eq!((u, v), (expected_u, expected_v), "Case {}", name);
+        }
+    }
+
+    #[test]
+    fn uv_mapping_the_back_face_of_a_cube() {
+        let test_data = vec![
+            ("1", point!(0.5, 0.5, -1), 0.25, 0.75),
+            ("2", point!(-0.5, -0.5, -1), 0.75, 0.25),
+        ];
+        for (name, p, expected_u, expected_v) in test_data {
+            let (u, v) = cube_uv_front(p);
+            assert_eq!((u, v), (expected_u, expected_v), "Case {}", name);
+        }
+    }
+
+    #[test]
+    fn uv_mapping_the_left_face_of_a_cube() {
+        let test_data = vec![
+            ("1", point!(-1, 0.5, -0.5), 0.25, 0.75),
+            ("2", point!(-1, -0.5, 0.5), 0.75, 0.25),
+        ];
+        for (name, p, expected_u, expected_v) in test_data {
+            let (u, v) = cube_uv_front(p);
+            assert_eq!((u, v), (expected_u, expected_v), "Case {}", name);
+        }
+    }
+
+    #[test]
+    fn uv_mapping_the_right_face_of_a_cube() {
+        let test_data = vec![
+            ("1", point!(1, 0.5, 0.5), 0.25, 0.75),
+            ("2", point!(1, -0.5, -0.5), 0.75, 0.25),
+        ];
+        for (name, p, expected_u, expected_v) in test_data {
+            let (u, v) = cube_uv_front(p);
+            assert_eq!((u, v), (expected_u, expected_v), "Case {}", name);
+        }
+    }
+
+    #[test]
+    fn uv_mapping_the_upper_face_of_a_cube() {
+        let test_data = vec![
+            ("1", point!(-0.5, 1, -0.5), 0.25, 0.75),
+            ("2", point!(0.5, 1, 0.5), 0.75, 0.25),
+        ];
+        for (name, p, expected_u, expected_v) in test_data {
+            let (u, v) = cube_uv_front(p);
+            assert_eq!((u, v), (expected_u, expected_v), "Case {}", name);
+        }
+    }
+
+    #[test]
+    fn uv_mapping_the_lower_face_of_a_cube() {
+        let test_data = vec![
+            ("1", point!(-0.5, -1, 0.5), 0.25, 0.75),
+            ("2", point!(0.5, -1, -0.5), 0.75, 0.25),
+        ];
+        for (name, p, expected_u, expected_v) in test_data {
+            let (u, v) = cube_uv_front(p);
+            assert_eq!((u, v), (expected_u, expected_v), "Case {}", name);
         }
     }
 }

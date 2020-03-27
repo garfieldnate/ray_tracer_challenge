@@ -40,6 +40,7 @@ Also don't forget to put this in your Cargo.toml:
 * I wish that VSCode could auto-format macros. Doesn't seem to do indenting automatically.
 * I wish that the imports were auto-organized to differentiate between macros and other stuff.
 * A "fix all problems like this in file" would be fantastic, especially unambiguous for imports (always choose std over core unless core is already being used).
+* Replace in selection is impossible with multiple selections
 
 ## VS Code Problems
 * Using MyStruct::new() in a file where it is imported, VS code cannot suggest what to import
