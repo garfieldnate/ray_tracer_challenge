@@ -117,7 +117,7 @@ impl From<std::num::ParseIntError> for ParseError {
 
 pub fn canvas_from_ppm<T: Read>(reader: T) -> Result<Canvas, ParseError> {
     let buf_reader = BufReader::new(reader);
-    let mut line_iter = buf_reader.lines().enumerate();
+    let mut line_iter = buf_reader.lines().enumerate().filter_map(clean_line);
 
     // TODO: these unwrap()'s are not great; should really fail properly if the file doesn't
     // contain this many lines
@@ -161,7 +161,7 @@ pub fn canvas_from_ppm<T: Read>(reader: T) -> Result<Canvas, ParseError> {
     let mut raw_rgb: VecDeque<u8> = VecDeque::new();
     let mut x = 0;
     let mut y = 0;
-    for (_, (index, line)) in line_iter.enumerate() {
+    for (_, (_index, line)) in line_iter.enumerate() {
         let line = line?;
         let line = line.trim();
         let line_rgb = line
@@ -184,6 +184,22 @@ pub fn canvas_from_ppm<T: Read>(reader: T) -> Result<Canvas, ParseError> {
         }
     }
     Ok(canvas)
+}
+
+fn clean_line(
+    (index, line): (usize, Result<String, std::io::Error>),
+) -> Option<(usize, Result<String, std::io::Error>)> {
+    match line {
+        Ok(s) => {
+            let s = s.trim();
+            if s.starts_with("#") {
+                None
+            } else {
+                Some((index, Ok(s.to_string())))
+            }
+        }
+        Err(_) => Some((index, line)),
+    }
 }
 
 #[cfg(test)]
@@ -325,5 +341,22 @@ mod tests {
             println!("Case {}", name);
             assert_abs_diff_eq!(canvas.pixel_at(x, y), expected_color);
         }
+    }
+
+    #[test]
+    fn ppm_parsing_ignores_comment_lines() {
+        let ppm = "P3
+        # this is a comment
+        2 1
+        # this, too
+        255
+        # another comment
+        255 255 255
+        # oh, no, comments in the pixel data!
+        255 0 255
+        ";
+        let canvas = canvas_from_ppm(ppm.as_bytes()).unwrap();
+        assert_eq!(canvas.pixel_at(0, 0), color!(1, 1, 1));
+        assert_eq!(canvas.pixel_at(1, 0), color!(1, 0, 1));
     }
 }
