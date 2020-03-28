@@ -1,4 +1,5 @@
 use crate::color::Color;
+use std::collections::VecDeque;
 use std::io::{self, BufRead, BufReader, Read};
 
 pub struct Canvas {
@@ -7,7 +8,7 @@ pub struct Canvas {
     data: Vec<Vec<Color>>,
 }
 
-const MAX_COLOR_VAL: i16 = 255;
+const MAX_COLOR_VAL: u16 = 255;
 const MAX_PPM_LINE_LENGTH: usize = 70;
 // length of "255" is 3
 // TODO: this should be evaluated programmatically, but "no matching in consts allowed" error prevented this
@@ -143,16 +144,44 @@ pub fn canvas_from_ppm<T: Read>(reader: T) -> Result<Canvas, ParseError> {
     let width = elements[0].parse::<usize>()?;
     let height = elements[1].parse::<usize>()?;
 
-    let canvas = Canvas::new(width, height);
-
     let (_, line) = line_iter.next().unwrap();
     let line = line?;
     let line = line.trim();
-    let scale = line.parse::<i32>()?;
+    let scale = line.parse::<u16>()?;
+    if scale != MAX_COLOR_VAL {
+        return Err(ParseError::IncorrectFormat(format!(
+            "Incorrect scale at line 3: only 255 supported, found {}",
+            line
+        )));
+    }
 
+    let scale = scale as f32;
+    let mut canvas = Canvas::new(width, height);
+    // using u8 here because we only support a scale of 255
+    let mut raw_rgb: VecDeque<u8> = VecDeque::new();
+    let mut x = 0;
+    let mut y = 0;
     for (_, (index, line)) in line_iter.enumerate() {
         let line = line?;
         let line = line.trim();
+        let line_rgb = line
+            .split_whitespace()
+            .map(|s| s.parse::<u8>())
+            .collect::<Result<Vec<u8>, std::num::ParseIntError>>()?;
+        raw_rgb.extend(line_rgb);
+        while raw_rgb.len() >= 3 {
+            let r = raw_rgb.pop_front().unwrap() as f32 / scale;
+            let g = raw_rgb.pop_front().unwrap() as f32 / scale;
+            let b = raw_rgb.pop_front().unwrap() as f32 / scale;
+            canvas.write_pixel(x, y, color!(r, g, b));
+
+            // move to next canvas pixel
+            x += 1;
+            if x >= width {
+                x = 0;
+                y += 1;
+            }
+        }
     }
     Ok(canvas)
 }
@@ -266,5 +295,35 @@ mod tests {
         let canvas = canvas_from_ppm(ppm.as_bytes()).unwrap();
         assert_eq!(canvas.width, 10);
         assert_eq!(canvas.height, 2);
+    }
+
+    #[test]
+    fn reading_pixel_data_from_ppm_file() {
+        let ppm = "P3
+        4 3
+        255
+        255 127 0  0 127 255  127 255 0  255 255 255
+        0 0 0  255 0 0  0 255 0  0 0 255
+        255 255 0  0 255 255  255 0 255  127 127 127";
+        let canvas = canvas_from_ppm(ppm.as_bytes()).unwrap();
+
+        let test_data = vec![
+            ("1", 0, 0, color!(1, 0.49803922, 0)),
+            ("2", 1, 0, color!(0, 0.49803922, 1)),
+            ("3", 2, 0, color!(0.49803922, 1, 0)),
+            ("4", 3, 0, color!(1, 1, 1)),
+            ("5", 0, 1, color!(0, 0, 0)),
+            ("6", 1, 1, color!(1, 0, 0)),
+            ("7", 2, 1, color!(0, 1, 0)),
+            ("8", 3, 1, color!(0, 0, 1)),
+            ("9", 0, 2, color!(1, 1, 0)),
+            ("10", 1, 2, color!(0, 1, 1)),
+            ("11", 2, 2, color!(1, 0, 1)),
+            ("12", 3, 2, color!(0.49803922, 0.49803922, 0.49803922)),
+        ];
+        for (name, x, y, expected_color) in test_data {
+            println!("Case {}", name);
+            assert_abs_diff_eq!(canvas.pixel_at(x, y), expected_color);
+        }
     }
 }
