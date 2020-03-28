@@ -115,6 +115,7 @@ impl From<std::num::ParseIntError> for ParseError {
     }
 }
 
+type RgbElement = u32;
 pub fn canvas_from_ppm<T: Read>(reader: T) -> Result<Canvas, ParseError> {
     let buf_reader = BufReader::new(reader);
     let mut line_iter = buf_reader.lines().enumerate().filter_map(clean_line);
@@ -147,18 +148,10 @@ pub fn canvas_from_ppm<T: Read>(reader: T) -> Result<Canvas, ParseError> {
     let (_, line) = line_iter.next().unwrap();
     let line = line?;
     let line = line.trim();
-    let scale = line.parse::<u16>()?;
-    if scale != MAX_COLOR_VAL {
-        return Err(ParseError::IncorrectFormat(format!(
-            "Incorrect scale at line 3: only 255 supported, found {}",
-            line
-        )));
-    }
+    let scale = line.parse::<RgbElement>()? as f32;
 
-    let scale = scale as f32;
     let mut canvas = Canvas::new(width, height);
-    // using u8 here because we only support a scale of 255
-    let mut raw_rgb: VecDeque<u8> = VecDeque::new();
+    let mut raw_rgb: VecDeque<RgbElement> = VecDeque::new();
     let mut x = 0;
     let mut y = 0;
     for (_, (_index, line)) in line_iter.enumerate() {
@@ -166,8 +159,8 @@ pub fn canvas_from_ppm<T: Read>(reader: T) -> Result<Canvas, ParseError> {
         let line = line.trim();
         let line_rgb = line
             .split_whitespace()
-            .map(|s| s.parse::<u8>())
-            .collect::<Result<Vec<u8>, std::num::ParseIntError>>()?;
+            .map(|s| s.parse::<RgbElement>())
+            .collect::<Result<Vec<RgbElement>, std::num::ParseIntError>>()?;
         raw_rgb.extend(line_rgb);
         while raw_rgb.len() >= 3 {
             let r = raw_rgb.pop_front().unwrap() as f32 / scale;
@@ -389,5 +382,17 @@ mod tests {
         ";
         let canvas = canvas_from_ppm(ppm.as_bytes()).unwrap();
         assert_eq!(canvas.pixel_at(0, 0), color!(0.2, 0.6, 0.8));
+    }
+
+    #[test]
+    fn ppm_parsing_respects_scale_setting() {
+        let ppm = "P3
+        2 2
+        100
+        100 100 100  50 50 50
+        75 50 25  0 0 0
+        ";
+        let canvas = canvas_from_ppm(ppm.as_bytes()).unwrap();
+        assert_eq!(canvas.pixel_at(0, 1), color!(0.75, 0.5, 0.25));
     }
 }
