@@ -1,4 +1,5 @@
 use crate::color::Color;
+use std::io::{self, BufRead, BufReader, Read};
 
 pub struct Canvas {
     pub width: usize,
@@ -93,6 +94,69 @@ impl Canvas {
     }
 }
 
+// TODO: proper parsing errors should also contain the line and column number
+#[derive(Debug)]
+pub enum ParseError {
+    IoError(io::Error),
+    IncorrectFormat(String),
+    ParseIntError(std::num::ParseIntError),
+    MalformedDimensionHeader(String),
+}
+
+impl From<io::Error> for ParseError {
+    fn from(err: io::Error) -> ParseError {
+        ParseError::IoError(err)
+    }
+}
+impl From<std::num::ParseIntError> for ParseError {
+    fn from(err: std::num::ParseIntError) -> ParseError {
+        ParseError::ParseIntError(err)
+    }
+}
+
+pub fn canvas_from_ppm<T: Read>(reader: T) -> Result<Canvas, ParseError> {
+    let buf_reader = BufReader::new(reader);
+    let mut line_iter = buf_reader.lines().enumerate();
+
+    // TODO: these unwrap()'s are not great; should really fail properly if the file doesn't
+    // contain this many lines
+    let (_, line) = line_iter.next().unwrap();
+    let line = line?;
+    let line = line.trim();
+    if line != "P3" {
+        return Err(ParseError::IncorrectFormat(format!(
+            "Incorrect magic number at line 1: expected P3, found {}",
+            line
+        )));
+    }
+
+    let (_, line) = line_iter.next().unwrap();
+    let line = line?;
+    let line = line.trim();
+    let elements: Vec<&str> = line.split_whitespace().collect();
+    if elements.len() != 2 {
+        return Err(ParseError::MalformedDimensionHeader(format!(
+            "Expected width and height at line 2; found {}",
+            line
+        )));
+    }
+    let width = elements[0].parse::<usize>()?;
+    let height = elements[1].parse::<usize>()?;
+
+    let canvas = Canvas::new(width, height);
+
+    let (_, line) = line_iter.next().unwrap();
+    let line = line?;
+    let line = line.trim();
+    let scale = line.parse::<i32>()?;
+
+    for (_, (index, line)) in line_iter.enumerate() {
+        let line = line?;
+        let line = line.trim();
+    }
+    Ok(canvas)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -172,5 +236,35 @@ mod tests {
             lines.next().unwrap(),
             "153 255 204 153 255 204 153 255 204 153 255 204 153"
         );
+    }
+
+    #[test]
+    fn reading_file_with_wrong_magic_number() {
+        let ppm = "P32
+        1 1
+        255
+        0 0 0";
+        let result = canvas_from_ppm(ppm.as_bytes());
+        match result {
+            Err(ParseError::IncorrectFormat(msg)) => {
+                assert!(msg.contains("Incorrect magic number"))
+            }
+            _ => assert!(false, "Should return IncorrectFormat error"),
+        }
+    }
+
+    #[test]
+    fn reading_ppm_returns_canvas_with_correct_size() {
+        let ppm = "P3
+        10 2
+        255
+        0 0 0  0 0 0  0 0 0  0 0 0  0 0 0
+        0 0 0  0 0 0  0 0 0  0 0 0  0 0 0
+        0 0 0  0 0 0  0 0 0  0 0 0  0 0 0
+        0 0 0  0 0 0  0 0 0  0 0 0  0 0 0
+        ";
+        let canvas = canvas_from_ppm(ppm.as_bytes()).unwrap();
+        assert_eq!(canvas.width, 10);
+        assert_eq!(canvas.height, 2);
     }
 }

@@ -38,6 +38,7 @@
 -   If you map from Objects to Box<dyn Trait> objects, you'll probably need to put an `as _` on the box creation step to get the compiler to understand the types correctly. I'm not sure why this is required. Something about the compiler needing permission to do a coercion? Maybe it's just one spot that hasn't been ergonomized yet. It seems like `Box<T: Shape>` should always implement `Into<Box<dyn Shape>>` See https://users.rust-lang.org/t/cannot-extend-a-vec-of-trait-objects/28129.
 -   Would be helpful if I could use `assert_abs_diff_eq!` on tuples automatically
 -   There's no enum map :/ There is an enum-map crate, but you can only use basic types for values. I tried to use a box type, and the compiler complained about not being able to move values.
+- Cool feature, but important to know about and design is maybe a little questionable. If you create an iterator and call `enumerate` on it, you'll get an iterator over `(usize, value)`. If you call `next` to get a single value from it, and then call `enumerate` after that, you'll instead get `(usize, (usize, value))`, which gives you the index into the current iteration and also the overall iterator index, respectively. I like that this information is provided, but I don't understand how the type inference worked out on it, and it was a surprising type error gotcha for me.
 
 ### VS Code Wishes
 
@@ -45,6 +46,7 @@
 -   I wish that the imports were auto-organized to differentiate between macros and other stuff.
 -   A "fix all problems like this in file" would be fantastic, especially unambiguous for imports (always choose std over core unless core is already being used).
 -   Replace in selection is impossible with multiple selections
+- Cannot paste multiple lines into multiple selections. Each line just gets placed in a different selection
 
 ## VS Code Problems
 
