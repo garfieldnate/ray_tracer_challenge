@@ -192,7 +192,7 @@ fn clean_line(
     match line {
         Ok(s) => {
             let s = s.trim();
-            if s.starts_with("#") {
+            if s.starts_with("#") || s.is_empty() {
                 None
             } else {
                 Some((index, Ok(s.to_string())))
@@ -358,5 +358,36 @@ mod tests {
         let canvas = canvas_from_ppm(ppm.as_bytes()).unwrap();
         assert_eq!(canvas.pixel_at(0, 0), color!(1, 1, 1));
         assert_eq!(canvas.pixel_at(1, 0), color!(1, 0, 1));
+    }
+
+    #[test]
+    fn ppm_parsing_allows_rgb_triplet_to_span_lines() {
+        let ppm = "P3
+        1 1
+        255
+        51
+        153
+        204
+        ";
+        let canvas = canvas_from_ppm(ppm.as_bytes()).unwrap();
+        assert_eq!(canvas.pixel_at(0, 0), color!(0.2, 0.6, 0.8));
+    }
+
+    #[test]
+    fn ppm_parsing_skips_empty_lines() {
+        let ppm = "
+        P3
+
+        1 1
+
+        255
+
+        51
+
+        153
+        204
+        ";
+        let canvas = canvas_from_ppm(ppm.as_bytes()).unwrap();
+        assert_eq!(canvas.pixel_at(0, 0), color!(0.2, 0.6, 0.8));
     }
 }
