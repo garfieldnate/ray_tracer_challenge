@@ -1,5 +1,7 @@
 // 1 argument: path to PPM texture for center sphere
 // In the demo, we use an earth texture downloaded from http://planetpixelemporium.com/download/download.php?earthmap1k.jpg
+// The image should be converted to PPM format. This can be done withe ImageMagick:
+// convert x.jpg -compress none x.ppm
 use ray_tracer_challenge::camera::Camera;
 use ray_tracer_challenge::canvas::canvas_from_ppm;
 use ray_tracer_challenge::color::Color;

@@ -70,9 +70,6 @@ Notes from book about reflection/refraction:
 -   Does the book recommend 32-bit or 64-bit numbers?
 -   Had to change point value in one cone test from -5 to -4.999999 to get it to work right
 -   Test converting_point_in_child_from_world_to_object_space should use 1,2,3 instead of 2,2,2 to catch more errors.
--   Bonus chapter on bounding boxes: no bounding box specified for smooth triangles (should be different from normal ones, right?)
--   Typo in bounding boxes chapter: inculde -> include
--   "non-cubic bounding box" is not a great name for the test in the bounding box chapter; maybe "bounding box not centered at origin"
 -   "ray misses cube" test needs one more case: the ray is cast away from the cube. The code in the book does not work for this case:
     (
     "ray is cast away from the cube",
@@ -80,8 +77,14 @@ Notes from book about reflection/refraction:
     vector!(0., 0., 1.),
     ),
     What needs to happen: at the end of the method, tmax should be non--negative; otherwise, the ray misses. Currently, tmax can be a negative number, indicating an intersection _opposite_ the ray's direction. This can happen because the rest of the intersection math is for a general line, not for a line segment or a mathematical ray.
+-   Bonus chapter on bounding boxes: no bounding box specified for smooth triangles (should be different from normal ones, right?)
+-   Typo in bounding boxes chapter: inculde -> include
+-   "non-cubic bounding box" is not a great name for the test in the bounding box chapter; maybe "bounding box not centered at origin"
 -   Cylinder azimuth calculation should be with x and z, not x and y.
+- Where UV mappers use mod/%, a not should be made that each language treats this differently, and we need whatever implementation is available to make sure a positive value is returned: https://en.wikipedia.org/wiki/Modulo_operation#In_programming_languages
+- No note in the UV chapter on how cylinder has to be scaled, though the author demonstrates it in the actual scene YAMLs. I think I've written up everything that's needed for fixing and understanding the implementation on SO: https://stackoverflow.com/questions/42628741/texture-mapping-on-a-cylinder-in-c-building-a-raytracer/60913088#60913088
 -   Cross diagram for uv mapping of a cube is wrong for up and down:
     -   Up and down should both map x positively. The tests are correct. I found another chart with the correct mapping on wikipedia: https://en.wikipedia.org/wiki/Cube_mapping#/media/File:Cube_map.svg, but it also makes intuitive sense. Looking up or down from inside the cube, the observer's x never reverses from the absolute x.
 -   Pseudocode for CubeMap's pattern_at contains uv_cube_left, etc. but these should be cube_uv_left, etc. to be consistent with the previous declarations in the chapter
 - There are two scenarios named "Checker pattern in 2D" in the UV mapping chapter. The second one should probably be "UV mapping an image" or something like that.
+- Typo in UV chapter: "Experiment and see what you come up."
