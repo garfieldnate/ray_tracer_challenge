@@ -1,3 +1,4 @@
+use crate::canvas::Canvas;
 use crate::color::Color;
 use crate::constants::black;
 use crate::constants::{blue, brown, cyan, green, purple, red, white, yellow};
@@ -6,7 +7,7 @@ use crate::pattern::pattern::Pattern;
 use crate::tuple::Tuple;
 use dyn_clone::DynClone;
 use std::f32::consts::{FRAC_1_PI, PI};
-use std::fmt::Debug;
+use std::fmt::{Debug, Formatter, Result};
 
 const FRAC_1_2PI: f32 = 1. / (2. * PI);
 
@@ -342,9 +343,43 @@ pub fn get_align_check_cubic_map_pattern() -> CubicMap {
     pattern
 }
 
+#[derive(Clone)]
+struct UVImage {
+    canvas: Canvas,
+}
+impl UVImage {
+    pub fn new(canvas: Canvas) -> Self {
+        Self { canvas }
+    }
+}
+
+impl Debug for UVImage {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        // TODO: print abbreviate canvas representation (too big to print all of it as debug representation)
+        f.debug_struct("UVImage")
+            .field("width", &self.canvas.width)
+            .field("height", &self.canvas.height)
+            .finish()
+    }
+}
+
+impl UVPattern for UVImage {
+    fn color_at(&self, u: f32, v: f32) -> Color {
+        // flip v over so it matches the image layout, with y at the top
+        let v = 1. - v;
+
+        let x = u * (self.canvas.width - 1) as f32;
+        let y = v * (self.canvas.height - 1) as f32;
+
+        // be sure and round x and y to the nearest whole number
+        self.canvas.pixel_at(x.round() as usize, y.round() as usize)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::canvas::canvas_from_ppm;
     use std::f32::consts::FRAC_1_SQRT_2;
 
     use crate::constants::{black, blue, brown, cyan, purple};
@@ -600,6 +635,37 @@ mod tests {
 
         for (name, p, expected_color) in test_data {
             assert_eq!(pattern.color_at_world(p), expected_color, "Case {}", name);
+        }
+    }
+
+    #[test]
+    fn uv_mapping_an_image() {
+        let ppm = "P3
+        10 10
+        10
+        0 0 0  1 1 1  2 2 2  3 3 3  4 4 4  5 5 5  6 6 6  7 7 7  8 8 8  9 9 9
+        1 1 1  2 2 2  3 3 3  4 4 4  5 5 5  6 6 6  7 7 7  8 8 8  9 9 9  0 0 0
+        2 2 2  3 3 3  4 4 4  5 5 5  6 6 6  7 7 7  8 8 8  9 9 9  0 0 0  1 1 1
+        3 3 3  4 4 4  5 5 5  6 6 6  7 7 7  8 8 8  9 9 9  0 0 0  1 1 1  2 2 2
+        4 4 4  5 5 5  6 6 6  7 7 7  8 8 8  9 9 9  0 0 0  1 1 1  2 2 2  3 3 3
+        5 5 5  6 6 6  7 7 7  8 8 8  9 9 9  0 0 0  1 1 1  2 2 2  3 3 3  4 4 4
+        6 6 6  7 7 7  8 8 8  9 9 9  0 0 0  1 1 1  2 2 2  3 3 3  4 4 4  5 5 5
+        7 7 7  8 8 8  9 9 9  0 0 0  1 1 1  2 2 2  3 3 3  4 4 4  5 5 5  6 6 6
+        8 8 8  9 9 9  0 0 0  1 1 1  2 2 2  3 3 3  4 4 4  5 5 5  6 6 6  7 7 7
+        9 9 9  0 0 0  1 1 1  2 2 2  3 3 3  4 4 4  5 5 5  6 6 6  7 7 7  8 8 8
+        ";
+        let canvas = canvas_from_ppm(ppm.as_bytes()).unwrap();
+        let pattern = UVImage::new(canvas);
+
+        let test_data = vec![
+            ("1", 0., 0., color!(0.9, 0.9, 0.9)),
+            ("2", 0.3, 0., color!(0.2, 0.2, 0.2)),
+            ("3", 0.6, 0.3, color!(0.1, 0.1, 0.1)),
+            ("4", 1., 1., color!(0.9, 0.9, 0.9)),
+        ];
+        for (name, u, v, expected_color) in test_data {
+            let color = pattern.color_at(u, v);
+            assert_eq!(color, expected_color, "Case {}", name);
         }
     }
 }

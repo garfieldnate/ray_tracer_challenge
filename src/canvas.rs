@@ -2,6 +2,7 @@ use crate::color::Color;
 use std::collections::VecDeque;
 use std::io::{self, BufRead, BufReader, Read};
 
+#[derive(Clone, Debug)]
 pub struct Canvas {
     pub width: usize,
     pub height: usize,
