@@ -344,7 +344,7 @@ pub fn get_align_check_cubic_map_pattern() -> CubicMap {
 }
 
 #[derive(Clone)]
-struct UVImage {
+pub struct UVImage {
     canvas: Canvas,
 }
 impl UVImage {
