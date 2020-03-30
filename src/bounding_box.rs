@@ -189,7 +189,7 @@ mod tests {
     #[test]
     fn transform_bounding_box() {
         let box1 = BoundingBox::with_bounds(point!(-1, -1, -1), point!(1, 1, 1));
-        let matrix = &rotation_x(PI / 4.) * &rotation_y(PI / 4.);
+        let matrix = rotation_x(PI / 4.) * rotation_y(PI / 4.);
         let box2 = box1.transform(&matrix);
         assert_abs_diff_eq!(box2.min, point!(-1.4142135, -1.7071067, -1.7071067));
         assert_abs_diff_eq!(box2.max, point!(1.4142135, 1.7071067, 1.7071067));

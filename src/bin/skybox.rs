@@ -46,7 +46,7 @@ fn main() {
             .ambient(0.)
             .build();
         Sphere::build(
-            &scaling(0.75, 0.75, 0.75) * &translation(0., 0., 5.),
+            scaling(0.75, 0.75, 0.75) * translation(0., 0., 5.),
             material,
         )
     };

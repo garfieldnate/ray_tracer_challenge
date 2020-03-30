@@ -102,7 +102,7 @@ fn get_lampshade() -> Cube {
         .diffuse(0.)
         .specular(0.)
         .build();
-    let transform = &translation(0., 3., 4.) * &scaling(1., 1., 0.01);
+    let transform = translation(0., 3., 4.) * scaling(1., 1., 0.01);
     let mut c = Cube::build(transform, m);
     c.set_casts_shadow(false);
     c
@@ -135,7 +135,7 @@ fn get_floor() -> Plane {
 //     diffuse: 0.6
 //     reflective: 0.3
 fn get_sphere_1() -> Sphere {
-    let transform = &translation(0.5, 0.5, 0.) * &scaling(0.5, 0.5, 0.5);
+    let transform = translation(0.5, 0.5, 0.) * scaling(0.5, 0.5, 0.5);
     let material = Material::builder()
         .color(red())
         .ambient(0.1)
@@ -157,7 +157,7 @@ fn get_sphere_1() -> Sphere {
 //     diffuse: 0.6
 //     reflective: 0.3
 fn get_sphere_2() -> Sphere {
-    let transform = &translation(-0.25, 0.33, 0.) * &scaling(0.33, 0.33, 0.33);
+    let transform = translation(-0.25, 0.33, 0.) * scaling(0.33, 0.33, 0.33);
     let material = Material::builder()
         .color(color!(0.5, 0.5, 1))
         .ambient(0.1)

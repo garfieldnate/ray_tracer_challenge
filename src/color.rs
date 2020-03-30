@@ -1,6 +1,6 @@
 use approx::AbsDiffEq;
 use std::fmt::Display;
-use std::ops::{Add, Div, Mul, Sub};
+use std::ops;
 use std::str::FromStr;
 
 #[derive(Copy, Clone, Debug, Default, PartialEq)]
@@ -30,71 +30,50 @@ macro_rules! color {
     }};
 }
 
-impl Add for Color {
-    type Output = Color;
-    fn add(self, other: Color) -> Color {
+impl_op_ex!(+|a: &Color, b: &Color| -> Color {
         Color {
-            r: self.r + other.r,
-            g: self.g + other.g,
-            b: self.b + other.b,
+            r: a.r + b.r,
+            g: a.g + b.g,
+            b: a.b + b.b,
         }
-    }
-}
+    });
 
-impl Sub for Color {
-    type Output = Color;
-    fn sub(self, other: Color) -> Color {
-        Color {
-            r: self.r - other.r,
-            g: self.g - other.g,
-            b: self.b - other.b,
-        }
+impl_op_ex!(-|a: &Color, b: &Color| -> Color {
+    Color {
+        r: a.r - b.r,
+        g: a.g - b.g,
+        b: a.b - b.b,
     }
-}
+});
 
-// scalar multiplication (commutative)
-impl Mul<f32> for Color {
-    type Output = Color;
-    fn mul(self, scalar: f32) -> Color {
-        Color {
-            r: self.r * scalar,
-            g: self.g * scalar,
-            b: self.b * scalar,
-        }
+// scalar multiplication (done twice for commutativity)
+impl_op_ex!(*|color: &Color, scalar: &f32| -> Color {
+    Color {
+        r: color.r * scalar,
+        g: color.g * scalar,
+        b: color.b * scalar,
     }
-}
+});
 
-// scalar multiplication (commutative)
-impl Mul<Color> for f32 {
-    type Output = Color;
-    fn mul(self, color: Color) -> Color {
-        color * self
-    }
-}
+impl_op_ex!(*|scalar: &f32, color: &Color| -> Color { color * scalar });
 
 // scalar division
-impl Div<f32> for Color {
-    type Output = Color;
-    fn div(self, scalar: f32) -> Color {
+impl_op_ex!(/|color: &Color, scalar: &f32| -> Color {
         Color {
-            r: self.r / scalar,
-            g: self.g / scalar,
-            b: self.b / scalar,
+            r: color.r / scalar,
+            g: color.g / scalar,
+            b: color.b / scalar,
         }
-    }
-}
+    });
 
 // Multiplying two Color objects produces a mix of the two colors using the Hadamard product
-impl Mul<Color> for Color {
-    type Output = Color;
-    fn mul(self, other: Color) -> Color {
-        Color {
-            r: self.r * other.r,
-            g: self.g * other.g,
-            b: self.b * other.b,
-        }
+impl_op_ex!(*|a: &Color, b: &Color| -> Color {
+    Color {
+        r: a.r * b.r,
+        g: a.g * b.g,
+        b: a.b * b.b,
     }
-}
+});
 
 // required for equality tests because floating point numbers must be compared approximately
 impl AbsDiffEq for Color {
@@ -149,14 +128,14 @@ mod tests {
     #[test]
     fn test_multiply_color_by_scalar() {
         let c = color!(0.2, 0.3, 0.4);
-        assert_abs_diff_eq!(c * 2.0, 2.0 * c);
-        assert_abs_diff_eq!(c * 2.0, color!(0.4, 0.6, 0.8));
+        assert_abs_diff_eq!(&c * 2., 2. * &c);
+        assert_abs_diff_eq!(c * 2., color!(0.4, 0.6, 0.8));
     }
 
     #[test]
     fn test_mix_colors_by_multiplication() {
-        let c1 = color!(1.0, 0.2, 0.4);
-        let c2 = color!(0.9, 1.0, 0.1);
+        let c1 = color!(1., 0.2, 0.4);
+        let c2 = color!(0.9, 1., 0.1);
         assert_abs_diff_eq!(c1 * c2, color!(0.9, 0.2, 0.04));
     }
 

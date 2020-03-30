@@ -170,7 +170,7 @@ mod tests {
     #[test]
     fn normal_on_transformed_shape() {
         let mut s = TestShape::new();
-        s.set_transformation(&scaling(1.0, 0.5, 1.0) * &rotation_z(PI / 5.0));
+        s.set_transformation(scaling(1.0, 0.5, 1.0) * rotation_z(PI / 5.0));
         let n = s.normal_at(
             &point!(0, FRAC_1_SQRT_2, -FRAC_1_SQRT_2),
             &dummy_intersection(&s),
@@ -214,7 +214,7 @@ mod tests {
     #[test]
     fn querying_shape_boundary_box_in_parent_space() {
         let mut s = Sphere::new();
-        s.set_transformation(&translation(1., -3., 5.) * &scaling(0.5, 2., 4.));
+        s.set_transformation(translation(1., -3., 5.) * scaling(0.5, 2., 4.));
         let b = s.parent_space_bounding_box();
         assert_eq!(b.min, point!(0.5, -5, 1));
         assert_eq!(b.max, point!(1.5, -1, 9.));

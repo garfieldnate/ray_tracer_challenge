@@ -12,7 +12,7 @@ fn main() {
     let translate_to_center =
         translation((canvas.height / 2) as f32, (canvas.height / 2) as f32, 0.0);
     let adjust_for_reversed_canvas_y =
-        &translation(0.0, canvas.height as f32, 0.0) * &scaling(1.0, -1.0, 1.0);
+        translation(0.0, canvas.height as f32, 0.0) * scaling(1.0, -1.0, 1.0);
     let display_transform = &adjust_for_reversed_canvas_y * &translate_to_center;
 
     let twelve_o_clock = point!(0, 100, 0);

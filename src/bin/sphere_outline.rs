@@ -20,7 +20,7 @@ fn main() {
     let mut canvas = Canvas::new(canvas_pixels, canvas_pixels);
     let color = red();
     let mut shape = Sphere::new();
-    shape.set_transformation(&shearing(1.0, 0.0, 0.0, 0.0, 0.0, 0.0) * &scaling(0.5, 1.0, 1.0));
+    shape.set_transformation(shearing(1.0, 0.0, 0.0, 0.0, 0.0, 0.0) * scaling(0.5, 1.0, 1.0));
     // for each row of pixels in the canvas
     for y in 0..canvas_pixels - 1 {
         let world_y = half - pixel_size * y as f32;

@@ -29,7 +29,7 @@ fn main() {
     shape.set_material(material);
     let light = PointLight::new(point!(-10, 10, -10), white());
 
-    shape.set_transformation(&shearing(1.0, 0.0, 0.0, 0.0, 0.0, 0.0) * &scaling(0.5, 1.0, 1.0));
+    shape.set_transformation(shearing(1.0, 0.0, 0.0, 0.0, 0.0, 0.0) * scaling(0.5, 1.0, 1.0));
     // for each row of pixels in the canvas
     for y in 0..canvas_pixels - 1 {
         let world_y = half - pixel_size * y as f32;

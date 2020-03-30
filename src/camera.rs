@@ -137,7 +137,7 @@ mod tests {
             201,
             101,
             PI / 2.0,
-            &rotation_y(PI / 4.0) * &translation(0.0, -2.0, 5.0),
+            rotation_y(PI / 4.0) * translation(0.0, -2.0, 5.0),
         );
         let r = c.ray_for_pixel(100, 50);
         // higher epsilon for more floating point calculations

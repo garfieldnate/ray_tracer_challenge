@@ -74,7 +74,7 @@ fn main() {
             .build();
         // lift the model so that it sits on the pedestal
         let earth = Sphere::build(
-            &translation(0., 1., 0.) * &(&rotation_x(-0.5) * &rotation_y(-1.5)),
+            translation(0., 1., 0.) * rotation_x(-0.5) * rotation_y(-1.5),
             material,
         );
 
@@ -111,7 +111,7 @@ fn main() {
             .build();
 
         let mut c = Cube::new();
-        c.set_transformation(&translation(5., 2., 2.) * &rotation_x(-PI / 4.));
+        c.set_transformation(translation(5., 2., 2.) * rotation_x(-PI / 4.));
         c.set_material(material);
 
         c

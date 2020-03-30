@@ -380,12 +380,12 @@ mod tests {
     #[test]
     fn group_bounding_box_contains_children() {
         let mut s = Sphere::new();
-        s.set_transformation(&translation(2., 5., -3.) * &scaling(2., 2., 2.));
+        s.set_transformation(translation(2., 5., -3.) * scaling(2., 2., 2.));
 
         let mut c = Cylinder::new();
         c.minimum_y = -2.;
         c.maximum_y = 2.;
-        c.set_transformation(&translation(-4., -1., 4.) * &scaling(0.5, 1., 0.5));
+        c.set_transformation(translation(-4., -1., 4.) * scaling(0.5, 1., 0.5));
 
         let mut shape = GroupShape::new();
         shape.add_child(Box::new(s));

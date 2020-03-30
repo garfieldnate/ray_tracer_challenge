@@ -27,9 +27,9 @@ const CANVAS_HEIGHT: u32 = 50;
 
 fn main() {
     let mut stripes = Stripes::new(color!(1.0, 0.2, 0.4), color!(0.1, 0.1, 0.1));
-    stripes.set_transformation(&scaling(0.3, 0.3, 0.3) * &rotation_z(3.0 * PI / 4.0));
+    stripes.set_transformation(scaling(0.3, 0.3, 0.3) * rotation_z(3.0 * PI / 4.0));
     let mut sine2d = Sine2D::new(color!(0.1, 1, 0.5), color!(0.9, 0.2, 0.6));
-    sine2d.set_transformation(&scaling(0.005, 1.0, 0.005) * &translation(-5.0, 1.0, 0.5));
+    sine2d.set_transformation(scaling(0.005, 1.0, 0.005) * translation(-5.0, 1.0, 0.5));
     let room_material = Material::builder()
         .pattern(Box::new(sine2d))
         .specular(0.)
@@ -52,8 +52,9 @@ fn main() {
         .specular(0.3)
         .build();
     let right = Sphere::build(
-        &shearing(0.0, 1.0, 0.0, 0.0, 0.0, 1.0)
-            * &(&translation(1.5, 0.5, -0.5) * &scaling(0.5, 0.5, 0.5)),
+        shearing(0.0, 1.0, 0.0, 0.0, 0.0, 1.0)
+            * translation(1.5, 0.5, -0.5)
+            * scaling(0.5, 0.5, 0.5),
         right_sphere_material,
     );
 
@@ -64,7 +65,7 @@ fn main() {
         .specular(0.3)
         .build();
     let left = Sphere::build(
-        &translation(-1.5, 0.33, -0.75) * &scaling(0.33, 0.33, 0.33),
+        translation(-1.5, 0.33, -0.75) * scaling(0.33, 0.33, 0.33),
         left_sphere_material,
     );
 

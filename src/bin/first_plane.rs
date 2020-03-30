@@ -46,8 +46,9 @@ fn main() {
         .specular(0.3)
         .build();
     let right = Sphere::build(
-        &shearing(0.0, 1.0, 0.0, 0.0, 0.0, 1.0)
-            * &(&translation(1.5, 0.5, -0.5) * &scaling(0.5, 0.5, 0.5)),
+        shearing(0.0, 1.0, 0.0, 0.0, 0.0, 1.0)
+            * translation(1.5, 0.5, -0.5)
+            * scaling(0.5, 0.5, 0.5),
         right_sphere_material,
     );
 
@@ -58,7 +59,7 @@ fn main() {
         .specular(0.3)
         .build();
     let left = Sphere::build(
-        &translation(-1.5, 0.33, -0.75) * &scaling(0.33, 0.33, 0.33),
+        translation(-1.5, 0.33, -0.75) * scaling(0.33, 0.33, 0.33),
         left_sphere_material,
     );
 

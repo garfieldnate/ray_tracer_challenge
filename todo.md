@@ -14,7 +14,6 @@
     -   keyword in graphics is "caustic"
 -   Canvas write_pixel: fail properly for out of bounds
 -   transformation should probably all be in matrix
--   Having to use & everywhere for matrix, tuple or color multplication sucks
 -   Integrate error-chain if needed (http://brson.github.io/2016/11/30/starting-with-error-chain)
 -   update any tests that could benefit from the new downcasting functionality
 
@@ -34,16 +33,15 @@
 -   Should somehow require that a shape be made immutable ("lock") before allowing bounding boxes to be calculated, since GroupShape and CSG cache them
 -   use `derivative` crate's functionality in more places
 -   Parse more details of OBJ files, or at least ignore everything after / in polygon lines
--   Normalize OBJ inputs into a cube for easier handling: https://forum.raytracerchallenge.com/thread/27/triangle-mesh-normalization
 -   String ID's for all shapes. Would make testing way easier
 -   YAML scene file parsing
--   getset or rust-derive-builder would probably simplify material or other creations, too
 -   display a grid
 -   Switch to IntelliJ
 -   Convenience function for creating skyboxes
 
 ### Maybes/Ideas
 
+-   Twist transformation
 -   Better model of point vs. vector: typing should reflect difference
 -   Reorganize as [workspace](https://doc.rust-lang.org/cargo/reference/manifest.html#the-workspace-section)
 -   reimplement everything using geometric algebra for funsies (https://crypto.stanford.edu/~blynn/haskell/ga.html)

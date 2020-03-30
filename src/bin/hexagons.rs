@@ -32,7 +32,7 @@ const CANVAS_HEIGHT: u32 = 500;
 fn main() {
     let floor = {
         let mut plane = Plane::new();
-        plane.set_transformation(&translation(0.0, 0.0, 5.0) * &rotation_x(PI / 2.0));
+        plane.set_transformation(translation(0.0, 0.0, 5.0) * rotation_x(PI / 2.0));
 
         // TODO: looks like checkers doesn't work right. Creates square rings. Which are also cool!
         let checkers = Checkers::new(
@@ -46,7 +46,7 @@ fn main() {
         Box::new(plane)
     };
     let mut hex1 = hexagon(&glass());
-    hex1.set_transformation(&translation(0.0, 0.75, 0.0) * &rotation_x(PI / 2.0));
+    hex1.set_transformation(translation(0.0, 0.75, 0.0) * rotation_x(PI / 2.0));
     let world = World {
         objects: vec![floor, Box::new(hex1)],
         // The light source is white, shining from above and to the left
@@ -66,7 +66,7 @@ fn main() {
 
 fn hexagon_corner(m: &Material) -> Sphere {
     Sphere::build(
-        &translation(0.0, 0.0, -1.0) * &scaling(0.25, 0.25, 0.25),
+        translation(0.0, 0.0, -1.0) * scaling(0.25, 0.25, 0.25),
         m.clone(),
     )
 }
@@ -76,8 +76,10 @@ fn hexagon_edge(m: &Material) -> Cylinder {
     edge.minimum_y = 0.0;
     edge.maximum_y = 1.0;
     edge.set_transformation(
-        &translation(0.0, 0.0, -1.0)
-            * &(&rotation_y(-PI / 6.0) * &(&rotation_z(-PI / 2.0) * &scaling(0.25, 1.0, 0.25))),
+        translation(0.0, 0.0, -1.0)
+            * rotation_y(-PI / 6.0)
+            * rotation_z(-PI / 2.0)
+            * scaling(0.25, 1.0, 0.25),
     );
     edge.set_material(m.clone());
     edge

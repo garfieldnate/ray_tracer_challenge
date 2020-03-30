@@ -34,9 +34,9 @@ const CANVAS_HEIGHT: u32 = 500;
 
 fn main() {
     let mut stripes = Stripes::new(color!(1., 0.2, 0.4), color!(0.1, 0.1, 0.1));
-    stripes.set_transformation(&scaling(0.3, 0.3, 0.3) * &rotation_z(3. * PI / 4.));
+    stripes.set_transformation(scaling(0.3, 0.3, 0.3) * rotation_z(3. * PI / 4.));
     let mut sine2d = Sine2D::new(color!(0.1, 1, 0.5), color!(0.9, 0.2, 0.6));
-    sine2d.set_transformation(&scaling(0.05, 1., 0.05) * &translation(-5., 1., 0.5));
+    sine2d.set_transformation(scaling(0.05, 1., 0.05) * translation(-5., 1., 0.5));
     let room_material = Material::builder()
         .pattern(Box::new(sine2d))
         .specular(0.)
@@ -61,8 +61,7 @@ fn main() {
     ring_pattern.set_transformation(scaling(0.1, 0.1, 0.1));
     metal_rings.pattern = Some(Box::new(ring_pattern));
     let right = Sphere::build(
-        &shearing(0., 1., 0., 0., 0., 1.)
-            * &(&translation(1.5, 0.5, -0.5) * &scaling(0.5, 0.5, 0.5)),
+        shearing(0., 1., 0., 0., 0., 1.) * translation(1.5, 0.5, -0.5) * scaling(0.5, 0.5, 0.5),
         metal_rings,
     );
 
@@ -80,7 +79,7 @@ fn main() {
         .shininess(300.)
         .build();
     let left = Sphere::build(
-        &translation(-1.5, 0.33, -0.75) * &scaling(0.33, 0.33, 0.33),
+        translation(-1.5, 0.33, -0.75) * scaling(0.33, 0.33, 0.33),
         left_sphere_material,
     );
 
@@ -98,7 +97,7 @@ fn main() {
                 .specular(0.8)
                 .build(),
         );
-        c.set_transformation(&translation(-3.5, 0., 4.) * &scaling(0.33, 1.8, 0.33));
+        c.set_transformation(translation(-3.5, 0., 4.) * scaling(0.33, 1.8, 0.33));
         c
     };
 
@@ -154,7 +153,7 @@ fn get_cylinder() -> Cylinder {
             .specular(0.8)
             .build(),
     );
-    c.set_transformation(&translation(3.7, 0., 4.) * &scaling(0.33, 1.8, 0.33));
+    c.set_transformation(translation(3.7, 0., 4.) * scaling(0.33, 1.8, 0.33));
     c
 }
 

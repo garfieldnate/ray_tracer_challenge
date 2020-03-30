@@ -9,6 +9,8 @@ extern crate downcast_rs;
 extern crate derivative;
 #[macro_use]
 extern crate typed_builder;
+#[macro_use]
+extern crate impl_ops;
 
 // It's important that mods with macros come first so that they are available in other mods.
 // The macros will automatically be available in all following mods. However, for binaries in

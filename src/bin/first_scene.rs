@@ -32,15 +32,19 @@ fn main() {
 
     // The wall on the left has the same scale and color as the floor, but is also rotated and translated into place.
     let left_wall = Sphere::build(
-        &translation(0.0, 0.0, 5.0)
-            * &(&rotation_y(-PI / 4.0) * &(&rotation_x(PI / 2.0) * &scaling(10.0, 0.01, 10.0))),
+        translation(0.0, 0.0, 5.0)
+            * rotation_y(-PI / 4.0)
+            * rotation_x(PI / 2.0)
+            * scaling(10.0, 0.01, 10.0),
         room_material.clone(),
     );
 
     // The wall on the right is identical to the left wall, but is rotated the opposite direction in y.
     let right_wall = Sphere::build(
-        &translation(0.0, 0.0, 5.0)
-            * &(&rotation_y(PI / 4.0) * &(&rotation_x(PI / 2.0) * &scaling(10.0, 0.01, 10.0))),
+        translation(0.0, 0.0, 5.0)
+            * rotation_y(PI / 4.0)
+            * rotation_x(PI / 2.0)
+            * scaling(10.0, 0.01, 10.0),
         room_material,
     );
 
@@ -61,8 +65,9 @@ fn main() {
         .specular(0.3)
         .build();
     let right = Sphere::build(
-        &shearing(0.0, 1.0, 0.0, 0.0, 0.0, 1.0)
-            * &(&translation(1.5, 0.5, -0.5) * &scaling(0.5, 0.5, 0.5)),
+        shearing(0.0, 1.0, 0.0, 0.0, 0.0, 1.0)
+            * translation(1.5, 0.5, -0.5)
+            * scaling(0.5, 0.5, 0.5),
         right_sphere_material,
     );
 
@@ -73,7 +78,7 @@ fn main() {
         .specular(0.3)
         .build();
     let left = Sphere::build(
-        &translation(-1.5, 0.33, -0.75) * &scaling(0.33, 0.33, 0.33),
+        translation(-1.5, 0.33, -0.75) * scaling(0.33, 0.33, 0.33),
         left_sphere_material,
     );
 

@@ -1,6 +1,7 @@
 use crate::tuple::*;
 use approx::AbsDiffEq;
 use std::fmt::Display;
+use std::ops;
 use std::ops::Mul;
 
 // Only supports square matrices
@@ -69,56 +70,37 @@ impl Mul<f32> for &Matrix {
     }
 }
 
-impl Mul<&Tuple> for &Matrix {
-    type Output = Tuple;
-    fn mul(self, other: &Tuple) -> Tuple {
-        debug_assert_eq!(
-            self.size(),
-            4,
-            "Only 4x4 matrices can be multiplied by tuples!"
-        );
-        let x = self.data[0][0] * other.x
-            + self.data[0][1] * other.y
-            + self.data[0][2] * other.z
-            + self.data[0][3] * other.w;
-        let y = self.data[1][0] * other.x
-            + self.data[1][1] * other.y
-            + self.data[1][2] * other.z
-            + self.data[1][3] * other.w;
-        let z = self.data[2][0] * other.x
-            + self.data[2][1] * other.y
-            + self.data[2][2] * other.z
-            + self.data[2][3] * other.w;
-        let w = self.data[3][0] * other.x
-            + self.data[3][1] * other.y
-            + self.data[3][2] * other.z
-            + self.data[3][3] * other.w;
-        Tuple { x, y, z, w }
-    }
-}
+impl_op_ex!(*|a: &Matrix, b: &Tuple| -> Tuple {
+    debug_assert_eq!(
+        a.size(),
+        4,
+        "Only 4x4 matrices can be multiplied by tuples!"
+    );
+    let x = a.data[0][0] * b.x + a.data[0][1] * b.y + a.data[0][2] * b.z + a.data[0][3] * b.w;
+    let y = a.data[1][0] * b.x + a.data[1][1] * b.y + a.data[1][2] * b.z + a.data[1][3] * b.w;
+    let z = a.data[2][0] * b.x + a.data[2][1] * b.y + a.data[2][2] * b.z + a.data[2][3] * b.w;
+    let w = a.data[3][0] * b.x + a.data[3][1] * b.y + a.data[3][2] * b.z + a.data[3][3] * b.w;
+    Tuple { x, y, z, w }
+});
 
-impl Mul for &Matrix {
-    type Output = Matrix;
-    // multiply two 4x4 matrices; the book says that's the only dimension that we'll have to deal with
-    fn mul(self, other: &Matrix) -> Matrix {
-        debug_assert_eq!(
-            self.data.len(),
-            4,
-            "Only 4x4 matrices can be multiplied by tuples!"
-        );
-        let size = self.size();
-        let mut new_matrix = Matrix::new(size);
-        for r in 0..size {
-            for c in 0..size {
-                new_matrix.data[r][c] = self.data[r][0] * other.data[0][c]
-                    + self.data[r][1] * other.data[1][c]
-                    + self.data[r][2] * other.data[2][c]
-                    + self.data[r][3] * other.data[3][c]
-            }
+impl_op_ex!(*|a: &Matrix, b: &Matrix| -> Matrix {
+    debug_assert_eq!(
+        a.data.len(),
+        4,
+        "Only 4x4 matrices can be multiplied by tuples!"
+    );
+    let size = a.size();
+    let mut new_matrix = Matrix::new(size);
+    for r in 0..size {
+        for c in 0..size {
+            new_matrix.data[r][c] = a.data[r][0] * b.data[0][c]
+                + a.data[r][1] * b.data[1][c]
+                + a.data[r][2] * b.data[2][c]
+                + a.data[r][3] * b.data[3][c]
         }
-        new_matrix
     }
-}
+    new_matrix
+});
 
 // required for approximate comparisons due to use of floating point numbers
 impl AbsDiffEq for Matrix {
