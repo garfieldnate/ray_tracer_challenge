@@ -10,10 +10,10 @@ pub const REFRACTION_GLASS: f32 = 1.52;
 pub const REFRACTION_DIAMOND: f32 = 2.417;
 
 pub fn glass() -> Material {
-    let mut m = Material::default();
-    m.transparency = 1.0;
-    m.refractive_index = REFRACTION_GLASS;
-    m
+    Material::builder()
+        .transparency(1.)
+        .refractive_index(REFRACTION_GLASS)
+        .build()
 }
 
 pub fn white() -> Color {

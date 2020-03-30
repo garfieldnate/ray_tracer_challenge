@@ -40,9 +40,8 @@ fn main() {
             Color::from_str("#261C15").unwrap(),
         );
         // checkers.set_transformation(rotation_x(PI / 2.0));
-        let mut m = Material::default();
+        let m = Material::builder().pattern(Box::new(checkers)).build();
 
-        m.pattern = Some(Box::new(checkers));
         plane.set_material(m);
         Box::new(plane)
     };

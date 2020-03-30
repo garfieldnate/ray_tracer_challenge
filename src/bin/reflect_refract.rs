@@ -37,11 +37,11 @@ fn main() {
     stripes.set_transformation(&scaling(0.3, 0.3, 0.3) * &rotation_z(3. * PI / 4.));
     let mut sine2d = Sine2D::new(color!(0.1, 1, 0.5), color!(0.9, 0.2, 0.6));
     sine2d.set_transformation(&scaling(0.05, 1., 0.05) * &translation(-5., 1., 0.5));
-    let mut room_material = Material::default();
-    room_material.color = color!(1, 0.9, 0.9);
-    room_material.pattern = Some(Box::new(sine2d));
-    room_material.specular = 0.;
-    room_material.reflective = 0.5;
+    let room_material = Material::builder()
+        .pattern(Box::new(sine2d))
+        .specular(0.)
+        .reflective(0.5)
+        .build();
     // The floor is a plane
     let floor = Plane::build(scaling(10., 0.1, 10.), room_material);
 
@@ -51,11 +51,11 @@ fn main() {
 
     // The smaller green sphere on the right is scaled in half
 
-    let mut right_sphere_material = Material::default();
-    right_sphere_material.color = color!(0.5, 1, 0.1);
-    right_sphere_material.pattern = Some(Box::new(stripes.clone()));
-    right_sphere_material.diffuse = 0.7;
-    right_sphere_material.specular = 0.3;
+    let right_sphere_material = Material::builder()
+        .pattern(Box::new(stripes.clone()))
+        .diffuse(0.7)
+        .specular(0.3)
+        .build();
     let mut metal_rings = metal();
     let mut ring_pattern = Rings::new(yellow() / 2., white() / 2.);
     ring_pattern.set_transformation(scaling(0.1, 0.1, 0.1));
@@ -67,17 +67,18 @@ fn main() {
     );
 
     // The smallest sphere is scaled by a third before being translated
-    let mut left_sphere_material = Material::default();
 
-    let mut stripes2 = stripes;
     // have to make this thing much darker since it will also be reflective
+    let mut stripes2 = stripes;
     stripes2.a = stripes2.a / 4.;
     stripes2.b = stripes2.b / 4.;
-    left_sphere_material.pattern = Some(Box::new(stripes2));
-    left_sphere_material.diffuse = 0.7;
-    left_sphere_material.specular = 1.;
-    left_sphere_material.reflective = 0.8;
-    left_sphere_material.shininess = 300.;
+    let left_sphere_material = Material::builder()
+        .pattern(Box::new(stripes2))
+        .diffuse(0.7)
+        .specular(1.)
+        .reflective(0.8)
+        .shininess(300.)
+        .build();
     let left = Sphere::build(
         &translation(-1.5, 0.33, -0.75) * &scaling(0.33, 0.33, 0.33),
         left_sphere_material,
@@ -89,7 +90,7 @@ fn main() {
         let mut c = Cone::new();
         c.maximum_y = 1.5;
         c.minimum_y = 0.;
-        let mut m = Material::default();
+        let mut m = Material::builder().build();
         m.reflective = 0.5;
         m.color = color!(0.6, 0.3, 0.1);
         m.shininess = 10.;
@@ -125,13 +126,14 @@ fn main() {
 }
 
 fn get_clear_sphere() -> Sphere {
-    let mut middle_sphere_material = Material::default();
-    middle_sphere_material.color = color!(0, 0, 0);
-    middle_sphere_material.specular = 1.;
-    middle_sphere_material.shininess = 300.;
-    middle_sphere_material.transparency = 1.;
-    middle_sphere_material.refractive_index = REFRACTION_GLASS;
-    middle_sphere_material.reflective = 1.;
+    let middle_sphere_material = Material::builder()
+        .color(color!(0, 0, 0))
+        .specular(1.)
+        .shininess(300.)
+        .transparency(1.)
+        .refractive_index(REFRACTION_GLASS)
+        .reflective(1.)
+        .build();
 
     let mut sphere = Sphere::build(translation(-0.5, 1., 0.5), middle_sphere_material);
     sphere.set_casts_shadow(false);
@@ -142,12 +144,14 @@ fn get_cylinder() -> Cylinder {
     let mut c = Cylinder::new();
     c.maximum_y = 1.5;
     c.minimum_y = 0.;
-    let mut m = Material::default();
-    m.reflective = 1.;
-    m.color = color!(0.5, 0.5, 0.5);
-    m.shininess = 300.;
-    m.specular = 0.8;
-    c.set_material(m);
+    c.set_material(
+        Material::builder()
+            .reflective(1.)
+            .color(color!(0.5, 0.5, 0.5))
+            .shininess(300.)
+            .specular(0.8)
+            .build(),
+    );
     c.set_transformation(&translation(3.7, 0., 4.) * &scaling(0.33, 1.8, 0.33));
     c
 }
@@ -158,11 +162,13 @@ fn get_csg() -> CSG {
     // s1
     let mut s2 = get_cylinder();
     s2.set_transformation(scaling(0.2, 2.0, 0.2));
-    let mut m = Material::default();
-    m.reflective = 0.;
-    m.refractive_index = 1.;
-    m.transparency = 1.;
-    s2.set_material(m);
+    s2.set_material(
+        Material::builder()
+            .reflective(0.)
+            .refractive_index(1.)
+            .transparency(1.)
+            .build(),
+    );
     s2.set_casts_shadow(false);
     // s2
     let mut c = CSG::new(CSGOperator::Difference(), Box::new(s1), Box::new(s2));

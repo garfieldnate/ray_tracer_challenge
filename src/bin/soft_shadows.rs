@@ -95,12 +95,13 @@ fn get_light() -> RectangleLight<'static> {
 //     - [ translate, 0, 3, 4 ]
 //   shadow: false
 fn get_lampshade() -> Cube {
-    let mut m = Material::default();
-    m.ambient = 1.;
-    m.diffuse = 0.;
-    // TODO: What? I thought 1 was the max!
-    m.color = color!(1.5, 1.5, 1.5);
-    m.specular = 0.;
+    let m = Material::builder()
+        // TODO: What? I thought 1 was the max!
+        .color(color!(1.5, 1.5, 1.5))
+        .ambient(1.)
+        .diffuse(0.)
+        .specular(0.)
+        .build();
     let transform = &translation(0., 3., 4.) * &scaling(1., 1., 0.01);
     let mut c = Cube::build(transform, m);
     c.set_casts_shadow(false);
@@ -114,11 +115,12 @@ fn get_lampshade() -> Cube {
 //     diffuse: 0.67
 //     specular: 0
 fn get_floor() -> Plane {
-    let mut material = Material::default();
-    material.color = white();
-    material.ambient = 0.025;
-    material.diffuse = 0.67;
-    material.specular = 0.;
+    let material = Material::builder()
+        .color(white())
+        .ambient(0.025)
+        .diffuse(0.67)
+        .specular(0.)
+        .build();
     Plane::build(identity_4x4(), material)
 }
 
@@ -134,12 +136,13 @@ fn get_floor() -> Plane {
 //     reflective: 0.3
 fn get_sphere_1() -> Sphere {
     let transform = &translation(0.5, 0.5, 0.) * &scaling(0.5, 0.5, 0.5);
-    let mut material = Material::default();
-    material.color = red();
-    material.ambient = 0.1;
-    material.specular = 0.;
-    material.diffuse = 0.6;
-    material.reflective = 0.3;
+    let material = Material::builder()
+        .color(red())
+        .ambient(0.1)
+        .specular(0.)
+        .diffuse(0.6)
+        .reflective(0.3)
+        .build();
     Sphere::build(transform, material)
 }
 
@@ -155,11 +158,12 @@ fn get_sphere_1() -> Sphere {
 //     reflective: 0.3
 fn get_sphere_2() -> Sphere {
     let transform = &translation(-0.25, 0.33, 0.) * &scaling(0.33, 0.33, 0.33);
-    let mut material = Material::default();
-    material.color = color!(0.5, 0.5, 1);
-    material.ambient = 0.1;
-    material.specular = 0.;
-    material.diffuse = 0.6;
-    material.reflective = 0.3;
+    let material = Material::builder()
+        .color(color!(0.5, 0.5, 1))
+        .ambient(0.1)
+        .specular(0.)
+        .diffuse(0.6)
+        .reflective(0.3)
+        .build();
     Sphere::build(transform, material)
 }

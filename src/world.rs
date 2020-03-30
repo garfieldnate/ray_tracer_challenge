@@ -31,10 +31,11 @@ impl World {
 
 impl Default for World {
     fn default() -> Self {
-        let mut m = Material::default();
-        m.color = color!(0.8, 1.0, 0.6);
-        m.diffuse = 0.7;
-        m.specular = 0.2;
+        let m = Material::builder()
+            .color(color!(0.8, 1.0, 0.6))
+            .diffuse(0.7)
+            .specular(0.2)
+            .build();
         let s1 = Sphere::build(identity_4x4(), m);
         let s2 = Sphere::build(scaling(0.5, 0.5, 0.5), Material::default());
         World {
@@ -481,8 +482,7 @@ mod tests {
     #[test]
     fn reflected_color_for_reflective_material() {
         let mut w = World::default();
-        let mut m = Material::default();
-        m.reflective = 0.5;
+        let m = Material::builder().reflective(0.5).build();
         let plane = Box::new(Plane::build(translation(0.0, -1.0, 0.0), m));
         w.objects.push(plane);
 
@@ -496,8 +496,7 @@ mod tests {
     #[test]
     fn shade_hit_with_reflective_material() {
         let mut w = World::default();
-        let mut m = Material::default();
-        m.reflective = 0.5;
+        let m = Material::builder().reflective(0.5).build();
         let plane = Box::new(Plane::build(translation(0.0, -1.0, 0.0), m));
         w.objects.push(plane);
 
@@ -512,8 +511,7 @@ mod tests {
     fn shade_hit_with_mutually_reflective_surfaces() {
         let mut w = World::new();
         w.light = Some(Box::new(PointLight::new(point!(0, 0, 0), color!(0, 0, 0))));
-        let mut m = Material::default();
-        m.reflective = 1.0;
+        let m = Material::builder().reflective(1.).build();
         let lower = Plane::build(translation(0.0, -1.0, 0.0), m.clone());
         let upper = Plane::build(translation(0.0, 1.0, 0.0), m.clone());
         w.objects.push(Box::new(lower));
@@ -527,8 +525,7 @@ mod tests {
     #[test]
     fn reflected_color_at_max_recursive_depth() {
         let mut w = World::default();
-        let mut m = Material::default();
-        m.reflective = 0.5;
+        let m = Material::builder().reflective(0.5).build();
         let plane = Box::new(Plane::build(translation(0.0, -1.0, 0.0), m));
         w.objects.push(plane);
 
@@ -583,11 +580,10 @@ mod tests {
         let mut w = World::default();
         // TODO: can't take w.objects[x] and mutate it...
         // outer
-        let mut material = Material::default();
-        material.ambient = 1.0;
-        w.objects[0].set_material(material.clone());
+        let m = Material::builder().ambient(1.).build();
+        w.objects[0].set_material(m.clone());
         // inner
-        w.objects[1].set_material(material.clone());
+        w.objects[1].set_material(m.clone());
         let r = Ray::new(point!(0, 0, 0.75), vector!(0, 0, -1));
         let c = w.color_at(r, 1);
         assert_eq!(c, w.objects[1].material().color);
@@ -751,16 +747,18 @@ mod tests {
     fn shade_hit_with_transparent_material() {
         let mut w = World::default();
         let floor = {
-            let mut m = Material::default();
-            m.transparency = 0.5;
-            m.refractive_index = 1.5;
+            let m = Material::builder()
+                .transparency(0.5)
+                .refractive_index(1.5)
+                .build();
             Plane::build(translation(0.0, -1.0, 0.0), m)
         };
         w.objects.push(Box::new(floor));
         let ball = {
-            let mut m = Material::default();
-            m.color = color!(1, 0, 0);
-            m.ambient = 0.5;
+            let m = Material::builder()
+                .color(color!(1, 0, 0))
+                .ambient(0.5)
+                .build();
             Sphere::build(translation(0.0, -3.5, -0.5), m)
         };
         w.objects.push(Box::new(ball));
@@ -817,17 +815,19 @@ mod tests {
     fn shade_hit_with_reflective_transparent_material() {
         let mut w = World::default();
         let floor = {
-            let mut m = Material::default();
-            m.reflective = 0.5;
-            m.transparency = 0.5;
-            m.refractive_index = 1.5;
+            let m = Material::builder()
+                .reflective(0.5)
+                .transparency(0.5)
+                .refractive_index(1.5)
+                .build();
             Plane::build(translation(0.0, -1.0, 0.0), m)
         };
         w.objects.push(Box::new(floor));
         let ball = {
-            let mut m = Material::default();
-            m.color = color!(1, 0, 0);
-            m.ambient = 0.5;
+            let m = Material::builder()
+                .color(color!(1, 0, 0))
+                .ambient(0.5)
+                .build();
             Sphere::build(translation(0.0, -3.5, -0.5), m)
         };
         w.objects.push(Box::new(ball));

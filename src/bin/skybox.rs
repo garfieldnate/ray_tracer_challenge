@@ -38,12 +38,13 @@ fn main() {
     //     reflective: 0.6
     //     ambient: 0
     let sphere = {
-        let mut material = Material::default();
-        material.diffuse = 0.4;
-        material.specular = 0.6;
-        material.shininess = 20.;
-        material.reflective = 0.6;
-        material.ambient = 0.;
+        let material = Material::builder()
+            .diffuse(0.4)
+            .specular(0.6)
+            .shininess(20.)
+            .reflective(0.6)
+            .ambient(0.)
+            .build();
         Sphere::build(
             &scaling(0.75, 0.75, 0.75) * &translation(0., 0., 5.),
             material,
@@ -78,11 +79,6 @@ fn main() {
     //     specular: 0
     //     ambient: 1
     let skybox = {
-        let mut material = Material::default();
-        material.diffuse = 0.;
-        material.specular = 0.;
-        material.ambient = 1.;
-
         eprintln!("Loading front...");
         let front = get_uv_from_path(&skybox_image_directory.join("posz.ppm"));
         eprintln!("Loading back...");
@@ -96,7 +92,12 @@ fn main() {
         eprintln!("Loading down...");
         let down = get_uv_from_path(&skybox_image_directory.join("negy.ppm"));
 
-        material.pattern = Some(Box::new(CubicMap::new(front, back, left, right, up, down)));
+        let material = Material::builder()
+            .diffuse(0.)
+            .specular(0.)
+            .ambient(1.)
+            .pattern(Box::new(CubicMap::new(front, back, left, right, up, down)))
+            .build();
 
         Cube::build(scaling(1000., 1000., 1000.), material)
     };

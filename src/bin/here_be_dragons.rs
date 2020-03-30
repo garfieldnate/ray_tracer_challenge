@@ -39,119 +39,103 @@ fn main() {
     let light = get_light();
 
     let center_front_transform = &translation(0., 0.5, -4.) * &rotation_y(PI);
-    let center_front_dragon_material = {
-        let mut m = Material::default();
-        m.color = color!(1, 1, 1);
-        m.ambient = 0.1;
-        m.diffuse = 0.6;
-        m.specular = 0.3;
-        m.shininess = 15.;
-        m
-    };
+    let center_front_dragon_material = Material::builder()
+        .color(color!(1, 1, 1))
+        .ambient(0.1)
+        .diffuse(0.6)
+        .specular(0.3)
+        .shininess(15.)
+        .build();
     let center_front_case_material = None;
 
     let center_back_transform = translation(0., 2., 2.);
-    let center_back_dragon_material = {
-        let mut m = Material::default();
-        m.color = color!(1, 0, 0.1);
-        m.ambient = 0.1;
-        m.diffuse = 0.6;
-        m.specular = 0.3;
-        m.shininess = 15.;
-        m
-    };
-    let center_back_case_material = {
-        let mut m = Material::default();
-        m.ambient = 0.;
-        m.diffuse = 0.4;
-        m.specular = 0.;
-        m.transparency = 0.6;
+    let center_back_dragon_material = Material::builder()
+        .color(color!(1, 0, 0.1))
+        .ambient(0.1)
+        .diffuse(0.6)
+        .specular(0.3)
+        .shininess(15.)
+        .build();
+    let center_back_case_material = Some(
+        Material::builder()
+            .ambient(0.)
+            .diffuse(0.4)
+            .specular(0.)
+            .transparency(0.6)
+            .build(),
+    );
 
-        Some(m)
-    };
     let center_left_transform =
         &translation(-2., 0.75, -1.) * &(&rotation_y(-PI / 8.) * &scaling(0.75, 0.75, 0.75));
-    let center_left_dragon_material = {
-        let mut m = Material::default();
-        m.color = color!(0.9, 0.5, 0.1);
-        m.ambient = 0.1;
-        m.diffuse = 0.6;
-        m.specular = 0.3;
-        m.shininess = 15.;
-        m
-    };
-    let center_left_case_material = {
-        let mut m = Material::default();
-        m.ambient = 0.;
-        m.diffuse = 0.2;
-        m.specular = 0.;
-        m.transparency = 0.8;
+    let center_left_dragon_material = Material::builder()
+        .color(color!(0.9, 0.5, 0.1))
+        .ambient(0.1)
+        .diffuse(0.6)
+        .specular(0.3)
+        .shininess(15.)
+        .build();
+    let center_left_case_material = Some(
+        Material::builder()
+            .ambient(0.)
+            .diffuse(0.2)
+            .specular(0.)
+            .transparency(0.8)
+            .build(),
+    );
 
-        Some(m)
-    };
     let left_transform =
         &translation(-4., 0., -2.) * &(&rotation_y(-PI / 16.) * &scaling(0.5, 0.5, 0.5));
-    let left_dragon_material = {
-        let mut m = Material::default();
-        m.color = color!(1, 0.9, 0.1);
-        m.ambient = 0.1;
-        m.diffuse = 0.6;
-        m.specular = 0.3;
-        m.shininess = 15.;
+    let left_dragon_material = Material::builder()
+        .color(color!(1, 0.9, 0.1))
+        .ambient(0.1)
+        .diffuse(0.6)
+        .specular(0.3)
+        .shininess(15.)
+        .build();
+    let left_case_material = Some(
+        Material::builder()
+            .ambient(0.)
+            .diffuse(0.1)
+            .specular(0.)
+            .transparency(0.9)
+            .build(),
+    );
 
-        m
-    };
-    let left_case_material = {
-        let mut m = Material::default();
-        m.ambient = 0.;
-        m.diffuse = 0.1;
-        m.specular = 0.;
-        m.transparency = 0.9;
-
-        Some(m)
-    };
     let right_transform =
         &translation(4., 0., -2.) * &(&rotation_y(21. * PI / 20.) * &scaling(0.5, 0.5, 0.5));
-    let right_dragon_material = {
-        let mut m = Material::default();
-        m.color = color!(0.9, 1, 0.1);
-        m.ambient = 0.1;
-        m.diffuse = 0.6;
-        m.specular = 0.3;
-        m.shininess = 15.;
+    let right_dragon_material = Material::builder()
+        .color(color!(0.9, 1, 0.1))
+        .ambient(0.1)
+        .diffuse(0.6)
+        .specular(0.3)
+        .shininess(15.)
+        .build();
+    let right_case_material = Some(
+        Material::builder()
+            .ambient(0.)
+            .diffuse(0.1)
+            .specular(0.)
+            .transparency(0.9)
+            .build(),
+    );
 
-        m
-    };
-    let right_case_material = {
-        let mut m = Material::default();
-        m.ambient = 0.;
-        m.diffuse = 0.1;
-        m.specular = 0.;
-        m.transparency = 0.9;
-
-        Some(m)
-    };
     let center_right_transform =
         &translation(2., 1., -1.) * &(&rotation_y(5. * PI / 4.) * &scaling(0.75, 0.75, 0.75));
-    let center_right_dragon_material = {
-        let mut m = Material::default();
-        m.color = color!(1, 0.5, 0.1);
-        m.ambient = 0.1;
-        m.diffuse = 0.6;
-        m.specular = 0.3;
-        m.shininess = 15.;
-
-        m
-    };
-    let center_right_case_material = {
-        let mut m = Material::default();
-        m.ambient = 0.;
-        m.diffuse = 0.2;
-        m.specular = 0.;
-        m.transparency = 0.8;
-
-        Some(m)
-    };
+    let center_right_dragon_material = Material::builder()
+        .color(color!(1, 0.5, 0.1))
+        .ambient(0.1)
+        .diffuse(0.6)
+        .specular(0.3)
+        .shininess(15.)
+        .build();
+    let center_right_case_material = Some(
+        Material::builder()
+            .ambient(0.)
+            .diffuse(0.2)
+            .specular(0.)
+            .transparency(0.8)
+            .build(),
+    );
 
     let mut element_data = vec![
         (
@@ -263,13 +247,15 @@ fn get_pedestal() -> Cylinder {
     c.minimum_y = -0.15;
     c.closed = true;
 
-    let mut m = Material::default();
-    m.color = color!(0.2, 0.2, 0.2);
-    m.ambient = 0.;
-    m.diffuse = 0.8;
-    m.specular = 0.;
-    m.reflective = 0.2;
-    c.set_material(m);
+    c.set_material(
+        Material::builder()
+            .color(color!(0.2, 0.2, 0.2))
+            .ambient(0.)
+            .diffuse(0.8)
+            .specular(0.)
+            .reflective(0.2)
+            .build(),
+    );
 
     c
 }

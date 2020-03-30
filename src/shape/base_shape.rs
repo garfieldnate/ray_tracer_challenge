@@ -120,8 +120,7 @@ mod tests {
         let mut shape = BaseShape::new();
         assert_eq!(shape.material(), &Material::default(), "Default material");
 
-        let mut override_material = Material::default();
-        override_material.ambient = 1.0;
+        let override_material = Material::builder().ambient(1.).build();
         shape.set_material(override_material.clone());
         assert_eq!(
             shape.material(),

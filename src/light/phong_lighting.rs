@@ -284,11 +284,12 @@ mod tests {
     //     let light = RectangleLight::new(white(), corner, u, 2, v, 2, None);
     //     let shape = {
     //         let mut s = Sphere::new();
-    //         let mut m = Material::default();
-    //         m.ambient = 0.1;
-    //         m.diffuse = 0.9;
-    //         m.specular = 0.0;
-    //         m.color = white();
+    //         let m = Material::builder()
+    //             .ambient(0.1)
+    //             .diffuse(0.9)
+    //             .specular(0.0)
+    //             .color(white())
+    //             .build();
     //         s.set_material(m);
     //         s
     //     };

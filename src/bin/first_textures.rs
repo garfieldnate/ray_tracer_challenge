@@ -36,25 +36,25 @@ fn main() {
     let earth_image_file_path = Path::new(&args[1]);
 
     let floor = {
-        let mut material = Material::default();
-        material.color = color!(1, 0.9, 0.9);
-        material.pattern = Some(Box::new(TextureMap::new(
-            Box::new(UVCheckers::new(16., 8., black(), white())),
-            Box::new(PlanarMap),
-        )));
-        material.specular = 0.0;
+        let material = Material::builder()
+            .specular(0.)
+            .pattern(Box::new(TextureMap::new(
+                Box::new(UVCheckers::new(16., 8., black(), white())),
+                Box::new(PlanarMap),
+            )))
+            .build();
         Plane::build(scaling(10.0, 0.01, 10.0), material)
     };
 
     let sphere = {
-        let mut material = Material::default();
-        material.color = color!(0.1, 1, 0.5);
-        material.pattern = Some(Box::new(TextureMap::new(
-            Box::new(UVCheckers::new(16., 8., black(), white())),
-            Box::new(SphericalMap),
-        )));
-        material.diffuse = 0.7;
-        material.specular = 0.3;
+        let material = Material::builder()
+            .pattern(Box::new(TextureMap::new(
+                Box::new(UVCheckers::new(16., 8., black(), white())),
+                Box::new(SphericalMap),
+            )))
+            .diffuse(0.7)
+            .specular(0.3)
+            .build();
         Sphere::build(translation(-2.5, 1.3, 3.), material)
     };
 
@@ -62,15 +62,16 @@ fn main() {
         let file = File::open(earth_image_file_path).unwrap();
         let canvas = canvas_from_ppm(file).unwrap();
 
-        let mut material = Material::default();
-        material.pattern = Some(Box::new(TextureMap::new(
-            Box::new(UVImage::new(canvas)),
-            Box::new(SphericalMap),
-        )));
-        material.diffuse = 0.9;
-        material.specular = 0.1;
-        material.shininess = 10.;
-        material.ambient = 0.1;
+        let material = Material::builder()
+            .pattern(Box::new(TextureMap::new(
+                Box::new(UVImage::new(canvas)),
+                Box::new(SphericalMap),
+            )))
+            .diffuse(0.9)
+            .specular(0.1)
+            .shininess(10.)
+            .ambient(0.1)
+            .build();
         // lift the model so that it sits on the pedestal
         let earth = Sphere::build(
             &translation(0., 1., 0.) * &(&rotation_x(-0.5) * &rotation_y(-1.5)),
@@ -86,15 +87,16 @@ fn main() {
     };
 
     let cylinder = {
-        let mut material = Material::default();
-        material.ambient = 0.1;
-        material.specular = 0.6;
-        material.shininess = 15.;
-        material.diffuse = 0.8;
-        material.pattern = Some(Box::new(TextureMap::new(
-            Box::new(UVCheckers::new(16., 16., color!(0, 0.5, 0), white())),
-            Box::new(CylindricalMap),
-        )));
+        let material = Material::builder()
+            .ambient(0.1)
+            .specular(0.6)
+            .shininess(15.)
+            .diffuse(0.8)
+            .pattern(Box::new(TextureMap::new(
+                Box::new(UVCheckers::new(16., 16., color!(0, 0.5, 0), white())),
+                Box::new(CylindricalMap),
+            )))
+            .build();
 
         // y scaling by PI is always required for cylinders to get proper-looking squares
         let mut c = Cylinder::build(translation(2., 2., 2.), material);
@@ -104,9 +106,9 @@ fn main() {
     };
 
     let cube = {
-        let mut material = Material::default();
-        let pattern = get_align_check_cubic_map_pattern();
-        material.pattern = Some(Box::new(pattern));
+        let material = Material::builder()
+            .pattern(Box::new(get_align_check_cubic_map_pattern()))
+            .build();
 
         let mut c = Cube::new();
         c.set_transformation(&translation(5., 2., 2.) * &rotation_x(-PI / 4.));
@@ -144,7 +146,7 @@ fn get_pedestal() -> Cylinder {
     c.minimum_y = -0.15;
     c.closed = true;
 
-    let mut m = Material::default();
+    let mut m = Material::builder().build();
     m.color = color!(0.2, 0.2, 0.2);
     m.ambient = 0.;
     m.diffuse = 0.8;

@@ -212,8 +212,7 @@ mod tests {
         ]);
         let group_shininess = 123.456;
         let m = {
-            let mut m = Material::default();
-            m.shininess = group_shininess;
+            let mut m = Material::builder().shininess(group_shininess).build();
             m
         };
         g.set_material(m);
