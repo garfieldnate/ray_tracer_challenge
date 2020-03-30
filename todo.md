@@ -40,6 +40,7 @@
 -   getset or rust-derive-builder would probably simplify material or other creations, too
 -   display a grid
 -   Switch to IntelliJ
+-   Convenience function for creating skyboxes
 
 ### Maybes/Ideas
 
