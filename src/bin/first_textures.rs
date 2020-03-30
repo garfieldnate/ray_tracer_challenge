@@ -15,7 +15,7 @@ use ray_tracer_challenge::pattern::uv::{
     CylindricalMap, PlanarMap, SphericalMap, TextureMap, UVCheckers, UVImage,
 };
 use ray_tracer_challenge::shape::cube::Cube;
-use ray_tracer_challenge::shape::cylinder::Cylinder;
+use ray_tracer_challenge::shape::cylinder::{Cylinder, CylinderBuilder};
 use ray_tracer_challenge::shape::group::GroupShape;
 use ray_tracer_challenge::shape::plane::Plane;
 use ray_tracer_challenge::shape::shape::Shape;
@@ -141,20 +141,19 @@ fn main() {
 }
 
 fn get_pedestal() -> Cylinder {
-    let mut c = Cylinder::new();
-    c.maximum_y = 0.;
-    c.minimum_y = -0.15;
-    c.closed = true;
-
     let mut m = Material::builder().build();
     m.color = color!(0.2, 0.2, 0.2);
     m.ambient = 0.;
     m.diffuse = 0.8;
     m.specular = 0.;
     m.reflective = 0.2;
-    c.set_material(m);
 
-    c
+    CylinderBuilder::new()
+        .maximum_y(0.)
+        .minimum_y(-0.15)
+        .closed(true)
+        .material(m)
+        .build()
 }
 
 fn get_light() -> Box<dyn Light> {

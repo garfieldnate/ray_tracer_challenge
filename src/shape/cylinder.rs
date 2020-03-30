@@ -10,6 +10,63 @@ use std::f32;
 
 // Base shape is parallel to the Y-axis and infinitely long, centered on world origin
 
+pub struct CylinderBuilder {
+    transform: Matrix,
+    material: Material,
+    casts_shadow: bool,
+    pub minimum_y: f32,
+    pub maximum_y: f32,
+    pub closed: bool,
+}
+impl CylinderBuilder {
+    pub fn new() -> Self {
+        Self {
+            transform: Matrix::default(),
+            material: Material::default(),
+            casts_shadow: true,
+            minimum_y: f32::NEG_INFINITY,
+            maximum_y: f32::INFINITY,
+            closed: false,
+        }
+    }
+    pub fn transform(mut self, t: Matrix) -> Self {
+        self.transform = t;
+        self
+    }
+    pub fn material(mut self, m: Material) -> Self {
+        self.material = m;
+        self
+    }
+    pub fn casts_shadow(mut self, casts_shadow: bool) -> Self {
+        self.casts_shadow = casts_shadow;
+        self
+    }
+    pub fn closed(mut self, closed: bool) -> Self {
+        self.closed = closed;
+        self
+    }
+    pub fn minimum_y(mut self, minimum_y: f32) -> Self {
+        self.minimum_y = minimum_y;
+        self
+    }
+    pub fn maximum_y(mut self, maximum_y: f32) -> Self {
+        self.maximum_y = maximum_y;
+        self
+    }
+    pub fn build(self) -> Cylinder {
+        let mut base = BaseShape::new();
+        base.set_transformation(self.transform);
+        base.set_material(self.material);
+        base.set_casts_shadow(self.casts_shadow);
+        Cylinder {
+            base,
+            minimum_y: self.minimum_y,
+            maximum_y: self.maximum_y,
+            closed: self.closed,
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct Cylinder {
     base: BaseShape,

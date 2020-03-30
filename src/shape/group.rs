@@ -211,10 +211,7 @@ mod tests {
             Box::new(Sphere::new()),
         ]);
         let group_shininess = 123.456;
-        let m = {
-            let mut m = Material::builder().shininess(group_shininess).build();
-            m
-        };
+        let m = Material::builder().shininess(group_shininess).build();
         g.set_material(m);
         for c in g.get_children().iter() {
             assert_eq!(c.material().shininess, group_shininess);
