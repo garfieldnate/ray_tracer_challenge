@@ -39,6 +39,9 @@
 -   Would be helpful if I could use `assert_abs_diff_eq!` on tuples automatically
 -   There's no enum map :/ There is an enum-map crate, but you can only use basic types for values. I tried to use a box type, and the compiler complained about not being able to move values.
 - Cool feature, but important to know about and design is maybe a little questionable. If you create an iterator and call `enumerate` on it, you'll get an iterator over `(usize, value)`. If you call `next` to get a single value from it, and then call `enumerate` after that, you'll instead get `(usize, (usize, value))`, which gives you the index into the current iteration and also the overall iterator index, respectively. I like that this information is provided, but I don't understand how the type inference worked out on it, and it was a surprising type error gotcha for me.
+- typed-builder is really amazing, but coming from the Java world and Lombok I'm still missing two important features:
+    * Override any piece of the setters or constructor
+    * Turn a resulting object back into a builder
 
 ### VS Code Wishes
 

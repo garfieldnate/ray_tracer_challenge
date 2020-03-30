@@ -146,12 +146,13 @@ fn get_pedestal() -> Cylinder {
     c.minimum_y = -0.15;
     c.closed = true;
 
-    let mut m = Material::builder().build();
-    m.color = color!(0.2, 0.2, 0.2);
-    m.ambient = 0.;
-    m.diffuse = 0.8;
-    m.specular = 0.;
-    m.reflective = 0.2;
+    let m = Material::builder()
+        .color(color!(0.2, 0.2, 0.2))
+        .ambient(0.)
+        .diffuse(0.8)
+        .specular(0.)
+        .reflective(0.2)
+        .build();
     c.set_material(m);
 
     c

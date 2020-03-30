@@ -90,12 +90,14 @@ fn main() {
         let mut c = Cone::new();
         c.maximum_y = 1.5;
         c.minimum_y = 0.;
-        let mut m = Material::builder().build();
-        m.reflective = 0.5;
-        m.color = color!(0.6, 0.3, 0.1);
-        m.shininess = 10.;
-        m.specular = 0.8;
-        c.set_material(m);
+        c.set_material(
+            Material::builder()
+                .color(color!(0.6, 0.3, 0.1))
+                .reflective(0.5)
+                .shininess(10.)
+                .specular(0.8)
+                .build(),
+        );
         c.set_transformation(&translation(-3.5, 0., 4.) * &scaling(0.33, 1.8, 0.33));
         c
     };
