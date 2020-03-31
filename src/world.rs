@@ -5,6 +5,7 @@ use crate::intersection::Intersection;
 use crate::light::{light::Light, phong_lighting::phong_lighting, point_light::PointLight};
 use crate::material::Material;
 use crate::matrix::identity_4x4;
+use crate::pattern::solid::Solid;
 use crate::ray::Ray;
 use crate::shape::shape::Shape;
 use crate::shape::sphere::Sphere;
@@ -32,7 +33,7 @@ impl World {
 impl Default for World {
     fn default() -> Self {
         let m = Material::builder()
-            .color(color!(0.8, 1.0, 0.6))
+            .pattern(Box::new(Solid::new(color!(0.8, 1.0, 0.6))))
             .diffuse(0.7)
             .specular(0.2)
             .build();
@@ -306,9 +307,11 @@ fn schlick_reflectance(comps: &PrecomputedValues) -> f32 {
 mod tests {
     use super::*;
     use crate::constants::black;
+    use crate::constants::red;
     use crate::pattern::pattern::TestPattern;
     use crate::shape::plane::Plane;
     use crate::transformations::translation;
+    use std::borrow::Borrow;
     use std::f32::consts::FRAC_1_SQRT_2;
     use std::f32::consts::SQRT_2;
 
@@ -586,7 +589,13 @@ mod tests {
         w.objects[1].set_material(m.clone());
         let r = Ray::new(point!(0, 0, 0.75), vector!(0, 0, -1));
         let c = w.color_at(r, 1);
-        assert_eq!(c, w.objects[1].material().color);
+        assert_eq!(
+            c,
+            w.objects[1]
+                .material()
+                .pattern
+                .color_at_object(point!(0, 0, 0), w.objects[1].borrow())
+        );
     }
 
     #[test]
@@ -718,7 +727,7 @@ mod tests {
         {
             let mut m = w.objects[0].material().clone();
             m.ambient = 1.0;
-            m.pattern = Some(Box::new(TestPattern::new()));
+            m.pattern = Box::new(TestPattern::new());
             w.objects[0].set_material(m.clone());
         }
         {
@@ -756,7 +765,7 @@ mod tests {
         w.objects.push(Box::new(floor));
         let ball = {
             let m = Material::builder()
-                .color(color!(1, 0, 0))
+                .pattern(Box::new(Solid::new(red())))
                 .ambient(0.5)
                 .build();
             Sphere::build(translation(0.0, -3.5, -0.5), m)
@@ -825,7 +834,7 @@ mod tests {
         w.objects.push(Box::new(floor));
         let ball = {
             let m = Material::builder()
-                .color(color!(1, 0, 0))
+                .pattern(Box::new(Solid::new(red())))
                 .ambient(0.5)
                 .build();
             Sphere::build(translation(0.0, -3.5, -0.5), m)

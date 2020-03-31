@@ -21,10 +21,7 @@ pub fn phong_lighting(
 ) -> Color {
     // TODO: would be more elegant for material to have the color_at_object method
     // mix the surface color with the light's color
-    let material_color = match &material.pattern {
-        Some(p) => p.color_at_object(point, object),
-        None => material.color,
-    };
+    let material_color = material.pattern.color_at_object(point, object);
     let effective_color = material_color * light.intensity();
 
     let ambient = effective_color * material.ambient;
@@ -69,6 +66,7 @@ mod tests {
     use crate::constants::white;
     use crate::light::point_light::PointLight;
     use crate::material::Material;
+    use crate::pattern::solid::Solid;
     use crate::pattern::stripes::Stripes;
     use crate::test::utils::any_shape;
     use crate::world::World;
@@ -202,8 +200,7 @@ mod tests {
             specular: 0.0,
             reflective: 0.0,
             shininess: 200.0,
-            color: color!(0.5, 0.5, 0.5),
-            pattern: Some(Box::new(pattern)),
+            pattern: Box::new(pattern),
             transparency: 0.0,
             refractive_index: 1.0,
         };
@@ -243,7 +240,7 @@ mod tests {
         m.ambient = 0.1;
         m.diffuse = 0.9;
         m.specular = 0.0;
-        m.color = white();
+        m.pattern = Box::new(Solid::new(white()));
         shape.set_material(m);
 
         let p = point!(0, 0, -1);

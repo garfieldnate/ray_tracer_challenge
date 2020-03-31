@@ -1,5 +1,6 @@
 use crate::color::Color;
 use crate::material::Material;
+use crate::pattern::solid::Solid;
 
 pub const DEFAULT_RAY_RECURSION_DEPTH: i16 = 5;
 
@@ -49,7 +50,6 @@ pub fn brown() -> Color {
 
 pub fn metal() -> Material {
     Material {
-        color: gray(),
         ambient: 1.0,
         diffuse: 0.6,
         reflective: 0.1,
@@ -57,6 +57,6 @@ pub fn metal() -> Material {
         shininess: 10.0,
         transparency: 0.0,
         refractive_index: 1.0,
-        pattern: None,
+        pattern: Box::new(Solid::new(gray())),
     }
 }

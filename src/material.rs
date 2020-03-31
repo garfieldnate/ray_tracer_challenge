@@ -1,6 +1,5 @@
-use crate::color::Color;
-use crate::constants::white;
 use crate::pattern::pattern::Pattern;
+use crate::pattern::solid::Solid;
 use std::fmt::Debug;
 use std::ptr;
 
@@ -14,11 +13,17 @@ impl PartialEq for BoxedPattern {
     }
 }
 
+impl Default for BoxedPattern {
+    fn default() -> Self {
+        Box::new(Solid::default())
+    }
+}
+
 // Represents the reflective properties of a surface
 #[derive(PartialEq, Debug, Clone, TypedBuilder)]
 pub struct Material {
-    #[builder(default = white())]
-    pub color: Color,
+    // #[builder(default = white())]
+    // pub color: Color,
     // light reflected from other objects in the environment [0,1]
     #[builder(default = 0.1)]
     pub ambient: f32,
@@ -46,8 +51,8 @@ pub struct Material {
     #[builder(default = 1.)]
     pub refractive_index: f32,
 
-    #[builder(default, setter(strip_option))]
-    pub pattern: Option<BoxedPattern>,
+    #[builder(default = "Box::new(Solid::default())")]
+    pub pattern: BoxedPattern,
 }
 
 impl Default for Material {

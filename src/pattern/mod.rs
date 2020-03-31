@@ -3,5 +3,6 @@ pub mod gradient;
 pub mod pattern;
 pub mod rings;
 pub mod sine_2d;
+pub mod solid;
 pub mod stripes;
 pub mod uv;
