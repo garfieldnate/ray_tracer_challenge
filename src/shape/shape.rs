@@ -69,6 +69,57 @@ pub trait Shape: Debug + Downcast {
     }
 
     fn normal_to_world(&self, object_normal: &Tuple) -> Tuple {
+        // A normal was computed in object space and must be returned in world space.
+        // This is a different problem from converting a *point* from object to world space.
+        // We are not concerned with the location of the normal on the surface of the object
+        // but rather the direction that it points in. We have to consider several types of
+        // transformations given to the parent object:
+        //
+        // The first is rotation. This needs to be applied to the vector as-is: if you stick
+        // a toothpick in a peach to represent the normal on the peach's surface, then you will
+        // see that rotating the peach rotates the toothpick in exactly the same manner.
+        //
+        // The next is uniform scaling. This does not affect a normal at all; as the peach
+        // grows and shrinks, the tooth pick will point in the same direction.
+        //
+        // Next is non-uniform scaling. This is more complex. If you poke several toothpicks
+        // close together on one side of the peach so that they are almost parallel and then
+        // you squish the peach downwards, scaling y by 1/2 so that it becomes one of those
+        // weird donut peaches, the toothpicks will change direction a little bit so that they
+        // are pointing more away from each other. From the top, the peach will look the same,
+        // but from the side, you can see that the normals change more slowly on the top and
+        // more quickly on the sides. Scaling the y axis by 1/2 actually doubles the
+        // y-component of all of the normals on the peach. This means scaling the normals by
+        // the inverse of the matrix that scaled the object; the inverse of a scaling matrix
+        // is just the same matrix but with each of the scaling components inverted.
+        //
+        // Last is shearing. I will use a different image here. Imagine a cardboard box with
+        // no lid or bottom, sitting on its side on a table. If you look through the center of
+        // the box, it will appear as a square. If you squish the box a little, it will become
+        // a parallelogram. This is a shearing operation which displaces part of the box
+        // farther along the x-axis as we measure it over increasing y-values. You'll notice that
+        // as we increase this x-y shear, the normals on the sides instead have their y-components
+        // compared to the y axis. which is a shear operation in the x-y axis that increases the size of the box
+        . As you squish the box more
+
+        // * rotation: needs to be applied to the normal as-is
+        // * translation: these do not apply to vectors; we'll come back to this
+        // * non-uniform scaling: the inverse of the scaling needs to be applied to the normal
+        // * shearing: the inverse transpose of the scaling needs to be applied to the normal
+        //
+        // The reason non-uniform scaling needs to be inverted is that it changes the slopes
+        // of surfaces, which is measured by the normal. For example, imagine squishing a
+        // sphere by multiplying just the y-axis by 1/2 so that it looks like an M&M. The x
+        // and z axes remain unaffected, so from above it looks like a circle, but from the
+        // sides it looks like an oval. This oval has normals that change quickly on the side
+        // and more slowly on the top and bottom. The 1/2 scaling in the y axis doubles the
+        // y-component of all of the normals on the sphere/M&M. This means taking the inverse
+        // of the scaling matrix, because the inverse of a scaling matrix is created by taking
+        // the reciprocal of each element in the matrix.
+        //
+        // So we need the reciprocal of the scaling component of a matrix and we need the
+        // rotation component as-is. There is a trick to this:
+        // means taking the inverse of th
         // Then, after computing the normal they must transform it by the inverse of the
         // transpose of the transformation matrix, and then normalize the resulting vector
         // before returning it.
