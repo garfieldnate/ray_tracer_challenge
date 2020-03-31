@@ -3,7 +3,7 @@ use crate::constants::white;
 use crate::constants::REFRACTION_VACCUM;
 use crate::intersection::Intersection;
 use crate::light::{light::Light, phong_lighting::phong_lighting, point_light::PointLight};
-use crate::material::Material;
+use crate::material::{Material, MaterialBuilder};
 use crate::matrix::identity_4x4;
 use crate::pattern::solid::Solid;
 use crate::ray::Ray;
@@ -32,7 +32,7 @@ impl World {
 
 impl Default for World {
     fn default() -> Self {
-        let m = Material::builder()
+        let m = MaterialBuilder::default()
             .pattern(Box::new(Solid::new(color!(0.8, 1.0, 0.6))))
             .diffuse(0.7)
             .specular(0.2)
@@ -485,7 +485,7 @@ mod tests {
     #[test]
     fn reflected_color_for_reflective_material() {
         let mut w = World::default();
-        let m = Material::builder().reflective(0.5).build();
+        let m = MaterialBuilder::default().reflective(0.5).build();
         let plane = Box::new(Plane::build(translation(0.0, -1.0, 0.0), m));
         w.objects.push(plane);
 
@@ -499,7 +499,7 @@ mod tests {
     #[test]
     fn shade_hit_with_reflective_material() {
         let mut w = World::default();
-        let m = Material::builder().reflective(0.5).build();
+        let m = MaterialBuilder::default().reflective(0.5).build();
         let plane = Box::new(Plane::build(translation(0.0, -1.0, 0.0), m));
         w.objects.push(plane);
 
@@ -514,7 +514,7 @@ mod tests {
     fn shade_hit_with_mutually_reflective_surfaces() {
         let mut w = World::new();
         w.light = Some(Box::new(PointLight::new(point!(0, 0, 0), color!(0, 0, 0))));
-        let m = Material::builder().reflective(1.).build();
+        let m = MaterialBuilder::default().reflective(1.).build();
         let lower = Plane::build(translation(0.0, -1.0, 0.0), m.clone());
         let upper = Plane::build(translation(0.0, 1.0, 0.0), m.clone());
         w.objects.push(Box::new(lower));
@@ -528,7 +528,7 @@ mod tests {
     #[test]
     fn reflected_color_at_max_recursive_depth() {
         let mut w = World::default();
-        let m = Material::builder().reflective(0.5).build();
+        let m = MaterialBuilder::default().reflective(0.5).build();
         let plane = Box::new(Plane::build(translation(0.0, -1.0, 0.0), m));
         w.objects.push(plane);
 
@@ -583,7 +583,7 @@ mod tests {
         let mut w = World::default();
         // TODO: can't take w.objects[x] and mutate it...
         // outer
-        let m = Material::builder().ambient(1.).build();
+        let m = MaterialBuilder::default().ambient(1.).build();
         w.objects[0].set_material(m.clone());
         // inner
         w.objects[1].set_material(m.clone());
@@ -756,7 +756,7 @@ mod tests {
     fn shade_hit_with_transparent_material() {
         let mut w = World::default();
         let floor = {
-            let m = Material::builder()
+            let m = MaterialBuilder::default()
                 .transparency(0.5)
                 .refractive_index(1.5)
                 .build();
@@ -764,7 +764,7 @@ mod tests {
         };
         w.objects.push(Box::new(floor));
         let ball = {
-            let m = Material::builder()
+            let m = MaterialBuilder::default()
                 .pattern(Box::new(Solid::new(red())))
                 .ambient(0.5)
                 .build();
@@ -824,7 +824,7 @@ mod tests {
     fn shade_hit_with_reflective_transparent_material() {
         let mut w = World::default();
         let floor = {
-            let m = Material::builder()
+            let m = MaterialBuilder::default()
                 .reflective(0.5)
                 .transparency(0.5)
                 .refractive_index(1.5)
@@ -833,7 +833,7 @@ mod tests {
         };
         w.objects.push(Box::new(floor));
         let ball = {
-            let m = Material::builder()
+            let m = MaterialBuilder::default()
                 .pattern(Box::new(Solid::new(red())))
                 .ambient(0.5)
                 .build();

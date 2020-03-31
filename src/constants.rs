@@ -1,5 +1,5 @@
 use crate::color::Color;
-use crate::material::Material;
+use crate::material::{Material, MaterialBuilder};
 use crate::pattern::solid::Solid;
 
 pub const DEFAULT_RAY_RECURSION_DEPTH: i16 = 5;
@@ -11,7 +11,7 @@ pub const REFRACTION_GLASS: f32 = 1.52;
 pub const REFRACTION_DIAMOND: f32 = 2.417;
 
 pub fn glass() -> Material {
-    Material::builder()
+    MaterialBuilder::default()
         .transparency(1.)
         .refractive_index(REFRACTION_GLASS)
         .build()

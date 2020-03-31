@@ -8,7 +8,7 @@ extern crate linked_hash_set;
 extern crate downcast_rs;
 extern crate derivative;
 #[macro_use]
-extern crate typed_builder;
+extern crate derive_builder;
 #[macro_use]
 extern crate impl_ops;
 
