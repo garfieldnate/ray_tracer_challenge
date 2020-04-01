@@ -69,16 +69,75 @@ pub trait Shape: Debug + Downcast {
     }
 
     fn normal_to_world(&self, object_normal: &Tuple) -> Tuple {
-        // Then, after computing the normal they must transform it by the inverse of the
-        // transpose of the transformation matrix, and then normalize the resulting vector
-        // before returning it.
-        // TODO: why the inverse transpose instead of just the inverse?
+        // A normal was computed in object space and must be returned in world space.
+        // This is a different problem from converting a *point* from object to world space.
+        // We are not concerned with the location of the normal on the surface of the object,
+        // but rather the direction that it points in. We have to consider several types of
+        // transformations given to the parent object:
+        //
+        // The first is rotation. This needs to be applied to the vector as-is: if you stick
+        // a toothpick in a peach to represent the normal on the peach's surface, then you will
+        // see that rotating the peach rotates the toothpick in exactly the same manner.
+        //
+        // The next is uniform scaling. This does not affect a normal at all; as the peach
+        // grows and shrinks, the tooth pick will point in the same direction.
+        //
+        // Next is non-uniform scaling. This is more complex. If you poke several toothpicks
+        // close together in a vertical row on one side of the peach so that they are almost
+        // parallel and then
+        // you squish the peach downwards, scaling y by 1/2 so that it becomes one of those
+        // weird donut peaches, the toothpicks will change direction a little bit so that they
+        // are pointing more away from each other. From the top, the peach will look the same,
+        // but from the side, you can see that the normals change more slowly on the top and
+        // more quickly on the sides. Scaling the y axis by 1/2 actually doubles the
+        // y-component of all of the normals on the peach. This means scaling the normals by
+        // the inverse of the matrix that scaled the object; the inverse of a scaling matrix
+        // is just the same matrix but with each of the scaling components inverted.
+        //
+        // Next is shearing. I will use a different image here. Imagine a cardboard box with
+        // no lid or bottom, sitting on its side on a table. If you look through the center of
+        // the box, you see a square. Push on the top of the box to deform it into a parallelogram
+        // leaning to the right. This is a shearing operation which displaces part of the box
+        // farther along the x-axis as we measure it over increasing y-values. You'll notice that
+        // as we increase this x-y shear, the normals on the sides instead have their y-components
+        // increased. On the left side, where the normals previously pointed to the left (-x), they
+        // have their y-components increased proportionally with the amount of shear. On the right,
+        // where the normals previously pointed to the right (+x), they have their y-components
+        // decreased proportionally with the amount of shear. The normals are transformed by the
+        // inverse transpose of the object's shear matrix. The inverse of a shear matrix reverses
+        // the signs of each shear element in the matrix, and the transpose causes y to increase
+        // relative to x instead of x increasing relative to y.
+        //
+        // So we have the following:
+        //
+        // * rotation: needs to be applied to the normal as-is
+        // * uniform scaling: can be applied or not applied; does not affect the normal's direction
+        // * non-uniform scaling: needs to be inverted
+        // * shearing: needs to be inverted and transposed
+        // * translation: these do not apply to vectors; we'll come back to this in a second
+        //
+        // We use a few mathematical facts to simplify this:
+        //
+        // * The tranpose of a rotation matrix is its inverse
+        // * The transpose of a scaling matrix is itself.
+        // * The inverse of a scaling matrix is also a scaling matrix, which does not affect a
+        //   vector's direction.
+        //
+        // This means we can simplify the first 4 cases into one: just take the inverse transpose
+        // of the transform. Transposing the inverse of the rotation will give the original rotation
+        // again, and transposing the scaling will not affect the normal's direction at all:
         let mut world_normal = self.transformation_inverse_transpose() * object_normal;
-        // transpose of translation matrix will mess with w; manually setting it back
-        // to 0 here is faster and simpler than avoiding the computation by taking the
-        // 3x3 submatrix before the computation.
-        world_normal.w = 0.0;
 
+        // That leaves translation. Translation does not affect vectors at all, so conceptually it
+        // can be ignored. Multiplication by translation does not affect the 3x3 x-y-z components of
+        // a transformation, so mathematically speaking the direct way to ignore translation is to
+        // take the 3x3 x-y-z submatrix of the transformation and inverse-transpose that. A
+        // simplified approach taken by many systems, including this one, is to multiply the
+        // inverse-transpose as-is and then manually set the w component to 0:
+        // TODO: It would actually be more efficient to avoid multiplication by that 4th column altogether.
+        world_normal.w = 0.0;
+        // The final step is to renormalize the transformed normal vector, since the inverse-
+        // transpose of a transform does not preserve the normal's length:
         world_normal.norm()
     }
 
