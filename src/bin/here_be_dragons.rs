@@ -20,6 +20,7 @@ use ray_tracer_challenge::tuple::Tuple;
 use ray_tracer_challenge::world::World;
 use ray_tracer_challenge::{color, point, vector};
 use std::f32::consts::PI;
+use std::time::Instant;
 use std::{env, fs::File, path::Path};
 
 // To render larger, be sure to use an optimized (release) build and give it up to a minute to finish
@@ -161,6 +162,7 @@ fn main() {
         (right_transform, right_dragon_material, right_case_material),
     ];
 
+    let start = Instant::now();
     let objects: Vec<Box<dyn Shape>> = element_data
         .drain(0..)
         .map(|(element_transform, dragon_material, case_material)| {
@@ -173,6 +175,11 @@ fn main() {
         })
         .map(|el| Box::new(el) as _)
         .collect();
+    let duration = start.elapsed();
+    eprintln!(
+        "Time elapsed during dragon construction was: {:?}",
+        duration
+    );
 
     let world = World {
         objects,

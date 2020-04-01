@@ -3,6 +3,7 @@ use crate::matrix::Matrix;
 use crate::ray::Ray;
 use crate::tuple::Tuple;
 use crate::world::World;
+use std::time::{Duration, Instant};
 
 pub struct Camera {
     // in pixels
@@ -74,6 +75,8 @@ impl Camera {
 
     pub fn render(&self, world: World, reflection_recursion_depth: i16) -> Canvas {
         let mut canvas = Canvas::new(self.width_pixels as usize, self.height_pixels as usize);
+
+        let start = Instant::now();
         for y in 0..self.height_pixels - 1 {
             for x in 0..self.width_pixels - 1 {
                 let ray = self.ray_for_pixel(x, y);
@@ -82,6 +85,8 @@ impl Camera {
             }
             eprintln!("Rendered y {}/{}", y, self.height_pixels);
         }
+        let duration = start.elapsed();
+        eprintln!("Time elapsed in render() is: {:?}", duration);
         canvas
     }
 }
