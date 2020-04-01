@@ -10,7 +10,7 @@ use std::f32;
 
 // Base shape is a double-napped cone with tips meeting at the origin and extending vertically along the y axis.
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Cone {
     base: BaseShape,
     pub minimum_y: f32,

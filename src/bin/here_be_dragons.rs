@@ -137,42 +137,56 @@ fn main() {
             .build(),
     );
 
+    // load the dragon once and clone it to save time
+    let dragon = get_dragon(dragon_file_path);
+
     let mut element_data = vec![
         (
+            dragon.clone(),
             center_front_transform,
             center_front_dragon_material,
             center_front_case_material,
         ),
         (
+            dragon.clone(),
             center_back_transform,
             center_back_dragon_material,
             center_back_case_material,
         ),
         (
+            dragon.clone(),
             center_left_transform,
             center_left_dragon_material,
             center_left_case_material,
         ),
-        (left_transform, left_dragon_material, left_case_material),
         (
+            dragon.clone(),
+            left_transform,
+            left_dragon_material,
+            left_case_material,
+        ),
+        (
+            dragon.clone(),
             center_right_transform,
             center_right_dragon_material,
             center_right_case_material,
         ),
-        (right_transform, right_dragon_material, right_case_material),
+        (
+            dragon,
+            right_transform,
+            right_dragon_material,
+            right_case_material,
+        ),
     ];
 
     let start = Instant::now();
     let objects: Vec<Box<dyn Shape>> = element_data
         .drain(0..)
-        .map(|(element_transform, dragon_material, case_material)| {
-            get_scene_element(
-                dragon_file_path,
-                element_transform,
-                dragon_material,
-                case_material,
-            )
-        })
+        .map(
+            |(dragon, element_transform, dragon_material, case_material)| {
+                get_scene_element(dragon, element_transform, dragon_material, case_material)
+            },
+        )
         .map(|el| Box::new(el) as _)
         .collect();
     let duration = start.elapsed();
@@ -282,7 +296,7 @@ fn get_dragon(dragon_file_path: &Path) -> GroupShape {
 }
 
 fn get_scene_element(
-    dragon_file_path: &Path,
+    mut dragon: GroupShape,
     element_transform: Matrix,
     dragon_material: Material,
     display_case_material: Option<Material>,
@@ -290,7 +304,6 @@ fn get_scene_element(
     let mut element = GroupShape::new();
     element.set_transformation(element_transform);
 
-    let mut dragon = get_dragon(dragon_file_path);
     eprintln!("Setting dragon material...");
     dragon.set_material(dragon_material);
 

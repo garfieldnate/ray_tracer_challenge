@@ -7,7 +7,7 @@ use crate::tuple::Tuple;
 use std::cell::RefCell;
 use std::fmt::Debug;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct TestShape {
     pub base: BaseShape,
     pub saved_ray: RefCell<Option<Ray>>,

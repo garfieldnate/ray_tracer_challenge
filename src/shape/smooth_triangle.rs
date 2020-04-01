@@ -6,7 +6,7 @@ use crate::shape::shape::Shape;
 use crate::shape::triangle::Triangle;
 use crate::tuple::Tuple;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct SmoothTriangle {
     // visible for testing
     pub(crate) base: Triangle,

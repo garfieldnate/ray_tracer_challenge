@@ -15,7 +15,7 @@
 -   Canvas write_pixel: fail properly for out of bounds
 -   transformation should probably all be in matrix
 -   Integrate error-chain if needed (http://brson.github.io/2016/11/30/starting-with-error-chain)
--   update any tests that could benefit from the new downcasting functionality
+- Support multiple lights
 
 ### Performance
 
@@ -38,6 +38,7 @@
 -   display a grid
 -   Switch to IntelliJ
 -   Convenience function for creating skyboxes
+- Switch to just a pattern value in material, no color; typed-builder and derive-builder both have difficulties with this (some compile error about not being able to copy a boxed value)
 
 ### Maybes/Ideas
 

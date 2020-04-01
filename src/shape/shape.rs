@@ -6,12 +6,13 @@ use crate::ray::Ray;
 use crate::shape::base_shape::BaseShape;
 use crate::tuple::Tuple;
 use downcast_rs::Downcast;
+use dyn_clone::DynClone;
 use std::fmt::Debug;
 use std::hash::Hash;
 use std::hash::Hasher;
 
 // TODO: update to DowncastSync later when parallelizing
-pub trait Shape: Debug + Downcast {
+pub trait Shape: Debug + DynClone + Downcast {
     // tthe BaseShape that the wrapping instance is delegating to
     fn get_base(&self) -> &BaseShape;
     fn get_base_mut(&mut self) -> &mut BaseShape;
@@ -168,6 +169,7 @@ pub trait Shape: Debug + Downcast {
 
 // TODO: add 'sync' keyword when parallelizing
 impl_downcast!(Shape);
+dyn_clone::clone_trait_object!(Shape);
 
 impl PartialEq for dyn Shape {
     fn eq(&self, other: &Self) -> bool {

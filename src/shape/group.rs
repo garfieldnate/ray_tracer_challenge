@@ -174,6 +174,16 @@ impl Shape for GroupShape {
     }
 }
 
+impl Clone for GroupShape {
+    fn clone(&self) -> Self {
+        Self {
+            base: self.base.clone(),
+            children: self.children.clone(),
+            cached_bounding_box: RefCell::new(None),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

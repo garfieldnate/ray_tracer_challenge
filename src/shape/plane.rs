@@ -10,7 +10,7 @@ use std::f32;
 
 // Base shape is y=0 (so an xz plane, extending into the screen as a floor)
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Plane {
     base: BaseShape,
 }

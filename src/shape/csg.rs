@@ -135,6 +135,18 @@ impl Shape for CSG {
     }
 }
 
+impl Clone for CSG {
+    fn clone(&self) -> Self {
+        Self {
+            base: self.base.clone(),
+            op: self.op,
+            s1: self.s1.clone(),
+            s2: self.s2.clone(),
+            cached_bounding_box: RefCell::new(None),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

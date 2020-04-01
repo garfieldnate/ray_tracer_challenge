@@ -5,7 +5,7 @@ use crate::shape::base_shape::BaseShape;
 use crate::shape::shape::Shape;
 use crate::tuple::Tuple;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Triangle {
     base: BaseShape,
     pub p1: Tuple,

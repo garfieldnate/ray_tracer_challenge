@@ -9,7 +9,7 @@ use crate::tuple::Tuple;
 use std::fmt::Debug;
 
 // Other shape implementations should delegate to this one where these defaults are acceptable.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct BaseShape {
     casts_shadow: bool,
     id: ObjectId,
@@ -136,5 +136,12 @@ mod tests {
 
         shape.set_casts_shadow(false);
         assert!(!shape.casts_shadow(), "casts_shadow should be settable");
+    }
+
+    #[test]
+    fn cloned_baseshapes_have_different_ids() {
+        let shape1 = BaseShape::new();
+        let shape2 = shape1.clone();
+        assert_ne!(shape1.id, shape2.id);
     }
 }
