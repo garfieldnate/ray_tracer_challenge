@@ -206,14 +206,6 @@ impl Matrix {
             for column in 0..self.size() {
                 let c = self.cofactor(row, column);
                 matrix_inverse.data[column][row] = c / determinant;
-                // println!(
-                //     "{},{} is {}/{}={}",
-                //     column,
-                //     row,
-                //     c,
-                //     determinant,
-                //     c / determinant
-                // );
             }
         }
         matrix_inverse

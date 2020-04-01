@@ -134,10 +134,13 @@ pub trait Shape: Debug + Downcast {
         // take the 3x3 x-y-z submatrix of the transformation and inverse-transpose that. A
         // simplified approach taken by many systems, including this one, is to multiply the
         // inverse-transpose as-is and then manually set the w component to 0:
-        // TODO: It would actually be more efficient to avoid multiplication by that 4th column altogether.
         world_normal.w = 0.0;
+        // I experimented with explicitly skipping the multiplication for the extra row and column
+        // of the matrix, but there was 0 improvement in render times and I didn't want to maintain
+        // extra code for nothing.
+        //
         // The final step is to renormalize the transformed normal vector, since the inverse-
-        // transpose of a transform does not preserve the normal's length:
+        // transpose of the transform does not preserve the normal's length:
         world_normal.norm()
     }
 

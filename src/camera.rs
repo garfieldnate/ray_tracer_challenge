@@ -3,7 +3,7 @@ use crate::matrix::Matrix;
 use crate::ray::Ray;
 use crate::tuple::Tuple;
 use crate::world::World;
-use std::time::{Duration, Instant};
+use std::time::Instant;
 
 pub struct Camera {
     // in pixels
