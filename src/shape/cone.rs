@@ -1,5 +1,6 @@
 use crate::bounding_box::BoundingBox;
 use crate::intersection::Intersection;
+use crate::intersection::IntersectionList;
 use crate::material::Material;
 use crate::matrix::Matrix;
 use crate::ray::Ray;
@@ -49,11 +50,11 @@ impl Shape for Cone {
     fn get_base_mut(&mut self) -> &mut BaseShape {
         &mut self.base
     }
-    fn local_intersect(&self, object_ray: Ray) -> Vec<Intersection> {
+    fn local_intersect(&self, object_ray: Ray) -> IntersectionList {
         let mut intersections: Vec<Intersection> = Vec::with_capacity(2);
         self.intersect_sides(&object_ray, &mut intersections);
         self.intersect_caps(&object_ray, &mut intersections);
-        intersections
+        IntersectionList::with_intersections(intersections)
     }
 
     // norms at the corners are the norms of one of the adjacent sides
@@ -209,7 +210,7 @@ mod tests {
         ];
         for (name, origin, direction, distance1, distance2) in test_data {
             let r = Ray::new(origin, direction.norm());
-            let xs = c.local_intersect(r);
+            let xs = c.local_intersect(r).xs;
             assert_eq!(xs.len(), 2, "{}: should find 2 intersections", name);
             debug_assert!(
                 xs[0]
@@ -236,7 +237,7 @@ mod tests {
     fn intersect_cone_with_ray_parallel_to_one_half() {
         let s = Cone::new();
         let r = Ray::new(point!(0, 0, -1), vector!(0, 1, 1).norm());
-        let intersections = s.local_intersect(r);
+        let intersections = s.local_intersect(r).xs;
         assert_eq!(intersections.len(), 1);
         assert_abs_diff_eq!(intersections[0].distance, 0.353_553_38);
     }
@@ -257,7 +258,7 @@ mod tests {
         ];
         for (name, origin, direction, expected_num_intersections) in test_data {
             let r = Ray::new(origin, direction.norm());
-            let xs = c.local_intersect(r);
+            let xs = c.local_intersect(r).xs;
             assert_eq!(xs.len(), expected_num_intersections, "{}", name);
         }
     }

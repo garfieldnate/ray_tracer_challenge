@@ -1,5 +1,6 @@
 use crate::bounding_box::BoundingBox;
 use crate::intersection::Intersection;
+use crate::intersection::IntersectionList;
 use crate::ray::Ray;
 use crate::shape::base_shape::BaseShape;
 use crate::shape::shape::Shape;
@@ -42,7 +43,7 @@ impl Shape for Triangle {
         &mut self.base
     }
 
-    fn local_intersect(&self, object_ray: Ray) -> Vec<Intersection> {
+    fn local_intersect(&self, object_ray: Ray) -> IntersectionList {
         // Get a vector that's orthogonal to both the incoming ray and one of the edges
         let dir_cross_e2 = object_ray.direction.cross(self.e2);
         // Check the cosine between the other edge and this orthogonal vector
@@ -51,7 +52,7 @@ impl Shape for Triangle {
         // to the triangle face and will miss the triangle
         // TODO: should probably be a constant somewhere
         if determinant.abs() < 0.0000001 {
-            return vec![];
+            return IntersectionList::empty();
         }
 
         // TODO: explain u and v
@@ -60,14 +61,14 @@ impl Shape for Triangle {
         let p1_to_origin = object_ray.origin - self.p1;
         let u = f * p1_to_origin.dot(dir_cross_e2);
         if u < 0.0 || u > 1.0 {
-            return vec![];
+            return IntersectionList::empty();
         }
 
         // Ray misses p2-p3 and p1-p2 edges. TODO: explain math
         let origin_cross_e1 = p1_to_origin.cross(self.e1);
         let v = f * object_ray.direction.dot(origin_cross_e1);
         if v < 0.0 || (u + v) > 1.0 {
-            return vec![];
+            return IntersectionList::empty();
         }
 
         // Ray intersects the triangle. TODO: explain math

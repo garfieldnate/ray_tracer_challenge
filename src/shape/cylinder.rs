@@ -1,5 +1,6 @@
 use crate::bounding_box::BoundingBox;
 use crate::intersection::Intersection;
+use crate::intersection::IntersectionList;
 use crate::material::Material;
 use crate::matrix::Matrix;
 use crate::ray::Ray;
@@ -49,13 +50,13 @@ impl Shape for Cylinder {
     fn get_base_mut(&mut self) -> &mut BaseShape {
         &mut self.base
     }
-    fn local_intersect(&self, object_ray: Ray) -> Vec<Intersection> {
+    fn local_intersect(&self, object_ray: Ray) -> IntersectionList {
         let mut intersections: Vec<Intersection> = Vec::with_capacity(2);
         self.intersect_sides(&object_ray, &mut intersections);
         if intersections.len() < 2 {
             self.intersect_caps(&object_ray, &mut intersections);
         }
-        intersections
+        IntersectionList::with_intersections(intersections)
     }
 
     // norms at the corners are the norms of one of the adjacent sides
@@ -167,7 +168,7 @@ mod tests {
         ];
         for (name, origin, direction) in test_data {
             let r = Ray::new(origin, direction.norm());
-            let xs = c.local_intersect(r);
+            let xs = c.local_intersect(r).xs;
             assert!(
                 xs.is_empty(),
                 "{}: should find 0 intersections but found {}: {:?}",
@@ -200,7 +201,7 @@ mod tests {
         ];
         for (name, origin, direction, distance1, distance2) in test_data {
             let r = Ray::new(origin, direction.norm());
-            let xs = c.local_intersect(r);
+            let xs = c.local_intersect(r).xs;
             assert_eq!(xs.len(), 2, "{}: should find 2 intersections", name);
             debug_assert!(
                 xs[0]
@@ -271,7 +272,7 @@ mod tests {
         ];
         for (name, origin, direction, expected_num_intersections) in test_data {
             let r = Ray::new(origin, direction.norm());
-            let xs = c.local_intersect(r);
+            let xs = c.local_intersect(r).xs;
             assert_eq!(xs.len(), expected_num_intersections, "{}", name);
         }
     }
@@ -319,7 +320,7 @@ mod tests {
         ];
         for (name, origin, direction, expected_num_intersections) in test_data {
             let r = Ray::new(origin, direction.norm());
-            let xs = c.local_intersect(r);
+            let xs = c.local_intersect(r).xs;
             assert_eq!(xs.len(), expected_num_intersections, "{}", name);
         }
     }

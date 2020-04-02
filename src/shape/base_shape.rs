@@ -1,5 +1,6 @@
 use crate::bounding_box::BoundingBox;
 use crate::intersection::Intersection;
+use crate::intersection::IntersectionList;
 use crate::material::Material;
 use crate::matrix::Matrix;
 use crate::object_id::ObjectId;
@@ -79,7 +80,7 @@ impl Shape for BaseShape {
     }
 
     // These two methods *must* be implemented by wrapping implementations
-    fn local_intersect(&self, _object_ray: Ray) -> Vec<Intersection> {
+    fn local_intersect(&self, _object_ray: Ray) -> IntersectionList {
         unimplemented!()
     }
     fn local_norm_at(&self, _object_point: Tuple, _hit: &Intersection) -> Tuple {

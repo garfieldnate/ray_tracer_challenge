@@ -1,5 +1,6 @@
 use crate::bounding_box::BoundingBox;
 use crate::intersection::Intersection;
+use crate::intersection::IntersectionList;
 use crate::material::Material;
 use crate::matrix::Matrix;
 use crate::ray::Ray;
@@ -113,11 +114,11 @@ impl Shape for GroupShape {
         // important in case parent group needs to undo its own transform propagated to this group
         self.get_base_mut().set_transformation(t);
     }
-    fn intersect(&self, world_ray: Ray) -> Vec<Intersection> {
+    fn intersect(&self, world_ray: Ray) -> IntersectionList {
         // skip world to local conversion for Group, since the transformation matrix is propagated to the children
         self.local_intersect(world_ray)
     }
-    fn local_intersect(&self, object_ray: Ray) -> Vec<Intersection> {
+    fn local_intersect(&self, object_ray: Ray) -> IntersectionList {
         let mut intersections = vec![];
 
         let b = self.bounding_box();

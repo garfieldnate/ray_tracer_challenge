@@ -1,5 +1,6 @@
 use crate::bounding_box::BoundingBox;
 use crate::intersection::Intersection;
+use crate::intersection::IntersectionList;
 use crate::material::Material;
 use crate::matrix::Matrix;
 use crate::ray::Ray;
@@ -17,7 +18,7 @@ pub trait Shape: Debug + DynClone + Downcast {
     fn get_base(&self) -> &BaseShape;
     fn get_base_mut(&mut self) -> &mut BaseShape;
 
-    fn local_intersect(&self, object_ray: Ray) -> Vec<Intersection>;
+    fn local_intersect(&self, object_ray: Ray) -> IntersectionList;
     fn local_norm_at(&self, object_point: Tuple, hit: &Intersection) -> Tuple;
 
     fn bounding_box(&self) -> BoundingBox;
@@ -64,7 +65,7 @@ pub trait Shape: Debug + DynClone + Downcast {
     // When intersecting the shape with a ray, all shapes need to first convert the
     //ray into object space, transforming it by the inverse of the shape’s transformation
     //matrix.
-    fn intersect(&self, world_ray: Ray) -> Vec<Intersection> {
+    fn intersect(&self, world_ray: Ray) -> IntersectionList {
         let object_ray = self.world_to_object_ray(&world_ray);
         self.local_intersect(object_ray)
     }

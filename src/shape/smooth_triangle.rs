@@ -1,5 +1,6 @@
 use crate::bounding_box::BoundingBox;
 use crate::intersection::Intersection;
+use crate::intersection::IntersectionList;
 use crate::ray::Ray;
 use crate::shape::base_shape::BaseShape;
 use crate::shape::shape::Shape;
@@ -36,7 +37,7 @@ impl Shape for SmoothTriangle {
         self.base.get_base_mut()
     }
 
-    fn local_intersect(&self, object_ray: Ray) -> Vec<Intersection> {
+    fn local_intersect(&self, object_ray: Ray) -> IntersectionList {
         self.base.local_intersect(object_ray)
     }
 

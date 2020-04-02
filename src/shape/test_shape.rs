@@ -1,5 +1,6 @@
 use crate::bounding_box::BoundingBox;
 use crate::intersection::Intersection;
+use crate::intersection::IntersectionList;
 use crate::ray::Ray;
 use crate::shape::base_shape::BaseShape;
 use crate::shape::shape::Shape;
@@ -31,7 +32,7 @@ impl Shape for TestShape {
     fn get_base_mut(&mut self) -> &mut BaseShape {
         &mut self.base
     }
-    fn local_intersect(&self, _object_ray: Ray) -> Vec<Intersection> {
+    fn local_intersect(&self, _object_ray: Ray) -> IntersectionList {
         // save the incoming ray for a comparison test
         self.saved_ray.borrow_mut().replace(_object_ray);
         vec![]

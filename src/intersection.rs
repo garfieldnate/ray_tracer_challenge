@@ -1,3 +1,4 @@
+use crate::material::Material;
 use crate::shape::shape::Shape;
 use std::cmp::Ordering::Equal;
 
@@ -32,6 +33,23 @@ impl Intersection<'_> {
             .iter()
             .filter(|i| i.distance >= 0.0)
             .min_by(|i1, i2| i1.distance.partial_cmp(&i2.distance).unwrap_or(Equal))
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct IntersectionList<'a> {
+    pub xs: Vec<Intersection<'a>>,
+    pub material: Option<&'a Material>,
+}
+impl IntersectionList<'_> {
+    pub fn empty() -> Self {
+        Self {
+            xs: vec![],
+            material: None,
+        }
+    }
+    pub fn with_intersections<'a>(xs: Vec<Intersection<'a>>) -> IntersectionList<'a> {
+        IntersectionList { xs, material: None }
     }
 }
 

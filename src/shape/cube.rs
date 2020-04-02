@@ -1,5 +1,6 @@
 use crate::bounding_box::BoundingBox;
 use crate::intersection::Intersection;
+use crate::intersection::IntersectionList;
 use crate::material::Material;
 use crate::matrix::Matrix;
 use crate::ray::Ray;
@@ -52,13 +53,13 @@ impl Shape for Cube {
         &mut self.base
     }
     // uses AABB. TODO: more documentation
-    fn local_intersect(&self, object_ray: Ray) -> Vec<Intersection> {
+    fn local_intersect(&self, object_ray: Ray) -> IntersectionList {
         match aabb_intersection(object_ray, Cube::min_point(), Cube::max_point()) {
-            Some((min_distance, max_distance)) => vec![
+            Some((min_distance, max_distance)) => IntersectionList::with_intersections(vec![
                 Intersection::new(min_distance, self),
                 Intersection::new(max_distance, self),
-            ],
-            None => vec![],
+            ]),
+            None => IntersectionList::empty(),
         }
     }
 
@@ -146,7 +147,7 @@ mod tests {
         ];
         for (name, origin, direction, distance1, distance2) in test_data {
             let r = Ray::new(origin, direction);
-            let xs = c.local_intersect(r);
+            let xs = c.local_intersect(r).xs;
             assert_eq!(xs.len(), 2, "{}: should find 2 intersections", name);
             assert_eq!(
                 xs[0].distance, distance1,
@@ -191,7 +192,7 @@ mod tests {
         ];
         for (name, origin, direction) in test_data {
             let r = Ray::new(origin, direction);
-            let xs = c.local_intersect(r);
+            let xs = c.local_intersect(r).xs;
             assert!(
                 xs.is_empty(),
                 "case {}: should find 0 intersections but found {}: {:?}",

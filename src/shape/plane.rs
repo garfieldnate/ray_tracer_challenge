@@ -1,5 +1,6 @@
 use crate::bounding_box::BoundingBox;
 use crate::intersection::Intersection;
+use crate::intersection::IntersectionList;
 use crate::material::Material;
 use crate::matrix::Matrix;
 use crate::ray::Ray;
@@ -42,7 +43,7 @@ impl Shape for Plane {
     fn get_base_mut(&mut self) -> &mut BaseShape {
         &mut self.base
     }
-    fn local_intersect(&self, object_ray: Ray) -> Vec<Intersection> {
+    fn local_intersect(&self, object_ray: Ray) -> IntersectionList {
         // the plane is in the xz plane, so its y is 0.
         // if the ray is roughly coplanar or parallel with the plane,
         // we won't be able to see it

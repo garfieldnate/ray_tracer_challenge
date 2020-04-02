@@ -1,5 +1,6 @@
 use crate::bounding_box::BoundingBox;
 use crate::intersection::Intersection;
+use crate::intersection::IntersectionList;
 use crate::ray::Ray;
 use crate::shape::base_shape::BaseShape;
 use crate::shape::shape::Shape;
@@ -84,23 +85,23 @@ impl Shape for CSG {
         &mut self.base
     }
 
-    fn local_intersect(&self, object_ray: Ray) -> Vec<Intersection> {
-        let mut intersections = vec![];
-
+    fn local_intersect(&self, object_ray: Ray) -> IntersectionList {
         let b = self.bounding_box();
         if !b.intersects(object_ray) {
-            return intersections;
+            return IntersectionList::empty();
         }
 
-        for i in self.s1.as_ref().intersect(object_ray) {
+        // Ignore any material overrides from the children
+        let mut intersections = vec![];
+        for i in self.s1.as_ref().intersect(object_ray).xs {
             intersections.push(i);
         }
-        for i in self.s2.as_ref().intersect(object_ray) {
+        for i in self.s2.as_ref().intersect(object_ray).xs {
             intersections.push(i);
         }
         intersections.sort_by(|i1, i2| i1.distance.partial_cmp(&i2.distance).unwrap_or(Equal));
 
-        self.filter_intersections(&intersections)
+        IntersectionList::with_intersections(self.filter_intersections(&intersections))
     }
 
     fn local_norm_at(&self, _object_point: Tuple, _hit: &Intersection) -> Tuple {
@@ -297,7 +298,7 @@ mod tests {
     fn ray_misses_csg_object() {
         let c = CSG::new(Union(), Box::new(Sphere::new()), Box::new(Cube::new()));
         let r = Ray::new(point!(0, 2, -5), vector!(0, 0, 1));
-        let xs = c.local_intersect(r);
+        let xs = c.local_intersect(r).xs;
         assert!(xs.is_empty());
     }
 
@@ -307,7 +308,7 @@ mod tests {
         let s2 = Sphere::build(translation(0., 0., 0.5), Material::default());
         let c = CSG::new(Union(), Box::new(s1), Box::new(s2));
         let r = Ray::new(point!(0, 0, -5), vector!(0, 0, 1));
-        let xs = c.local_intersect(r);
+        let xs = c.local_intersect(r).xs;
         assert_eq!(xs.len(), 2);
         assert_eq!(xs[0], Intersection::new(4.0, c.s1.as_ref()));
         assert_eq!(xs[1], Intersection::new(6.5, c.s2.as_ref()));

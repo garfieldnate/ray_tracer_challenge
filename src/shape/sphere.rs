@@ -1,5 +1,6 @@
 use crate::bounding_box::BoundingBox;
 use crate::intersection::Intersection;
+use crate::intersection::IntersectionList;
 use crate::material::Material;
 use crate::matrix::Matrix;
 use crate::ray::Ray;
@@ -44,7 +45,7 @@ impl Shape for Sphere {
     fn get_base_mut(&mut self) -> &mut BaseShape {
         &mut self.base
     }
-    fn local_intersect(&self, object_ray: Ray) -> Vec<Intersection> {
+    fn local_intersect(&self, object_ray: Ray) -> IntersectionList {
         // the vector from the sphere's center to the ray origin
         let sphere_to_ray = object_ray.origin - self.center;
         // println!("sphere to ray: {:?}", sphere_to_ray);
