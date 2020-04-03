@@ -18,6 +18,7 @@ pub struct GroupShape {
     base: BaseShape,
     children: Vec<Box<dyn Shape>>,
     cached_bounding_box: RefCell<Option<BoundingBox>>,
+    material_override: Option<Material>,
 }
 
 impl GroupShape {
@@ -92,12 +93,9 @@ impl Shape for GroupShape {
             self.children.iter().any(|s| s.as_ref().includes(other))
         }
     }
-    // just pass the material on to the children
-    // TODO: could be very inefficient for large groups
+    // store the material as an override to be applied to intersections on this group
     fn set_material(&mut self, m: Material) {
-        for child in &mut self.children.iter_mut() {
-            child.set_material(m.clone());
-        }
+        self.material_override = Some(m);
     }
     fn set_transformation(&mut self, t: Matrix) {
         // loop over children and undo the previous transformation that was applied to them
@@ -118,19 +116,23 @@ impl Shape for GroupShape {
         self.local_intersect(world_ray)
     }
     fn local_intersect(&self, object_ray: Ray) -> Vec<Intersection> {
-        let mut intersections = vec![];
-
         let b = self.bounding_box();
         if !b.intersects(object_ray) {
-            return intersections;
+            return vec![];
         }
-
+        let mut intersections = vec![];
         for c in &mut self.children.iter() {
             for i in c.intersect(object_ray) {
                 intersections.push(i);
             }
         }
+        // TODO: can we get rid of this sorting? It looks like it's done again in World
         intersections.sort_by(|i1, i2| i1.distance.partial_cmp(&i2.distance).unwrap_or(Equal));
+        if let Some(m) = &self.material_override {
+            for i in intersections.iter_mut() {
+                i.material_override = Some(m);
+            }
+        }
         intersections
     }
     fn local_norm_at(&self, _object_point: Tuple, _hit: &Intersection) -> Tuple {
@@ -180,6 +182,7 @@ impl Clone for GroupShape {
             base: self.base.clone(),
             children: self.children.clone(),
             cached_bounding_box: RefCell::new(None),
+            material_override: None,
         }
     }
 }
