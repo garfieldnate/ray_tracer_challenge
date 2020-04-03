@@ -1,3 +1,4 @@
+use crate::material::Material;
 use crate::shape::shape::Shape;
 use std::cmp::Ordering::Equal;
 
@@ -7,6 +8,7 @@ pub struct Intersection<'a> {
     pub object: &'a dyn Shape,
     pub u: f32,
     pub v: f32,
+    pub material_override: Option<&'a Material>,
 }
 
 impl Intersection<'_> {
@@ -16,6 +18,7 @@ impl Intersection<'_> {
             object,
             u: 0.,
             v: 0.,
+            material_override: None,
         }
     }
     pub fn new_with_uv(distance: f32, object: &dyn Shape, u: f32, v: f32) -> Intersection {
@@ -24,6 +27,7 @@ impl Intersection<'_> {
             object,
             u,
             v,
+            material_override: None,
         }
     }
     // returns the a reference to the intersection with the lowest non-negative distance (or None if all are negative)
