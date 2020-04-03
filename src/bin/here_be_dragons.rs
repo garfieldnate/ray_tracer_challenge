@@ -310,11 +310,15 @@ fn get_scene_element(
     let dragon_box = {
         match display_case_material {
             Some(m) => {
+                eprintln!("Creating display case...");
                 let mut display_case = get_display_case();
                 display_case.set_material(m);
 
                 let mut dragon_box = GroupShape::new();
+
+                eprintln!("Adding dragon to box...");
                 dragon_box.add_child(Box::new(dragon));
+                eprintln!("Adding display case to box...");
                 dragon_box.add_child(Box::new(display_case));
 
                 dragon_box
