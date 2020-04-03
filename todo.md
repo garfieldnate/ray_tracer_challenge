@@ -44,8 +44,7 @@
 
 -   Twist transformation
 -   Better model of point vs. vector: typing should reflect difference
--   Reorganize as [workspace](https://doc.rust-lang.org/cargo/reference/manifest.html#the-workspace-section)
--   reimplement everything using geometric algebra for funsies (https://crypto.stanford.edu/~blynn/haskell/ga.html)
+-   reimplement everything using Grassman algebra for funsies
 -   lines
 -   electricity
 -   pattern that looks like damascus steel
