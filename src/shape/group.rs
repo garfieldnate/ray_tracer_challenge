@@ -7,7 +7,6 @@ use crate::shape::base_shape::BaseShape;
 use crate::shape::shape::Shape;
 use crate::tuple::Tuple;
 use std::cell::RefCell;
-use std::cmp::Ordering::Equal;
 
 // instead of using BaseShape for the transform here, we propagate transforms to the children and then
 // locally always assume a transform of I, allowing children to do all actual ray transformations.
@@ -130,7 +129,6 @@ impl Shape for GroupShape {
                 intersections.push(i);
             }
         }
-        intersections.sort_by(|i1, i2| i1.distance.partial_cmp(&i2.distance).unwrap_or(Equal));
         intersections
     }
     fn local_norm_at(&self, _object_point: Tuple, _hit: &Intersection) -> Tuple {
@@ -196,6 +194,7 @@ mod tests {
     use crate::transformations::scaling;
     use crate::transformations::translation;
     use crate::tuple::Tuple;
+    use std::cmp::Ordering::Equal;
     use std::f32::consts::PI;
 
     #[test]
@@ -252,7 +251,9 @@ mod tests {
         }
 
         let r = Ray::new(point!(0, 0, -5), vector!(0, 0, 1));
-        let xs = g.local_intersect(r);
+        let mut xs = g.local_intersect(r);
+        // sort for easier testing
+        xs.sort_by(|i1, i2| i1.distance.partial_cmp(&i2.distance).unwrap_or(Equal));
         assert_eq!(xs.len(), 4);
         assert_eq!(xs[0].object.transformation(), &s2_transformation);
         assert_eq!(xs[1].object.transformation(), &s2_transformation);
