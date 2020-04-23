@@ -146,7 +146,7 @@ impl World {
             return color!(0, 0, 0);
         }
         let refracted = comps.refracted_angle_values();
-        if refracted.sin2 > 1.0 {
+        if refracted.is_total_internal_reflection {
             // println!("Total internal refraction!");
             return color!(0, 0, 0);
         } else {
