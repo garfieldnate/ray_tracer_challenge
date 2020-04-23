@@ -35,6 +35,7 @@ pub mod obj_parser;
 mod object_id;
 pub mod pattern;
 pub mod ray;
+pub mod sampling;
 pub mod shape;
 pub mod transformations;
 pub mod world;
