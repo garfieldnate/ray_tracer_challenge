@@ -1,3 +1,5 @@
+Up next: anti-aliasing (FXAA: https://catlikecoding.com/unity/tutorials/advanced-rendering/fxaa/)
+
 # TODO
 
 -   Why do our glass CSG balls with subtracted cylinders look so wrong?
