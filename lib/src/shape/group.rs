@@ -31,7 +31,7 @@ impl GroupShape {
     }
 
     /// Note to clients: the children's transforms will have this group's transform baked in.
-    /// To get the child in its origin form, call remove_child (not implemented)
+    /// To get the child in its original form, call remove_child (not implemented)
     pub fn get_children(&self) -> &Vec<Box<dyn Shape>> {
         &self.children
     }
@@ -43,7 +43,7 @@ impl GroupShape {
         self.children.push(child);
     }
 
-    // Meant ONLY to be used by divide because returned left and right children will
+    // Meant ONLY to be used by divide, because returned left and right children will
     // still have the group's transform baked into their own.
     fn partition_children(&mut self) -> (Vec<Box<dyn Shape>>, Vec<Box<dyn Shape>>) {
         let (left_bounds, right_bounds) = self.bounding_box().split();
@@ -65,7 +65,7 @@ impl GroupShape {
     }
 
     // Meant ONLY to be used by divide because it does NOT push down this group's
-    // transformation (partition children left the transformation baked in).
+    // transformation (partition_children left the transformation baked in).
     fn make_subgroup(&mut self, mut new_group_children: Vec<Box<dyn Shape>>) {
         // don't bother wrapping a single shape in another group object
         if new_group_children.len() == 1 {
