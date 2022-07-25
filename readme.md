@@ -1,5 +1,7 @@
 # Ray Tracer Challenge in Rust
 
+![Two shiny spheres with soft shadows](https://user-images.githubusercontent.com/778453/76680715-33437400-65eb-11ea-9a32-cf4536543d43.png)
+
 This is a personal project. I'm learning Rust while working my way through Jamis Buck's [The Ray Tracer Challenge](http://raytracerchallenge.com/). The book is extremely addictive and this has been one of the funnest projects I've ever worked on!
 
 ## Important Commands
